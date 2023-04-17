@@ -1,0 +1,32 @@
+# SNSPD_analysis gitignore file
+.DS_Store
+
+# SNSPD_Basic_measurements
+SNSPD_Basic_measurements/data
+SNSPD_Basic_measurements/plots
+SNSPD_Basic_measurements/.DS_Store
+
+# SNSPD_Laser_measurements/
+SNSPD_Laser_measurements/data
+SNSPD_Laser_measurements/plots
+SNSPD_Laser_measurements/output_root
+SNSPD_Laser_measurements/__pycache__
+SNSPD_Laser_measurements/.DS_Store
+SNSPD_Laser_measurements/test.py
+
+# SQUID
+SQUID/data
+SQUID/plots
+
+# Ellipsometry
+Ellipsometry/data
+Ellipsometry/plots
+
+# NoiseStudy
+NoiseStudy/data
+NoiseStudy/plots
+NoiseStudy/.DS_Store
+
+# simulation
+simulation/plots
+simulation/Polarization
