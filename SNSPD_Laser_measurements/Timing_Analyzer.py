@@ -56,22 +56,23 @@ def Get_df_RiseFall_Range(df, chName, value):
     if ( value > 0 ): print(f"Edge Start: {start_index}, Edge End: {end_index}, Rise Time: {RiseFall_time}")
     if ( value < 0 ): print(f"Edge Start: {start_index}, Edge End: {end_index}, Fall Time: {RiseFall_time}")
 
-def Get_turning_times(inputfunc, peak_threshold, pedestal_threshold, Rise_Fall, debug=False):
+def Get_turning_times(inputfunc, range_threshold, rangeMin, rangeMax, Rise_Fall, debug=False):
     # Obtain the first derivative of the spline function
     roots = inputfunc.derivative().roots()
     p_pedestals=[]
     p_peaks=[]
     # Find the turning value
     for iroot, root in enumerate(roots):
-        # print (iroot, root, inputfunc(root), inputfunc(roots[iroot-1]))
-        if (Rise_Fall == 'Rise' and inputfunc(root) > peak_threshold and inputfunc(roots[iroot-1]) < pedestal_threshold):
-            p_pedestals.append(Point(roots[iroot-1], inputfunc(roots[iroot-1])))
-            p_peaks.append(Point(root, inputfunc(root)))
-            if (debug): print(f"Rise Turning Point: ({p_pedestals[-1].x},{p_pedestals[-1].y}) ({p_peaks[-1].x},{p_peaks[-1].y})")
-        elif (Rise_Fall == 'Fall' and inputfunc(root) < peak_threshold and inputfunc(roots[iroot-1]) > pedestal_threshold):
-            p_pedestals.append(Point(roots[iroot-1], inputfunc(roots[iroot-1])))
-            p_peaks.append(Point(root, inputfunc(root)))
-            if (debug): print(f"Fall Turning Point: ({p_pedestals[-1].x},{p_pedestals[-1].y}) ({p_peaks[-1].x},{p_peaks[-1].y})")
+        if ( roots[iroot-1] > rangeMin and root < rangeMax and root > roots[iroot-1] ):
+            # print (iroot, root, inputfunc(root), inputfunc(roots[iroot-1]))
+            if (Rise_Fall == 'Rise' and inputfunc(root) - inputfunc(roots[iroot-1]) > range_threshold):
+                p_pedestals.append(Point(roots[iroot-1], inputfunc(roots[iroot-1])))
+                p_peaks.append(Point(root, inputfunc(root)))
+                if (debug): print(f"Rise Turning Point: ({p_pedestals[-1].x},{p_pedestals[-1].y}) ({p_peaks[-1].x},{p_peaks[-1].y})")
+            elif (Rise_Fall == 'Fall' and inputfunc(roots[iroot-1]) - inputfunc(root)  > range_threshold):
+                p_pedestals.append(Point(roots[iroot-1], inputfunc(roots[iroot-1])))
+                p_peaks.append(Point(root, inputfunc(root)))
+                if (debug): print(f"Fall Turning Point: ({p_pedestals[-1].x},{p_pedestals[-1].y}) ({p_peaks[-1].x},{p_peaks[-1].y})")
     return p_pedestals, p_peaks
 
 def Get_FunctionMax(inputfunc, start, end):

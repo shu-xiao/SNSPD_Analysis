@@ -112,7 +112,7 @@ if __name__ == "__main__":
             # Start Looping through events
             for event, chunk in enumerate(tdms_file.data_chunks()):
                 # Loop progress
-                if (event%args.report==0): print (f"Processed {event}/{totalEvents} events")
+                if (event%args.report==0): print (f"==========Processing {event}/{totalEvents} event==========")
                 # Skip chunk over totalEvents
                 if (event > int(totalEvents)-1): continue
                 # if (event > 100): continue
@@ -128,7 +128,7 @@ if __name__ == "__main__":
                 ch1_spline = CubicSpline(x_index, ch1)
                 ch2_spline = CubicSpline(x_index, ch2)
                 # Get ch2 (trigger) arrival times
-                ch2_turning_pedestals, ch2_turning_peaks = Get_turning_times(ch2_spline, -0.6, -0.2, 'Fall',False)
+                ch2_turning_pedestals, ch2_turning_peaks = Get_turning_times(ch2_spline, 0.4, 0, len(ch2), 'Fall', True)
                 for ipulse, (ch2_turning_pedestal, ch2_turning_peak) in enumerate(zip(ch2_turning_pedestals, ch2_turning_peaks)):
                     # Skip last pulse due to distortion of the oscilloscop at the boundary
                     if (ipulse >= NpulsePerTrigger-1): continue
@@ -157,17 +157,26 @@ if __name__ == "__main__":
                     # Pulse pre-selection using sideband region
                     if (prePulse_range[-1] < 0.057 or prePulse_stdev[-1] < 0.013 or postPulse_range[-1] < 0.075 or postPulse_stdev[-1] < 0.014):
                         print(f'Event{event}_Pulse{ipulse} passes preselection')
-                        #
-                        ch1_maxDiff_p = Get_npMax(ch1_diff[Pulse_startT:Pulse_endT])
-
-                        # if (ch1_maxDiff_p.y > 0.015 and ch1_maxDiff_p.y > prePulse_stdev and ch1_maxDiff_p.y > postPulse_stdev):
+                        # Pulse region
                         ch1_pulse = ch1[Pulse_startT:Pulse_endT]
                         ch1_pulse_xIndex = np.arange(len(ch1_pulse))
+                        # Cubic Spline Fit
                         ch1_pulse_spline = CubicSpline(ch1_pulse_xIndex, ch1_pulse)
-                        ch1_pulse_turning_pedestals, ch1_pulse_turning_peaks = Get_turning_times(ch1_pulse_spline, 0.02, 0, 'Rise', True)
+                        # Find turning point
+                        ch1_pulse_turning_pedestals, ch1_pulse_turning_peaks = Get_turning_times(ch1_pulse_spline, 0.04, 0, len(ch1_pulse), 'Rise', True)
+                        # Get pulse amplitude --> Defined as range between pulse rising turning points
+                        ch1_pulse_amplitude = ch1_pulse_spline(ch1_pulse_turning_peaks) - ch1_pulse_spline(ch1_pulse_turning_pedestals)
+                        # Create a check point for amplitude
+                        if (ch1_pulse_amplitude < 0):
+                            print('Abnormal Event. Pulse amplitude is negative')
+                            exit()
+                        # Derivative of pulse region
                         ch1_pulse_diff = ch1_diff[Pulse_startT:Pulse_endT]
                         ch1_pulse_diff_xIndex = np.arange(len(ch1_pulse_diff))
                         ch1_pulse_diff_spline = ch1_pulse_spline.derivative()
+                        #
+                        ch1_maxDiff_p = Get_npMax(ch1_diff[Pulse_startT:Pulse_endT])
+
                         # ch1_pulse_diff_turning_pedestals, ch1_pulse_diff_turning_peaks = Get_turning_times(ch1_pulse_diff_spline, 0.02, 0, 'Rise', True)
                         # display_spline_fit(ch1_pulse_spline, ch1_pulse_xIndex)
                         event_display_2ch(ch1_pulse_diff, ch1_pulse, f'Wavform#{event}_pulse{ipulse}')
