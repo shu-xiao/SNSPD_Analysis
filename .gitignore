@@ -12,7 +12,7 @@ SNSPD_Laser_measurements/plots
 SNSPD_Laser_measurements/output_root
 SNSPD_Laser_measurements/__pycache__
 SNSPD_Laser_measurements/.DS_Store
-SNSPD_Laser_measurements/test.py
+SNSPD_Laser_measurements/python/test.py
 
 # SQUID
 SQUID/data
