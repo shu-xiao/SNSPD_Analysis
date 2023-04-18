@@ -237,31 +237,6 @@ if __name__ == "__main__":
                     else:
                         debugPrint (f'Event{event}_Pulse{ipulse} fail preselection ')
 
-                    #     # event_display(event, ch1_pulse)
-
-
-                # Selection
-                # Get_Xs(spline_func)
-                # if (event_selection(ch1[4200:4240], diffs[4200:4240])):
-                    # Count events passing the selection
-                    # nPass+=1
-            #         # Count total samples
-            #         channel_length += len(ch1)
-            #         # Sum over all samples, useful to calculate pedestal average
-            #         channel_sum += ch1[:].sum()
-            #         # Calculate pulse amplitude(range) --> Maximum - pedestal
-            #         pedestal_average = np.mean(ch1[0:25])
-            #         maximum = np.max(ch1)
-            #         range = maximum - pedestal_average
-            #         ranges.append(range)
-
-            #         indices = np.where(ch1 > 0.3)[0]
-            #         # if (len(indices) > 0): print(indices[0])
-                # event_display_2ch(event, ch1,ch2)
-
-            # channel_mean = channel_sum / channel_length
-            # print(channel_length, channel_mean)
-
             # Sideband Region
             # Plot two histograms side-by-side
             plot_2histo(prePulse_mean, postPulse_mean, 50, -0.01, 0.01, 'prePulse', 'postPulse', 'Sideband mean', f'{args.outputDir}/sideband_mean.png')
