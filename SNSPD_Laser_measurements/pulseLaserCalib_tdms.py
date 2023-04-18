@@ -222,14 +222,14 @@ if __name__ == "__main__":
                                 debugPrint(f'Pulse amplitude = {ch1_pulse_amplitude}, arrival Time = {ch1_pulse_arrivalT}, rise Time = {ch1_pulse_riseT}')
                             else:
                                 print(f'Abnormal Event{event}_Pulse{ipulse}. Pass Event Selection, but can\'t find turning points')
-                                event_display_2ch(ch1_pulse_diff, ch1_pulse, f'Wavform#{event}_pulse{ipulse}')
+                                # event_display_2ch(ch1_pulse_diff, ch1_pulse, f'Wavform#{event}_pulse{ipulse}')
                             # Create a check point for amplitude
                             if (ch1_pulse_amplitude < 0):
                                 print('Abnormal Event{event}_Pulse{ipulse}. Pulse amplitude is negative')
                                 exit()
                         else:
                             debugPrint('Fail event selection')
-                            event_display_2ch(ch1_pulse_diff, ch1_pulse, f'Wavform#{event}_pulse{ipulse}')
+                            # event_display_2ch(ch1_pulse_diff, ch1_pulse, f'Wavform#{event}_pulse{ipulse}')
 
                         # ch1_pulse_diff_turning_pedestals, ch1_pulse_diff_turning_peaks = Get_turning_times(ch1_pulse_diff_spline, 0.02, 0, 'Rise', DEBUG)
                         # display_spline_fit(ch1_pulse_spline, ch1_pulse_xIndex)
