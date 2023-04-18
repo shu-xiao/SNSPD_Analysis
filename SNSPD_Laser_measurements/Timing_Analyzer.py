@@ -3,6 +3,7 @@
 from scipy.interpolate import CubicSpline
 from scipy.optimize import minimize_scalar
 from scipy.optimize import brentq
+from scipy.integrate import quad
 import numpy as np
 
 class Point:
@@ -16,7 +17,7 @@ def Get_Xs(inputfunc, value, rangeMin, rangeMax):
         return inputfunc(x) - value
     # Find the roots using the Brent method
     roots = []
-    for i in range(int(rangeMin), int(rangeMax)):
+    for i in range(int(rangeMin), int(rangeMax)+1):
         # f(i) and f(i+1) should be opposite sign
         if ( f(i) * f(i+1) < 0):
             # brentq root finding
@@ -34,16 +35,17 @@ def Get_df_Arrival(df, chName, value):
     print(f"Time of Arrival: {idx} {df.loc[idx,'Time']} ")
 
 
-def Get_Function_RiseFall_Range(inputfunc, value, rangeMin, rangeMax):
+def Get_Function_RiseFall_Range(inputfunc, value10, value90, rangeMin, rangeMax):
     # Get the time of 10% amplitude
-    time10 = Get_Xs(inputfunc, value*0.1, rangeMin, rangeMax)
+    time10 = Get_Xs(inputfunc, value10, rangeMin, rangeMax)
     # Get the time of 90% amplitude
-    time90 = Get_Xs(inputfunc, value*0.9, rangeMin, rangeMax)
+    time90 = Get_Xs(inputfunc, value90, rangeMin, rangeMax)
     start_time = time10[0]
     end_time = time90[0]
     RiseFall_time = end_time - start_time
-    if ( value > 0 ): print(f"Edge Start: {start_time}, Edge End: {end_time}, Rise Time: {RiseFall_time}")
-    if ( value < 0 ): print(f"Edge Start: {start_time}, Edge End: {end_time}, Fall Time: {RiseFall_time}")
+    return RiseFall_time
+    # if ( value > 0 ): print(f"Edge Start: {start_time}, Edge End: {end_time}, Rise Time: {RiseFall_time}")
+    # if ( value < 0 ): print(f"Edge Start: {start_time}, Edge End: {end_time}, Fall Time: {RiseFall_time}")
 
 def Get_df_RiseFall_Range(df, chName, value):
     # Find the pulse start index
@@ -75,29 +77,31 @@ def Get_turning_times(inputfunc, range_threshold, rangeMin, rangeMax, Rise_Fall,
                 if (debug): print(f"Fall Turning Point: ({p_pedestals[-1].x},{p_pedestals[-1].y}) ({p_peaks[-1].x},{p_peaks[-1].y})")
     return p_pedestals, p_peaks
 
-def Get_FunctionMax(inputfunc, start, end):
+def Get_FunctionMax(inputfunc, start, end, debug=False):
     # Define the function
     def f(x):
         return inputfunc(x)
     # Find the maximum value within the range [-5, 5]
     result = minimize_scalar(lambda x: -f(x), bounds=(start, end), method='bounded')
     # Print the maximum value
-    print("Maximum value:", -result.fun)
-    # Print the x-value at which the maximum occurs
-    print("Location of maximum:", result.x)
+    if (debug):
+        print("Maximum value:", -result.fun)
+        # Print the x-value at which the maximum occurs
+        print("Location of maximum:", result.x)
     p = Point(result.x, -result.fun)
     return p
 
-def Get_FunctionMin(inputfunc, start, end):
+def Get_FunctionMin(inputfunc, start, end, debug=False):
     # Define the function
     def f(x):
         return inputfunc(x)
     # Find the minimum value within the range [-5, 5]
     result = minimize_scalar(lambda x: f(x), bounds=(start, end), method='bounded')
     # Print the minimum value
-    print("Minimum value:", result.fun)
-    # Print the x-value at which the minimum occurs
-    print("Location of minimum:", result.x)
+    if (debug):
+        print("Minimum value:", result.fun)
+        # Print the x-value at which the minimum occurs
+        print("Location of minimum:", result.x)
     p = Point(result.x, result.fun)
     return p
 
@@ -144,3 +148,10 @@ def Get_indices_overThreshold(df, chName, threshold):
     # Find the indices where the CH2 values are less than the threshold
     indices = np.where(abs(df[chName]) > abs(threshold))[0]
     print (f"Sample points with value above threshold: {indices}")
+
+def Get_function_integral(f, rangemin, rangemax):
+    # Calculate the integral of f(x) from 0 to 1
+    result, error = quad(f, rangemin, rangemax)
+    # Print the result
+    # print(f'Integral of f(x) from {rangemin} to {rangemax}:', result, error)
+    return result, error
