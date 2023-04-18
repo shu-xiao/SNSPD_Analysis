@@ -22,6 +22,16 @@ args = parser.parse_args()
 
 if __name__ == "__main__":
 
+    sweep_voltages = []
+    SDEs = []
+
     for in_filename in args.in_filenames:
-        sweep_voltage_current = in_filename.rsplit('/',1)[1].split('mV')[0].rsplit('_',1)[1]
-        SingleTDMS_analysis(in_filename)
+        sweep_voltage = in_filename.rsplit('/',1)[1].split('mV')[0].rsplit('_',1)[1]
+        sweep_voltages.append(sweep_voltage)
+        print(f'Bias voltage : {sweep_voltage}')
+        SDE, Sideband_results, Signal_results = SingleTDMS_analysis(in_filename)
+        SDEs.append(SDE)
+        print(f'SDE={SDE}')
+        # Signal_results_collection.append(Signal_results)
+    plt.scatter(sweep_voltages, SDEs)
+    plt.show()
