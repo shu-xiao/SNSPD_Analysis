@@ -23,4 +23,5 @@ args = parser.parse_args()
 if __name__ == "__main__":
 
     for in_filename in args.in_filenames:
+        sweep_voltage_current = in_filename.rsplit('/',1)[1].split('mV')[0].rsplit('_',1)[1]
         SingleTDMS_analysis(in_filename)
