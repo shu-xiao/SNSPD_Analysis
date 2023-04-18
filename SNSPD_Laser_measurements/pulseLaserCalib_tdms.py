@@ -135,7 +135,7 @@ if __name__ == "__main__":
                 DISPLAY = True if (event+1)%args.display_report==0 else False
                 # Skip chunk larger than totalEvents
                 if (event > int(totalEvents)-1): continue
-                if (event > 100): continue
+                # if (event > 100): continue
                 # Read ch1 into np array
                 ch1 = chunk['ADC Readout Channels']['ch1']._data()
                 ch2= chunk['ADC Readout Channels']['ch2']._data()
