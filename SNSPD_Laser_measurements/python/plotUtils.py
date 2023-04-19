@@ -32,25 +32,28 @@ def event_display_2ch(np1, np2, title):
     plt.grid()
     # Display the plot
     if (config.DISPLAY): plt.show()
+    plt.close('all')
 
 def display_spline_fit(spline_func, x_index):
     x_spline_range = np.linspace(x_index.min(), x_index.max(), num=10000)
     y_spline = spline_func(x_spline_range)
     plt.plot(x_spline_range, y_spline, '-', label='Spline Fit')
+    plt.close('all')
     if (config.DISPLAY): plt.show()
 
 
 def plot_histo(np1, nbin, rangemin, rangemax, xTitle, title, saveTitle):
     fig, ax = plt.subplots()
-    ax.hist(np1, bins=nbin, range=(rangemin, rangemax), alpha=0.5, color='blue', edgecolor='black')
-    mean, std = np.mean(np1), np.std(np1)
-    textstr = f'$\mu={mean:.4f}$\n$\sigma={std:.4f}$'
+    ax.hist(np1, bins=nbin, range=(rangemin, rangemax), alpha=0.6, color='blue')
+    Events, mean, std = len(np1), np.mean(np1), np.std(np1)
+    textstr = f'Events={Events}\n$\mu={mean:.4f}$\n$\sigma={std:.4f}$'
     ax.text(0.73, 0.93, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top')
     ax.set_xlabel(xTitle)
     ax.set_ylabel('Events')
     ax.set_title(title)
     plt.savefig(saveTitle)
     if (config.DISPLAY): plt.show()
+    plt.close('all')
     return mean, std
 
 def plot_2histo(np1, np2, nbin, rangemin, rangemax, label1, label2, title, saveTitle='test.png'):
@@ -60,14 +63,15 @@ def plot_2histo(np1, np2, nbin, rangemin, rangemax, label1, label2, title, saveT
     ax1.legend()
     ax2.legend()
     # Add mean and standard deviation to the plot
-    mean1, std1 = np.mean(np1), np.std(np1)
-    mean2, std2 = np.mean(np2), np.std(np2)
-    textstr1 = f'$\mu_1={mean1:.4f}$\n$\sigma_1={std1:.4f}$'
-    textstr2 = f'$\mu_2={mean2:.4f}$\n$\sigma_2={std2:.4f}$'
+    Events1, mean1, std1 = len(np1), np.mean(np1), np.std(np1)
+    Events2, mean2, std2 = len(np2), np.mean(np2), np.std(np2)
+    textstr1 = f'Events={Events1}\n$\mu_1={mean1:.4f}$\n$\sigma_1={std1:.4f}$'
+    textstr2 = f'Events={Events1}\n$\mu_2={mean2:.4f}$\n$\sigma_2={std2:.4f}$'
     ax1.text(0.8, 0.75, textstr1, transform=ax1.transAxes, fontsize=14, verticalalignment='top')
     ax2.text(0.8, 0.75, textstr2, transform=ax2.transAxes, fontsize=14, verticalalignment='top')
     fig.suptitle(title)
     plt.savefig(saveTitle)
     if (config.DISPLAY): plt.show()
     array = [mean1, std1, mean2, std2]
+    plt.close('all')
     return array
