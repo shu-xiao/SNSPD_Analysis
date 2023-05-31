@@ -55,10 +55,12 @@ def SingleTDMS_analysis(in_filename):
             config.DEBUG = True if (event+1)%args.debug_report==0 else False
             config.DISPLAY = True if (event+1)%args.display_report==0 else False
             # Skip chunk larger than totalEvents
-            if (event > int(totalEvents)-1): continue
+            if (event > int(totalEvents)-1): break
+            # Skip first event
+            if (event == 0 ): continue
             # Read ch1 into np array
             ch1 = chunk['ADC Readout Channels']['ch1']._data()
-            ch2= chunk['ADC Readout Channels']['ch2']._data()
+            ch2 = chunk['ADC Readout Channels']['ch2']._data()
             if (config.DISPLAY): event_display_2ch(ch1,ch2,f'Waveform')
 
             ch1_diff = np.diff(ch1)
@@ -121,7 +123,7 @@ def SingleTDMS_analysis(in_filename):
                     debugPrint(f'Pulse range = {ch1_pulse_spline_range}, Diff range = {ch1_pulse_diff_range}')
                     # Event Selection
                     if (ch1_pulse_spline_range > 0.025 and ch1_pulse_diff_range > 0.01):
-                        debugPrint('Pass event selection')
+                        debugPrint(f'Event{event}_Pulse{ipulse} Pass event selection')
                         # Find turning point
                         ch1_pulse_turning_pedestals, ch1_pulse_turning_peaks = Get_turning_times(ch1_pulse_spline, 0.04, 6, 25, 'Rise', config.DEBUG)
                         if (len(ch1_pulse_turning_peaks)>0):
@@ -148,20 +150,24 @@ def SingleTDMS_analysis(in_filename):
                         #     print('Abnormal Event{event}_Pulse{ipulse}. Pulse amplitude is negative')
                         #     exit()
                     else:
-                        debugPrint('Fail event selection')
+                        debugPrint(f'Event{event}_Pulse{ipulse} Fail event selection')
                         # event_display_2ch(ch1_pulse_diff, ch1_pulse, f'Wavform#{event}_pulse{ipulse}')
 
                     # ch1_pulse_diff_turning_pedestals, ch1_pulse_diff_turning_peaks = Get_turning_times(ch1_pulse_diff_spline, 0.02, 0, 'Rise', config.DEBUG)
                     # display_spline_fit(ch1_pulse_spline, ch1_pulse_xIndex)
-                    if (config.DISPLAY): event_display_2ch(ch1_pulse_diff, ch1_pulse, f'Wavform#{event}_pulse{ipulse}')
+                    if (config.DISPLAY): event_display_2ch(ch1_pulse, ch1_pulse_diff, f'Wavform#{event}_pulse{ipulse}')
                 else:
                     debugPrint (f'Event{event}_Pulse{ipulse} fail preselection ')
 
         # Plots
 
         # Define plotDir
-        if(in_filename.find('.txt')!=0): plotDir = args.outputDir + '/' + in_filename.rsplit('/',1)[1].split('.txt')[0]
-        else: args.outputDir + '/' + in_filename.rsplit('/',1)[1].split('.tdms')[0]
+        if(in_filename.find('.txt')!=0):
+            basename = in_filename.rsplit('/',1)[1].split('.txt')[0]
+            plotDir = args.outputDir + '/' + basename
+        else:
+            in_filename.rsplit('/',1)[1].split('.tdms')[0]
+            plotDir = args.outputDir + '/' + basename
         # make plotdir
         try:
             os.makedirs(plotDir)
@@ -170,6 +176,9 @@ def SingleTDMS_analysis(in_filename):
                 print('Plot directory exists.')
             else:
                 raise
+
+        # Create root filen
+        hfile = ROOT.TFile(f'{plotDir}/{basename}.root', 'RECREATE', 'analysis histograms of {basename} measurements' )
 
         # Sideband Region
         Sideband_results={}
@@ -188,8 +197,18 @@ def SingleTDMS_analysis(in_filename):
         Signal_results['integral']  = plot_histo(ch1_pulse_spline_integrals, 50, -1, 1, 'Voltage [V]', 'Signal Region Integral',f'{plotDir}/signal_integral.png')
         plot_histo(ch1_pulse_amplitudes, 50, 0, 0.5, 'Voltage [V]', 'Pulse amplitude',f'{plotDir}/signal_amplitude_zoomin_largerbin.png')
 
+        # root histograms
+        hist_amplitudes  = plot_histo_root(ch1_pulse_amplitudes       , 50, 0, 0.5,   'signal_amplitude', 'Voltage [V]', 'Pulse amplitude',f'{plotDir}/signal_amplitude_root.png')
+        hist_diff_ranges = plot_histo_root(ch1_pulse_diff_ranges      , 50, 0, 0.1,   'signal_diff', 'Voltage [V]', 'Signal Region differentiate range',f'{plotDir}/signal_diff_root.png')
+        hist_arrivalTs   = plot_histo_root(ch1_pulse_arrivalTs        , 50, 220, 230, 'signal_arrivalT', 'Time [index]', 'Pulse arrival time',f'{plotDir}/signal_arrivalT_root.png')
+        hist_riseTs      = plot_histo_root(ch1_pulse_riseTs           , 50, 0, 7,     'signal_riseT', 'Time [index]', 'Pulse rise time',f'{plotDir}/signal_riseT_root.png')
+        hist_integrals   = plot_histo_root(ch1_pulse_spline_integrals , 50, -1, 1,    'signal_integral', 'Voltage [V]', 'Signal Region Integral',f'{plotDir}/signal_integral_root.png')
+
         SDE = len(ch1_pulse_amplitudes) / len(ch1_pulse_spline_integrals)
         print(f'SDE for {in_filename} : {SDE}')
+
+        hfile.Write()
+        hfile.Close()
 
         return SDE, Sideband_results, Signal_results
 
@@ -200,9 +219,9 @@ if __name__ == "__main__":
         with open('test.txt','a') as f:
             f.write(f'{in_filename}\n')
             f.write(f'SDE={SDE}\n')
-            json_str = json.dumps(Signal_results, indent=None)
-            json_str = json_str.replace('],', ',\n')
-            f.write(f'{json_str}\n')
-            json_str = json.dumps(Sideband_results, indent=None)
-            json_str = json_str.replace('],', ',\n')
-            f.write(f'{json_str}\n')
+            # json_str = json.dumps(Signal_results, indent=None)
+            # json_str = json_str.replace('],', ',\n')
+            # f.write(f'{json_str}\n')
+            # json_str = json.dumps(Sideband_results, indent=None)
+            # json_str = json_str.replace('],', ',\n')
+            # f.write(f'{json_str}\n')

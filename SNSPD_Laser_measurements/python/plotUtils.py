@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import config
+import ROOT
+import root_numpy
 
 def event_display(np,title='Waveform'):
     # Create a line plot of the data
@@ -75,3 +77,15 @@ def plot_2histo(np1, np2, nbin, rangemin, rangemax, label1, label2, title, saveT
     array = [mean1, std1, mean2, std2]
     plt.close('all')
     return array
+
+def plot_histo_root(np1, nbin, rangemin, rangemax, name, xTitle, title, saveTitle):
+    c1 = ROOT.TCanvas()
+    hist = ROOT.TH1F(name, name, nbin, rangemin, rangemax)
+    array = np.array(np1, dtype=float)
+    root_numpy.fill_hist(hist, array, weights=None, return_indices=False)
+    # Draw hist
+    hist.SetTitle(title)
+    hist.GetXaxis().SetTitle(xTitle)
+    hist.Draw()
+    c1.SaveAs(saveTitle)
+    return hist
