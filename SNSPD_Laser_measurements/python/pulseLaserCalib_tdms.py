@@ -44,6 +44,8 @@ def SingleTDMS_analysis(in_filename):
         ranges=[]
         # Sideband region numpy
         prePulse_mean, postPulse_mean, prePulse_stdev, postPulse_stdev, prePulse_range, postPulse_range, prePulse_integral, postPulse_integral = [], [], [], [], [], [], [], []
+        # Signal region simple array
+        pulseRanges = []
         # Signal region numpy
         ch1_pulse_spline_ranges, ch1_pulse_diff_ranges, ch1_pulse_amplitudes, ch1_pulse_arrivalTs, ch1_pulse_riseTs, ch1_pulse_spline_integrals = [], [], [], [], [], []
         # Start Looping through events
@@ -79,8 +81,8 @@ def SingleTDMS_analysis(in_filename):
                 # Define time of arrival at the 50% level of the falling slope
                 ch2_arrivalT = Get_Function_Arrival(ch2_spline, (ch2_turning_pedestal.y+ch2_turning_peak.y)/2, ch2_turning_pedestal.x, ch2_turning_peak.x)
                 # Define signal pulse region
-                Pulse_startT =  int(ch2_arrivalT) + 210
-                Pulse_endT =  int(ch2_arrivalT) + 250
+                Pulse_startT =  int(ch2_arrivalT) + 205
+                Pulse_endT =  int(ch2_arrivalT) + 230
                 # Define pre-pulse (sideband) region
                 prePulse_startT =  int(ch2_arrivalT) + 10
                 prePulse_endT =  int(ch2_arrivalT) + 180
@@ -97,7 +99,6 @@ def SingleTDMS_analysis(in_filename):
                 postPulse_range.append(np.ptp(ch1[postPulse_startT:postPulse_endT]))
                 prePulse_integral.append(np.sum(ch1[prePulse_startT:prePulse_endT])) # max - min
                 postPulse_integral.append(np.sum(ch1[postPulse_startT:postPulse_endT]))
-
                 # Pulse pre-selection using sideband region
                 if (prePulse_range[-1] < 0.057 or prePulse_stdev[-1] < 0.013 or postPulse_range[-1] < 0.075 or postPulse_stdev[-1] < 0.014):
                     debugPrint(f'Event{event}_Pulse{ipulse} pass preselection')
@@ -122,11 +123,13 @@ def SingleTDMS_analysis(in_filename):
 
                     debugPrint(f'Pulse range = {ch1_pulse_spline_range}, Diff range = {ch1_pulse_diff_range}')
                     # Event Selection
-                    if (ch1_pulse_spline_range > 0.025 and ch1_pulse_diff_range > 0.01):
+                    if (ch1_pulse_spline_range > 0.03 and ch1_pulse_diff_range > 0.01):
                         debugPrint(f'Event{event}_Pulse{ipulse} Pass event selection')
                         # Find turning point
-                        ch1_pulse_turning_pedestals, ch1_pulse_turning_peaks = Get_turning_times(ch1_pulse_spline, 0.04, 6, 25, 'Rise', config.DEBUG)
+                        ch1_pulse_turning_pedestals, ch1_pulse_turning_peaks = Get_turning_times(ch1_pulse_spline, 0.03, 6, 25, 'Rise', config.DEBUG)
                         if (len(ch1_pulse_turning_peaks)>0):
+                            # simple range
+                            pulseRanges.append(np.ptp(ch1[Pulse_startT:Pulse_endT]))
                             # Get pulse amplitude --> Defined as range between pulse rising turning points
                             ch1_pulse_amplitude = ch1_pulse_turning_peaks[0].y - ch1_pulse_turning_pedestals[0].y
                             ch1_pulse_amplitudes.append(ch1_pulse_amplitude)
@@ -183,42 +186,46 @@ def SingleTDMS_analysis(in_filename):
         # Sideband Region
         Sideband_results={}
         # Plot two histograms side-by-side
-        Sideband_results['mean']     = plot_2histo(prePulse_mean, postPulse_mean, 50, -0.01, 0.01, 'prePulse', 'postPulse', 'Sideband mean', f'{plotDir}/sideband_mean.png')
-        Sideband_results['stdev']    = plot_2histo(prePulse_stdev, postPulse_stdev, 50, 0, 0.05, 'prePulse', 'postPulse', 'Sideband stdev', f'{plotDir}/sideband_stdev.png')
-        Sideband_results['range']    = plot_2histo(prePulse_range, postPulse_range, 50, 0, 0.2, 'prePulse', 'postPulse', 'Sideband range', f'{plotDir}/sideband_range.png')
-        Sideband_results['integral'] = plot_2histo(prePulse_integral, postPulse_integral, 50, -1, 1, 'prePulse', 'postPulse', 'Sideband integral', f'{plotDir}/sideband_integral.png')
-        # Signal Region
-        Signal_results={}
-        # plot_2histo(ch1_pulse_amplitudes, ch1_pulse_ranges, 50, 0, 0.2, 'Spline amplitude', 'Range', 'Pulse amplitude')
-        Signal_results['amplitude'] = plot_histo(ch1_pulse_amplitudes, 256, -0.25, 0.25, 'Voltage [V]', 'Pulse amplitude',f'{plotDir}/signal_amplitude.png')
-        Signal_results['range']     = plot_histo(ch1_pulse_diff_ranges, 50, 0, 0.1, 'Voltage [V]', 'Signal Region differentiate range',f'{plotDir}/signal_diff.png')
-        Signal_results['arrivalT']  = plot_histo(ch1_pulse_arrivalTs, 50, 220, 230, 'Time [index]', 'Pulse arrival time',f'{plotDir}/signal_arrivalT.png')
-        Signal_results['riseT']     = plot_histo(ch1_pulse_riseTs, 50, 0, 7, 'Time [index]', 'Pulse rise time',f'{plotDir}/signal_riseT.png')
-        Signal_results['integral']  = plot_histo(ch1_pulse_spline_integrals, 50, -1, 1, 'Voltage [V]', 'Signal Region Integral',f'{plotDir}/signal_integral.png')
-        plot_histo(ch1_pulse_amplitudes, 50, 0, 0.5, 'Voltage [V]', 'Pulse amplitude',f'{plotDir}/signal_amplitude_zoomin_largerbin.png')
+        # Sideband_results['mean']     = plot_2histo(prePulse_mean, postPulse_mean, 50, -0.01, 0.01, 'prePulse', 'postPulse', 'Sideband mean', f'{plotDir}/sideband_mean.png')
+        # Sideband_results['stdev']    = plot_2histo(prePulse_stdev, postPulse_stdev, 50, 0, 0.05, 'prePulse', 'postPulse', 'Sideband stdev', f'{plotDir}/sideband_stdev.png')
+        # Sideband_results['range']    = plot_2histo(prePulse_range, postPulse_range, 50, 0, 0.2, 'prePulse', 'postPulse', 'Sideband range', f'{plotDir}/sideband_range.png')
+        # Sideband_results['integral'] = plot_2histo(prePulse_integral, postPulse_integral, 50, -1, 1, 'prePulse', 'postPulse', 'Sideband integral', f'{plotDir}/sideband_integral.png')
+        # # # Signal Region
+        # Signal_results={}
+        # # plot_2histo(ch1_pulse_amplitudes, ch1_pulse_ranges, 50, 0, 0.2, 'Spline amplitude', 'Range', 'Pulse amplitude')
+        # Signal_results['amplitude'] = plot_histo(ch1_pulse_amplitudes, 256, -0.25, 0.25, 'Voltage [V]', 'Pulse amplitude',f'{plotDir}/signal_amplitude.png')
+        # Signal_results['range']     = plot_histo(ch1_pulse_diff_ranges, 50, 0, 0.1, 'Voltage [V]', 'Signal Region differentiate range',f'{plotDir}/signal_diff.png')
+        # Signal_results['arrivalT']  = plot_histo(ch1_pulse_arrivalTs, 50, 220, 230, 'Time [index]', 'Pulse arrival time',f'{plotDir}/signal_arrivalT.png')
+        # Signal_results['riseT']     = plot_histo(ch1_pulse_riseTs, 50, 0, 7, 'Time [index]', 'Pulse rise time',f'{plotDir}/signal_riseT.png')
+        # Signal_results['integral']  = plot_histo(ch1_pulse_spline_integrals, 50, -1, 1, 'Voltage [V]', 'Signal Region Integral',f'{plotDir}/signal_integral.png')
+        # plot_histo(ch1_pulse_amplitudes, 50, 0, 0.5, 'Voltage [V]', 'Pulse amplitude',f'{plotDir}/signal_amplitude_zoomin_largerbin.png')
 
-        # root histograms
-        hist_amplitudes  = plot_histo_root(ch1_pulse_amplitudes       , 50, 0, 0.5,   'signal_amplitude', 'Voltage [V]', 'Pulse amplitude',f'{plotDir}/signal_amplitude_root.png')
-        hist_diff_ranges = plot_histo_root(ch1_pulse_diff_ranges      , 50, 0, 0.1,   'signal_diff', 'Voltage [V]', 'Signal Region differentiate range',f'{plotDir}/signal_diff_root.png')
-        hist_arrivalTs   = plot_histo_root(ch1_pulse_arrivalTs        , 50, 220, 230, 'signal_arrivalT', 'Time [index]', 'Pulse arrival time',f'{plotDir}/signal_arrivalT_root.png')
-        hist_riseTs      = plot_histo_root(ch1_pulse_riseTs           , 50, 0, 7,     'signal_riseT', 'Time [index]', 'Pulse rise time',f'{plotDir}/signal_riseT_root.png')
-        hist_integrals   = plot_histo_root(ch1_pulse_spline_integrals , 50, -1, 1,    'signal_integral', 'Voltage [V]', 'Signal Region Integral',f'{plotDir}/signal_integral_root.png')
+        # # root histograms
+        # hist_amplitudes  = plot_histo_root(ch1_pulse_amplitudes       , 300, 0, 0.3,   'signal_amplitude', 'Voltage [V]', 'Pulse amplitude',f'{plotDir}/signal_amplitude_root.png')
+        # hist_diff_ranges = plot_histo_root(ch1_pulse_diff_ranges      , 50, 0, 0.1,   'signal_diff', 'Voltage [V]', 'Signal Region differentiate range',f'{plotDir}/signal_diff_root.png')
+        # hist_arrivalTs   = plot_histo_root(ch1_pulse_arrivalTs        , 50, 220, 230, 'signal_arrivalT', 'Time [index]', 'Pulse arrival time',f'{plotDir}/signal_arrivalT_root.png')
+        # hist_riseTs      = plot_histo_root(ch1_pulse_riseTs           , 50, 0, 7,     'signal_riseT', 'Time [index]', 'Pulse rise time',f'{plotDir}/signal_riseT_root.png')
+        # hist_integrals   = plot_histo_root(ch1_pulse_spline_integrals , 50, -1, 1,    'signal_integral', 'Voltage [V]', 'Signal Region Integral',f'{plotDir}/signal_integral_root.png')
+        # hist_range = plot_histo_root(pulseRanges, 300, 0, 0.3, 'signal_range', 'Voltage [V]', 'Pulse range',f'{plotDir}/signal_range_root.png')
 
-        SDE = len(ch1_pulse_amplitudes) / len(ch1_pulse_spline_integrals)
-        print(f'SDE for {in_filename} : {SDE}')
+        # SDE = len(ch1_pulse_amplitudes) / len(ch1_pulse_spline_integrals)
+        # print(f'SDE for {in_filename} : {SDE}')
+        root_numpy.array2root(np.array(ch1_pulse_amplitudes, dtype=float), f'{plotDir}/dataset.root' , 'fTree')
+
 
         hfile.Write()
         hfile.Close()
 
-        return SDE, Sideband_results, Signal_results
+        # return SDE, Sideband_results, Signal_results
 
 if __name__ == "__main__":
 
     for in_filename in args.in_filenames:
-        SDE, Sideband_results, Signal_results = SingleTDMS_analysis(in_filename)
-        with open('test.txt','a') as f:
-            f.write(f'{in_filename}\n')
-            f.write(f'SDE={SDE}\n')
+        SingleTDMS_analysis(in_filename)
+        # SDE, Sideband_results, Signal_results = SingleTDMS_analysis(in_filename)
+        # with open('test.txt','a') as f:
+        #     f.write(f'{in_filename}\n')
+        #     f.write(f'SDE={SDE}\n')
             # json_str = json.dumps(Signal_results, indent=None)
             # json_str = json_str.replace('],', ',\n')
             # f.write(f'{json_str}\n')

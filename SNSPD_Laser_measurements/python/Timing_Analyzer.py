@@ -40,9 +40,12 @@ def Get_Function_RiseFall_Range(inputfunc, value10, value90, rangeMin, rangeMax)
     time10 = Get_Xs(inputfunc, value10, rangeMin, rangeMax)
     # Get the time of 90% amplitude
     time90 = Get_Xs(inputfunc, value90, rangeMin, rangeMax)
-    start_time = time10[0]
-    end_time = time90[0]
-    RiseFall_time = end_time - start_time
+    if (len(time10)>0 and len(time90)>0):
+        start_time = time10[0]
+        end_time = time90[0]
+        RiseFall_time = end_time - start_time
+    else:
+        RiseFall_time = -999
     return RiseFall_time
     # if ( value > 0 ): print(f"Edge Start: {start_time}, Edge End: {end_time}, Rise Time: {RiseFall_time}")
     # if ( value < 0 ): print(f"Edge Start: {start_time}, Edge End: {end_time}, Fall Time: {RiseFall_time}")
