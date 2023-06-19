@@ -37,7 +37,8 @@ if __name__ == "__main__":
     #     SDE, Sideband_results, Signal_results = SingleTDMS_analysis(in_filename)
     #     SDEs.append(SDE)
     #     print(f'SDE={SDE}')
-    #     # Signal_results_collection.append(Signal_results)
+        # Signal_results_collection.append(Signal_results)
+
     plt.scatter(sweep_voltages, SDEs)
     plt.title('SDE')
     plt.xlabel('Voltage [mV]')

@@ -5,7 +5,11 @@ import numpy as np
 import pandas as pd
 import config
 import ROOT
-import root_numpy
+import warnings
+
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=DeprecationWarning)
+    import root_numpy
 
 def event_display(np,title='Waveform'):
     # Create a line plot of the data
@@ -17,12 +21,12 @@ def event_display(np,title='Waveform'):
     # Display the plot
     if (config.DISPLAY): plt.show()
 
-def event_display_2ch(np1, np2, title):
+def event_display_2ch(np1, np2, title='Waveform', offset=0.15):
     # Create a new figure
     fig, ax = plt.subplots()
 
     # Plot the three arrays
-    ax.plot(range(len(np2)), np2-0.15, label='ch2', marker='o',fillstyle='none')
+    ax.plot(range(len(np2)), np2-offset, label='ch2', marker='o',fillstyle='none')
     ax.plot(range(len(np1)), np1, label='ch1', marker='o',fillstyle='none')
     # Add labels to the plot
     ax.legend()
@@ -89,3 +93,20 @@ def plot_histo_root(np1, nbin, rangemin, rangemax, name, xTitle, title, saveTitl
     hist.Draw()
     c1.SaveAs(saveTitle)
     return hist
+
+def fit_histo_gaus(hist, rangemin, rangemax, name, xTitle, title, saveTitle):
+    c1 = ROOT.TCanvas()
+    fit = ROOT.TF1("fit","gaus",rangemin, rangemax)
+    fit.SetLineWidth(3)
+    hist.Fit("fit",'R')
+    # Draw hist
+    hist.SetTitle(title)
+    hist.GetXaxis().SetTitle(xTitle)
+    hist.Draw()
+    fit.Draw("same")
+    c1.SaveAs(saveTitle)
+    mean = fit.GetParameter(1)
+    mean_error = fit.GetParError(1)
+    std = fit.GetParameter(2)
+    std_error = fit.GetParError(2)
+    return mean, mean_error, std, std_error

@@ -28,7 +28,8 @@ def Get_Xs(inputfunc, value, rangeMin, rangeMax):
 def Get_Function_Arrival(inputfunc, value, rangeMin, rangeMax):
     time = Get_Xs(inputfunc, value, rangeMin, rangeMax)
     # print(f"Time of Arrival: {time[0]}")
-    return time[0]
+    if (len(time)>0): return time[0]
+    else: return -999
 
 def Get_df_Arrival(df, chName, value):
     idx = (np.abs(df[chName] - value)).idxmin()
