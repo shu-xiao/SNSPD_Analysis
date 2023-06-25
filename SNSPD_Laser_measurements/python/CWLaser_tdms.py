@@ -11,6 +11,7 @@ import errno
 from enum import Enum
 import json
 import math
+from scipy.signal import find_peaks
 
 # User defined functions
 from Timing_Analyzer import *
@@ -38,20 +39,12 @@ def SingleTDMS_CW_analysis(in_filename):
         metadata_df = pd.DataFrame(metadata.items(), columns=['metaKey', 'metaValue'])
         print(metadata_df)
         totalEvents = metadata_df.loc[metadata_df['metaKey'] == 'Total Events', 'metaValue'].iloc[0]
-        vertical_range = float(metadata_df.loc[metadata_df['metaKey'] == 'Ch1 vertical range', 'metaValue'].iloc[0])
+        timeWindow = float(metadata_df.loc[metadata_df['metaKey'] == 'Time window', 'metaValue'].iloc[0]) * 1E-9
         # Read Groups and Channels
         Read_Groups_and_Channels(tdms_file)
 
-        channel_sum = 0.0
-        channel_length = 0
-        nPass=0
-        ranges=[]
-        # Sideband region numpy
-        prePulse_mean, postPulse_mean, prePulse_stdev, postPulse_stdev, prePulse_range, postPulse_range, prePulse_integral, postPulse_integral = [], [], [], [], [], [], [], []
-        # Signal region simple array
-        pulseRanges = []
-        # Signal region numpy
-        ch1_pulse_spline_ranges, ch1_pulse_diff_ranges, ch1_pulse_amplitudes, ch1_pulse_arrivalTs, ch1_pulse_arrivalTs_220, ch1_pulse_riseTs, ch1_pulse_spline_integrals = [], [], [], [], [], [], []
+
+        counts, pulseRanges = np.array([]), np.array([])
         # Start Looping through events
         for event, chunk in enumerate(tdms_file.data_chunks()):
             # Choose a subset of the whole data to do the analysis. -1 = run All
@@ -64,11 +57,67 @@ def SingleTDMS_CW_analysis(in_filename):
             if (event > int(totalEvents)-1): break
             # Read ch1 into np array
             ch1 = chunk['ADC Readout Channels']['ch1']._data()
-            ch1_diff = np.diff(ch1)
-            if (config.DISPLAY): event_display_2ch(ch1,ch1_diff,f'Waveform',0.1)
             # Initialize counts
             count=0
 
+            # Set threshold
+            threshold = 0.03
+            # Find peaks
+            peaks, _ = find_peaks(ch1, height=threshold, distance=300)
+
+            # Count peaks
+            num_peaks = len(peaks)
+            print(f"Event {event} Number of peaks above threshold:", num_peaks)
+            counts = np.append(counts, num_peaks)
+
+            # peak ranges
+            for peak in peaks:
+                pulseRange = np.ptp(ch1[peak:peak+250])
+                pulseRanges = np.append(pulseRanges, pulseRange)
+
+            # Plot waveform with peaks
+            if (config.DISPLAY):
+                info = r'$T=4.6K,\quad V_{Bias}=1.7V,\quad 100 \mu W,\quad 532nm\, CW\, laser$'
+                plt.text(0, 0.065, info, fontsize=13, horizontalalignment='left')
+                plt.plot(ch1, label='data')
+                plt.plot(peaks, ch1[peaks], "x", label='Found peaks')
+                plt.xlabel('Index [0.4ns], Gate width 2ms')
+                plt.ylabel('Amplitude')
+                plt.ylim(-0.06,0.06)
+                plt.legend()
+                # plt.title('Waveform with Peaks')
+                plt.show()
+
+        # Results
+        # Directories
+        if(in_filename.find('.txt')!=-1):
+            basename = in_filename.rsplit('/',1)[1].split('.txt')[0]
+        else:
+            basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
+
+        baseDir = in_filename.split('/')[-2]
+        plotDir = args.outputDir + '/' + baseDir + '/' + basename
+        createDir(baseDir)
+        createDir(plotDir)
+
+        # Create root filen
+        hfile = ROOT.TFile(f'{plotDir}/{basename}.root', 'RECREATE', 'analysis histograms of {basename} measurements' )
+        hist_counts  = plot_histo_root(counts      , 20, 0, np.max(counts), 'counts', f'Photon Counts / {timeWindow}s', '',f'{plotDir}/counts.png')
+        hist_range   = plot_histo_root(pulseRanges , 20, 0.02, np.max(pulseRanges), 'signal_range', 'Voltage [V]', 'Pulse range',f'{plotDir}/signal_range.png')
+
+        PC_mean = np.mean(counts)
+        PC_meanE = np.std(counts)/math.sqrt(len(counts))
+        PCR_mean = PC_mean/timeWindow
+        PCR_meanE = PC_meanE/timeWindow
+
+        with open(f'{args.outputDir}/{baseDir}/test.txt','a') as f:
+            f.write(f'{basename} ; Window : {timeWindow}s ; Total Events : {len(counts)} ;')
+            f.write(f'PCR mean={PCR_mean:.3f} pm {PCR_meanE:.3f}\n')
+            f.write(f'Range Mean={np.mean(pulseRanges):.5f} pm {np.std(pulseRanges)/math.sqrt(len(pulseRanges)):.5f} ; Range std={np.std(pulseRanges):.5f}\n')
+
+        print(f'{basename} ; Window : {timeWindow}s ; Total Events : {len(counts)} ;')
+        print(f'PC mean={PC_mean:.3f} pm {PC_meanE:.3f} ; PCR mean={PCR_mean:.3f} pm {PCR_meanE:.3f}')
+        print(f'Range Mean={np.mean(pulseRanges):.5f} pm {np.std(pulseRanges)/math.sqrt(len(pulseRanges)):.5f} ; Range std={np.std(pulseRanges):.5f}\n')
 
 if __name__ == "__main__":
 
