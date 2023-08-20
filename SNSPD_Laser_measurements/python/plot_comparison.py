@@ -17,6 +17,7 @@ with open(args.in_filenames[0], 'r') as file:
     file_content = file.read()
 
 info = r'$T=4.6K,\quad V_{Bias}=2V,\quad 532nm\, pulsed\, laser$'
+outputDir = args.in_filenames[0].rsplit('/',1)[0]
 
 # Use regular expressions to extract the required data
 pattern = r'([\d.]+)uW ; Total Events.+?SDE=([\d.]+) pm ([\d.]+)\nRange Mean fit=([\d.]+) pm ([\d.]+) ; Range std fit=([\d.]+) pm ([\d.]+) ; fit Time jitter=([\d.]+) pm ([\d.]+)\nRange Mean=([\d.]+) pm ([\d.]+) ; Range std=([\d.]+)'
@@ -38,7 +39,7 @@ range_stds             = np.array([float(match[11]) for match in matches])
 sorted_data = sorted(zip(names, sdes, sde_errors, range_mean_fits, range_mean_fit_errors, range_std_fits, range_std_fit_errors, fit_time_jitters, fit_time_jitter_errors, range_means, range_mean_errors, range_stds))
 # Unzip the sorted data
 sorted_names, sorted_sdes, sorted_sde_errors, sorted_range_mean_fits, sorted_range_mean_fit_errors, sorted_range_std_fits, sorted_range_std_fit_errors, sorted_fit_time_jitters, sorted_fit_time_jitter_errors, sorted_range_means, sorted_range_mean_errors, sorted_range_stds = zip(*sorted_data)
-
+print(sorted_names, sorted_sdes)
 
 # Resolution Plot
 range_std_ratio = [std / mean for std, mean in zip(sorted_range_std_fits, sorted_range_mean_fits)]
@@ -69,7 +70,7 @@ fit_results = f'\nStochastic = {stochastic_opt:.4f}\nNoise = {noise_opt:.4f}\nc 
 plt.text(0.05, 0.21, fit_function + fit_results, fontsize=15, horizontalalignment='right', bbox=dict(facecolor='white', edgecolor='black', boxstyle='round'))
 plt.text(max(sorted_range_mean_fits), max(range_std_ratio)*1.05, info, fontsize=13, horizontalalignment='right')
 plt.tight_layout()
-plt.savefig(f"{args.outputDir}/Resolution.png")
+plt.savefig(f"{outputDir}/Resolution.png")
 plt.show()
 
 ##############################
@@ -111,7 +112,7 @@ ax_zoom.set_ylim(0, max(y_fit) * 1.1)  # Adjust the y-axis limits as desired
 ax_zoom.set_title('Zoomed-in Plot for x < 32')
 ax_zoom.grid(True)
 ax_zoom.legend()
-plt.savefig(f"{args.outputDir}/Mean_Fits.png")
+plt.savefig(f"{outputDir}/Mean_Fits.png")
 plt.show()
 
 ##############################
@@ -127,7 +128,7 @@ plt.yticks(fontsize=13)
 plt.grid(1)
 plt.text(max(sorted_names), max(sorted_range_means)*1.07, info, fontsize=13, horizontalalignment='right')
 plt.tight_layout()
-plt.savefig(f"{args.outputDir}/Mean.png")
+plt.savefig(f"{outputDir}/Mean.png")
 plt.show()
 
 # Plot the Range std
@@ -141,7 +142,7 @@ plt.yticks(fontsize=13)
 plt.grid(1)
 plt.text(max(sorted_names), max(sorted_range_stds)*1.06, info, fontsize=13, horizontalalignment='right')
 plt.tight_layout()
-plt.savefig(f"{args.outputDir}/Std.png")
+plt.savefig(f"{outputDir}/Std.png")
 plt.show()
 
 # Plot the Range std Fit
@@ -154,7 +155,7 @@ plt.yticks(fontsize=13)
 plt.grid(1)
 plt.text(max(sorted_names), max(sorted_range_std_fits)*1.12, info, fontsize=13, horizontalalignment='right')
 plt.tight_layout()
-plt.savefig(f"{args.outputDir}/Std_fits.png")
+plt.savefig(f"{outputDir}/Std_fits.png")
 plt.show()
 
 # Plot the Time Jitter Fit
@@ -189,7 +190,7 @@ plt.plot(x_fit, y_fit, 'r:', label='Linear Fit')
 ax_zoom.set_ylim(min(y_fit)*0.9, max(y_fit)*1.1)  # Adjust the x-axis limits as desired
 ax_zoom.set_title('Zoomed-in Plot for x > 2 ')
 ax_zoom.grid(True)
-plt.savefig(f"{args.outputDir}/Time_jitter.png")
+plt.savefig(f"{outputDir}/Time_jitter.png")
 plt.show()
 
 # Plot the sde
@@ -227,5 +228,5 @@ plt.axhline(y=0.9, color='green', linestyle='--', label='90% Horizontal Line')
 plt.axvline(x=x_0_9, color='green', linestyle='--', label='90% Vertical Line')
 ax_zoom.set_xlim(-2, 5)  # Adjust the x-axis limits as desired
 ax_zoom.grid(True)
-plt.savefig(f"{args.outputDir}/SDE.png")
+plt.savefig(f"{outputDir}/SDE.png")
 plt.show()

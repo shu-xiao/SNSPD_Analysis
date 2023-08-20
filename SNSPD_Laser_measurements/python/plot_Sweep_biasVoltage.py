@@ -19,7 +19,8 @@ with open(args.in_filenames[0], 'r') as file:
     file_content = file.read()
 
 # info = r'$T=4.6K,\quad V_{Bias}=2V,\quad 532nm\, pulsed\, laser$'
-info = r'$T=4.6K,\quad I_{Laser}=3\mu W,\quad 532nm\, pulsed\, laser$'
+Temp="8"
+info = f'{Temp}K' + r'$\quad I_{Laser}=3\mu W,\quad 532nm\, pulsed\, laser$'
 outputDir = args.in_filenames[0].rsplit('/',1)[0]
 
 # Use regular expressions to extract the required data
@@ -127,7 +128,7 @@ plt.savefig(f"{outputDir}/SDE.png")
 plt.show()
 
 
-with open ('../SNSPD_Basic_measurements/data/20230614_IV/4.6K_10kohm.txt') as f:
+with open (f'../SNSPD_Basic_measurements/data/20230614_IV/{Temp}K_10kohm_dark.txt') as f:
     Lines = f.readlines()
 
 Currents, Volts, Resists = [], [], []
@@ -141,18 +142,18 @@ for i, Line in enumerate(Lines):
 fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, figsize=(6, 8))
 
 ax1.errorbar(sorted_names, sorted_range_means, yerr=sorted_range_mean_errors, fmt='o')
-ax2.errorbar(sorted_names, sorted_sdes, yerr=sorted_sde_errors, fmt='o')
+ax2.errorbar(sorted_names, sorted_sdes, yerr=sorted_sde_errors, fmt='o-')
 ax2.axvline(x=x_90, color='r', linestyle='--',label=f'90% @ {x_90:.2f}V')
 ax3.errorbar(Volts, Resists, fmt='-')
-ax1.axvline(x=1.76, color='g', linestyle='--')
-ax2.axvline(x=1.76, color='g', linestyle='--')
-ax3.axvline(x=1.76, color='g', linestyle='--',label="Critical Point @ 1.76V")
-ax3.set_xlim(0.5,2.4)
-ax3.set_ylim(9880,10100)
+ax1.axvline(x=0.9, color='g', linestyle='--')
+ax2.axvline(x=0.9, color='g', linestyle='--')
+ax3.axvline(x=0.9, color='g', linestyle='--',label="Critical Point @ 0.9V")
+ax3.set_xlim(0.,2.4)
+ax3.set_ylim(9800,10200)
 ax1.grid(True)
 ax2.grid(True)
 ax3.grid(True)
-ax1.set_ylabel(r'$\overline{A}_{signal}$\. [mV]',fontsize=15)
+ax1.set_ylabel(r'$\overline{A}_{signal}$ [mV]',fontsize=15)
 ax2.set_ylabel('Efficiency',fontsize=15)
 ax3.set_ylabel('Resistance',fontsize=15)
 ax3.set_xlabel('Bias Voltage [V]',fontsize=15)
@@ -169,5 +170,5 @@ ax3.yaxis.set_minor_locator(ticker.AutoMinorLocator())
 ax2.legend(fontsize='large')
 ax3.legend(fontsize='large')
 plt.tight_layout()
-plt.savefig(f"{outputDir}/Amplitude_SDE_VR.png")
+plt.savefig(f"{outputDir}/Amplitude_SDE_VR_{Temp}K.png")
 plt.show()

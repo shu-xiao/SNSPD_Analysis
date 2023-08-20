@@ -78,13 +78,14 @@ def SingleTDMS_CW_analysis(in_filename):
             # Plot waveform with peaks
             if (config.DISPLAY):
                 info = r'$T=4.6K,\quad V_{Bias}=1.7V,\quad 100 \mu W,\quad 532nm\, CW\, laser$'
-                plt.text(0, 0.065, info, fontsize=13, horizontalalignment='left')
+                plt.title(info, fontsize = 13, loc='right')
                 plt.plot(ch1, label='data')
                 plt.plot(peaks, ch1[peaks], "x", label='Found peaks')
-                plt.xlabel('Index [0.4ns], Gate width 2ms')
-                plt.ylabel('Amplitude')
+                plt.xlabel('Index [0.4ns], Gate width 2ms',fontsize=15)
+                plt.ylabel('ADC [V]',fontsize=15)
                 plt.ylim(-0.06,0.06)
                 plt.legend()
+                plt.tight_layout()
                 # plt.title('Waveform with Peaks')
                 plt.show()
 

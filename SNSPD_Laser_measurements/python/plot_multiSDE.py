@@ -33,7 +33,7 @@ if __name__ == "__main__":
     sorted_temps, sorted_files = zip(*sorted_data)
 
     fig1, ax1 = plt.subplots()
-    fig2, ax2 = plt.subplots()
+    # fig2, ax2 = plt.subplots()
 
     for ifile, (temp, in_filename) in enumerate(zip(sorted_temps, sorted_files)):
         # Open the file and read its contents
@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
         # Plot the sde
         ax1.plot(sorted_names, sorted_sdes, 'o-',label=f"{temp}K")
-        ax2.plot(sorted_names, sorted_range_means, 'o',label=f"{temp}K")
+        # ax2.plot(sorted_names, sorted_range_means, 'o',label=f"{temp}K")
 
     ax1.set_xlabel('Bias Voltage [V]', fontsize=15)
     ax1.set_ylabel('Efficiency', fontsize=15)
@@ -75,14 +75,14 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.savefig(f"./SDE_temp.png")
 
-    ax2.set_xlabel('Bias Voltage [V]', fontsize=15)
-    ax2.set_ylabel('Signal Amplitude Mean', fontsize=15)
-    ax2.legend(fontsize=13)
-    ax2.grid(True)
-    ax2.grid(which='minor', linestyle=':', linewidth='0.5')
-    ax2.xaxis.set_minor_locator(ticker.AutoMinorLocator())
-    ax2.yaxis.set_minor_locator(ticker.AutoMinorLocator())
-    plt.tight_layout()
-    plt.savefig(f"./Amplitude_temp.png")
+    # ax2.set_xlabel('Bias Voltage [V]', fontsize=15)
+    # ax2.set_ylabel('Signal Amplitude Mean', fontsize=15)
+    # ax2.legend(fontsize=13)
+    # ax2.grid(True)
+    # ax2.grid(which='minor', linestyle=':', linewidth='0.5')
+    # ax2.xaxis.set_minor_locator(ticker.AutoMinorLocator())
+    # ax2.yaxis.set_minor_locator(ticker.AutoMinorLocator())
+    # plt.tight_layout()
+    # plt.savefig(f"./Amplitude_temp.png")
 
     plt.show()

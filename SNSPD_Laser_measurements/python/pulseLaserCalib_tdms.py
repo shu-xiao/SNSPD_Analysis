@@ -91,13 +91,13 @@ def SingleTDMS_analysis(in_filename):
                 Pulse_startT =  int(ch2_arrivalT) + 205
                 Pulse_endT =  int(ch2_arrivalT) + 250
                 # Define pre-pulse (sideband) region
-                prePulse_startT =  int(ch2_arrivalT) - 20
+                prePulse_startT =  int(ch2_arrivalT) + 10
                 prePulse_endT =  int(ch2_arrivalT) + 180
                 # Define post-pulse (sideband) region
                 postPulse_startT =  int(ch2_arrivalT) + 500
                 postPulse_endT =  int(ch2_arrivalT) + 800
-                # event_display_2ch(ch1[prePulse_startT:postPulse_endT], ch1_diff[prePulse_startT:postPulse_endT], f'Waveform#{event}_pulse{ipulse}', 0.02)
-                event_display_2ch(ch1[prePulse_startT:postPulse_endT], ch2[prePulse_startT:postPulse_endT], f'Waveform#{event}_pulse{ipulse}', 0.02)
+                event_display_2ch(ch1[prePulse_startT:postPulse_endT], ch1_diff[prePulse_startT:postPulse_endT], f'Waveform#{event}_pulse{ipulse}', 0.02)
+
                 # Sideband characteristic
                 prePulse_mean.append(np.mean(ch1[prePulse_startT:prePulse_endT])) # mean
                 postPulse_mean.append(np.mean(ch1[postPulse_startT:postPulse_endT]))
@@ -110,7 +110,7 @@ def SingleTDMS_analysis(in_filename):
                 # pulseRanges.append(np.ptp(ch1[Pulse_startT:Pulse_endT]))
                 # Pulse pre-selection using sideband region
                 # if (prePulse_range[-1] < 0.057 or prePulse_stdev[-1] < 0.013 or postPulse_range[-1] < 0.075 or postPulse_stdev[-1] < 0.014):
-                if (prePulse_range[-1] < 0.005 or prePulse_stdev[-1] < 0.002 or postPulse_range[-1] < 0.005 or postPulse_stdev[-1] < 0.002):
+                if (prePulse_range[-1] < 0.005 and prePulse_stdev[-1] < 0.001 and postPulse_range[-1] < 0.005 and postPulse_stdev[-1] < 0.001):
                     debugPrint(f'Event{event}_Pulse{ipulse} pass preselection')
                     # Pulse region
                     ch1_pulse = ch1[Pulse_startT:Pulse_endT]
@@ -181,8 +181,7 @@ def SingleTDMS_analysis(in_filename):
 
                     # ch1_pulse_diff_turning_pedestals, ch1_pulse_diff_turning_peaks = Get_turning_times(ch1_pulse_diff_spline, 0.02, 0, 'Rise', config.DEBUG)
                     # display_spline_fit(ch1_pulse_spline, ch1_pulse_xIndex)
-                    # event_display_2ch(ch1_pulse, ch1_pulse_diff, f'Wavform#{event}_pulse{ipulse}',0.02)
-                    event_display_spline(ch1_pulse, ch1_pulse_spline, f'Wavform#{event}_pulse{ipulse}')
+                    if (config.DISPLAY): event_display_2ch(ch1_pulse, ch1_pulse_diff, f'Wavform#{event}_pulse{ipulse}',0.02)
                 else:
                     debugPrint (f'Event{event}_Pulse{ipulse} fail preselection ')
 
