@@ -274,10 +274,3 @@ if __name__ == "__main__":
         # print(f'Temperature : {Temperature}, Bias Voltage : {Voltage}')
         # SDE, range_average, range_std = SingleTDMS_analysis(in_filename)
         SingleTDMS_analysis(in_filename)
-
-            # json_str = json.dumps(Signal_results, indent=None)
-            # json_str = json_str.replace('],', ',\n')
-            # f.write(f'{json_str}\n')
-            # json_str = json.dumps(Sideband_results, indent=None)
-            # json_str = json_str.replace('],', ',\n')
-            # f.write(f'{json_str}\n')
