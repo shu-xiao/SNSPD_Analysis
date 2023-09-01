@@ -114,7 +114,7 @@ def SingleTDMS_analysis(in_filename):
                 # Pulse pre-selection using sideband region
                 # if (prePulse_range[-1] < 0.2 and prePulse_stdev[-1] < 0.03 and postPulse_range[-1] < 0.2 and postPulse_stdev[-1] < 0.03):
                 if (prePulse_range[-1] < 0.25 and prePulse_stdev[-1] < 0.06):
-                    debugPrint('Event%d_Pulse%d pass preselection: %.4f, %.4f, %.4f, %.4f'%(event,ipulse,prePulse_range[-1],prePulse_stdev,postPulse_range,postPulse_stdev))
+                    debugPrint('Event{}_Pulse{} pass preselection: {:.4f}, {:.4f}, {:.4f}, {:.4f}'.format(event,ipulse,prePulse_range[-1],prePulse_stdev[-1],postPulse_range[-1],postPulse_stdev[-1]))
                     # Pulse region
                     chSig_pulse = chSig[Pulse_startT:Pulse_endT]
                     chSig_pulse_xIndex = np.arange(len(chSig_pulse))
@@ -165,7 +165,8 @@ def SingleTDMS_analysis(in_filename):
                         debugPrint('Event%d_Pulse%d Fail event selection'%(event,ipulse))
                         # event_display_2ch(chSig_pulse_diff, chSig_pulse, f'Wavform#{event}_pulse{ipulse}')
                 else:
-                    debugPrint('Event%d_Pulse%d fail preselection: %.4f, %.4f, %.4f, %.4f'%(event,ipulse,prePulse_range[-1],prePulse_stdev,postPulse_range,postPulse_stdev))
+                    debugPrint('Event%d_Pulse{} pass preselection: {:.4f}, {:.4f}, {:.4f}, {:.4f}'.format(event,ipulse,prePulse_range[-1],prePulse_stdev[-1],postPulse_range[-1],postPulse_stdev[-1]))
+
 
         #################### End Loop ####################
 
