@@ -56,7 +56,7 @@ def SingleTDMS_analysis(in_filename):
             # Choose a subset of the whole data to do the analysis. -1 = run All
             if (event == args.subset ): break
             # Loop progress
-            if ((event+1)%args.report==0): print ("==========Processing %d/%d event=========="%(event,totalEvents))
+            if ((event+1)%args.report==0): print ("==========Processing {}/{} event==========".format(event,totalEvents))
             config.DEBUG = True if (event+1)%args.debug_report==0 else False
             config.DISPLAY = True if (event+1)%args.display_report==0 else False
             # Skip chunk larger than totalEvents
@@ -162,10 +162,10 @@ def SingleTDMS_analysis(in_filename):
                         debugPrint('Pulse amplitude = %.4f, arrival Time = %.4f, rise Time = %.4f'%(chSig_pulse_amplitude,chSig_pulse_arrivalT,chSig_pulse_riseT))
                         display_spline_fit(chSig_pulse_spline, chSig_pulse_xIndex)
                     else:
-                        debugPrint('Event%d_Pulse%d Fail event selection'%(event,ipulse))
+                        debugPrint('Event{}_Pulse{} Fail event selection'.format(event,ipulse))
                         # event_display_2ch(chSig_pulse_diff, chSig_pulse, f'Wavform#{event}_pulse{ipulse}')
                 else:
-                    debugPrint('Event%d_Pulse{} pass preselection: {:.4f}, {:.4f}, {:.4f}, {:.4f}'.format(event,ipulse,prePulse_range[-1],prePulse_stdev[-1],postPulse_range[-1],postPulse_stdev[-1]))
+                    debugPrint('Event{}_Pulse{} pass preselection: {:.4f}, {:.4f}, {:.4f}, {:.4f}'.format(event,ipulse,prePulse_range[-1],prePulse_stdev[-1],postPulse_range[-1],postPulse_stdev[-1]))
 
 
         #################### End Loop ####################
