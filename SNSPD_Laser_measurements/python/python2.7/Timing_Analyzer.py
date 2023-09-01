@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 from scipy.interpolate import CubicSpline
 from scipy.optimize import minimize_scalar
