@@ -63,8 +63,8 @@ def display_spline_fit(spline_func, x_index):
     x_spline_range = np.linspace(x_index.min(), x_index.max(), num=10000)
     y_spline = spline_func(x_spline_range)
     plt.plot(x_spline_range, y_spline, '-', label='Spline Fit')
-    plt.close('all')
     if (config.DISPLAY): plt.show()
+    plt.close('all')
 
 
 def plot_histo(np1, nbin, rangemin, rangemax, xTitle, title, saveTitle):

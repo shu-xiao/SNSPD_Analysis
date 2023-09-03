@@ -80,7 +80,7 @@ def SingleTDMS_analysis(in_filename):
             chTrig_turning_pedestals, chTrig_turning_peaks, chTrig_turning_ranges = Get_turning_times(chTrig_spline, 0.1, 0, len(chTrig), 'Fall', config.DEBUG)
             # chTrig_turning_pedestals, chTrig_turning_peaks = Get_turning_times(chTrig_spline, 0.4, 0, len(chTrig), 'Fall', config.DEBUG)
             for ipulse, (chTrig_turning_pedestal, chTrig_turning_peak) in enumerate(zip(chTrig_turning_pedestals, chTrig_turning_peaks)):
-                debugPrint('==========Event%d_Pulse%d=========='%(event,ipulse))
+                debugPrint('==========Event{}_Pulse{}=========='%(event,ipulse))
                 # Skip last pulse due to distortion of the oscilloscop at the boundary
                 if (ipulse >= config.NpulsePerTrigger-1): continue
                 # Skip unreasonable turning points
@@ -99,7 +99,7 @@ def SingleTDMS_analysis(in_filename):
                 # Define post-pulse (sideband) region
                 postPulse_startT =  int(chTrig_arrivalT) + 500
                 postPulse_endT =  int(chTrig_arrivalT) + 800
-                event_display(chSig[prePulse_startT:postPulse_endT], 'Waveform#%d_pulse%d'%(event,ipulse))
+                event_display(chSig[prePulse_startT:postPulse_endT], 'Waveform#{}_pulse{}'.format(event,ipulse))
 
                 # Sideband characteristic
                 prePulse_mean.append(np.mean(chSig[prePulse_startT:prePulse_endT])) # mean
@@ -138,7 +138,7 @@ def SingleTDMS_analysis(in_filename):
                         # Find turning point
                         chSig_pulse_turning_pedestals, chSig_pulse_turning_peaks, chSig_pulse_turning_ranges = Get_turning_times(chSig_pulse_spline, 0.02, 10, 40, 'Rise', config.DEBUG)
                         if (len(chSig_pulse_turning_peaks)<1):
-                            print('Abnormal Event%d_Pulse%d. Pass Event Selection, but can\'t find turning points'%(event,ipulse))
+                            print('Abnormal Event{}_Pulse{}. Pass Event Selection, but can\'t find turning points'.format(event,ipulse))
                             continue
                         # Get pulse amplitude --> Defined as range between pulse rising turning points
                         chSig_pulse_amplitude = max(chSig_pulse_turning_ranges)
@@ -147,7 +147,7 @@ def SingleTDMS_analysis(in_filename):
 
                         data_spline = abs(chSig_pulse_amplitude-chSig_pulse_range)/chSig_pulse_range
                         data_splines.append(data_spline)
-                        debugPrint("data vs spline diff: %.3f"%data_spline)
+                        debugPrint("data vs spline diff: {%.3f}".format(data_spline))
                         # Get 50% pulse amplitude level
                         chSig_pulse_10 = chSig_pulse_turning_peaks[imax].y*0.1 + chSig_pulse_turning_pedestals[imax].y*0.9
                         chSig_pulse_50 = chSig_pulse_turning_peaks[imax].y*0.5 + chSig_pulse_turning_pedestals[imax].y*0.5

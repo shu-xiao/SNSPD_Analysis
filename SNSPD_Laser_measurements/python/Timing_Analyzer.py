@@ -2,6 +2,7 @@
 
 from scipy.interpolate import CubicSpline
 from scipy.optimize import minimize_scalar
+from scipy.optimize import fmin
 from scipy.optimize import brentq
 from scipy.integrate import quad
 import numpy as np
@@ -67,6 +68,7 @@ def Get_turning_times(inputfunc, range_threshold, rangeMin, rangeMax, Rise_Fall,
     roots = inputfunc.derivative().roots()
     p_pedestals=[]
     p_peaks=[]
+    p_ranges=[]
     # Find the turning value
     for iroot, root in enumerate(roots):
         if ( roots[iroot-1] > rangeMin and root < rangeMax and root > roots[iroot-1] ):
@@ -74,12 +76,14 @@ def Get_turning_times(inputfunc, range_threshold, rangeMin, rangeMax, Rise_Fall,
             if (Rise_Fall == 'Rise' and inputfunc(root) - inputfunc(roots[iroot-1]) > range_threshold):
                 p_pedestals.append(Point(roots[iroot-1], inputfunc(roots[iroot-1])))
                 p_peaks.append(Point(root, inputfunc(root)))
-                if (debug): print(f"Rise Turning Point: ({p_pedestals[-1].x},{p_pedestals[-1].y}) ({p_peaks[-1].x},{p_peaks[-1].y})")
+                p_ranges.append(inputfunc(root)-inputfunc(roots[iroot-1]))
+                if (debug): print(f"Rise Turning Point: ({p_pedestals[-1].x:.4f},{p_pedestals[-1].y:.4f}) ({p_peaks[-1].x:.4f},{p_peaks[-1].y:.4f}) ({p_ranges[-1]:.4f})")
             elif (Rise_Fall == 'Fall' and inputfunc(roots[iroot-1]) - inputfunc(root)  > range_threshold):
                 p_pedestals.append(Point(roots[iroot-1], inputfunc(roots[iroot-1])))
                 p_peaks.append(Point(root, inputfunc(root)))
-                if (debug): print(f"Fall Turning Point: ({p_pedestals[-1].x},{p_pedestals[-1].y}) ({p_peaks[-1].x},{p_peaks[-1].y})")
-    return p_pedestals, p_peaks
+                p_ranges.append(inputfunc(root)-inputfunc(roots[iroot-1]))
+                if (debug): print(f"Fall Turning Point: ({p_pedestals[-1].x:.4f},{p_pedestals[-1].y:.4f}) ({p_peaks[-1].x:.4f},{p_peaks[-1].y:.4f}) ({p_ranges[-1]:.4f})")
+    return p_pedestals, p_peaks, p_ranges
 
 def Get_FunctionMax(inputfunc, start, end, debug=False):
     # Define the function
@@ -93,6 +97,7 @@ def Get_FunctionMax(inputfunc, start, end, debug=False):
         # Print the x-value at which the maximum occurs
         print("Location of maximum:", result.x)
     p = Point(result.x, -result.fun)
+    # p = Point(0,0)
     return p
 
 def Get_FunctionMin(inputfunc, start, end, debug=False):
@@ -100,7 +105,7 @@ def Get_FunctionMin(inputfunc, start, end, debug=False):
     def f(x):
         return inputfunc(x)
     # Find the minimum value within the range [-5, 5]
-    result = minimize_scalar(lambda x: f(x), bounds=(start, end), method='bounded')
+    result = minimize_scalar(lambda x: -f(x), bounds=(start, end), method='bounded')
     # Print the minimum value
     if (debug):
         print("Minimum value:", result.fun)
