@@ -3,11 +3,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import config
 import ROOT
 import warnings
 import os
 import errno
+
+from ..config import config
 
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore",category=DeprecationWarning)
@@ -38,6 +39,7 @@ def event_display_spline(array, spline_func, title='Waveform'):
     plt.tight_layout()
     # Display the plot
     if (config.DISPLAY): plt.show()
+    plt.close('all')
 
 def event_display_2ch(np1, np2, title='Waveform', offset=0.15):
     # Create a new figure

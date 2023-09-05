@@ -10,10 +10,10 @@ import json
 import math
 
 # User defined functions
-from Timing_Analyzer import *
-from tdmsUtils import *
-from plotUtils import *
-import config
+from ..utils.Timing_Analyzer import *
+from ..utils.tdmsUtils import *
+from ..utils.plotUtils import *
+from ..config import config
 
 import argparse
 parser = argparse.ArgumentParser(description='')
