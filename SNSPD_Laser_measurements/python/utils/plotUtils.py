@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+from ..config import config
+
+import matplotlib as mpl
+if (config.DISPLAY==False): mpl.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -7,12 +11,6 @@ import ROOT
 import warnings
 import os
 import errno
-
-from ..config import config
-
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore",category=DeprecationWarning)
-    import root_numpy
 
 def event_display(np,title='Waveform'):
     # Create a line plot of the data
@@ -107,7 +105,7 @@ def plot_histo_root(np1, nbin, rangemin, rangemax, name, xTitle, title, saveTitl
     c1 = ROOT.TCanvas()
     hist = ROOT.TH1F(name, name, nbin, rangemin, rangemax)
     array = np.array(np1, dtype=float)
-    root_numpy.fill_hist(hist, array, weights=None, return_indices=False)
+    # root_numpy.fill_hist(hist, array, weights=None, return_indices=False)
     # Draw hist
     hist.SetTitle(title)
     hist.GetXaxis().SetTitle(xTitle)

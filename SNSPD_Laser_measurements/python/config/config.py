@@ -10,5 +10,5 @@ Pulse_endT       =  245
 prePulse_startT  =  10
 prePulse_endT    =  180
 # Define post-pulse (sideband) region
-postPulse_startT =  500
-postPulse_endT   =  800
+postPulse_startT =  700
+postPulse_endT   =  1000
