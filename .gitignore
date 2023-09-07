@@ -1,5 +1,7 @@
 # SNSPD_analysis gitignore file
 .DS_Store
+*.png
+*__pycache__
 
 # SNSPD_Basic_measurements
 SNSPD_Basic_measurements/data

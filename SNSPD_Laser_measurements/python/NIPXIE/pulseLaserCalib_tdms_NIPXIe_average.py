@@ -19,9 +19,11 @@ import argparse
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('in_filenames',nargs="+",help='input filenames')
 parser.add_argument('--outputDir','-d',default="./plots/test",type=str,help='output directory')
+parser.add_argument('--avgCount','-a',default=20,type=int,help='average pulse counts')
 parser.add_argument('--report','-r',default=100,type=int,help='report every x events')
 parser.add_argument('--debug_report','-b',action="store_true",help='report every x events')
 parser.add_argument('--display_report','-p',action="store_true",help='report every x events')
+parser.add_argument('--doSingle',action="store_true",help='do single pulse analysis')
 parser.add_argument('--subset','-s',default=-1,type=int,help='Process a subset of data. -1 = all')
 parser.add_argument('--txtfilename','-t',default="test",type=str,help='results txt file')
 args = parser.parse_args()
@@ -30,7 +32,7 @@ args = parser.parse_args()
 def debugPrint(string):
     if (config.DEBUG): print(string)
 
-def Advanced_pulse_analysis(data, trigT, event):
+def Advanced_pulse_analysis(data, trigT, event, histo_pulse):
     data_xIndex = np.arange(len(data))
     # Cubic Spline Fit
     data_spline = CubicSpline(data_xIndex, data)
@@ -41,7 +43,7 @@ def Advanced_pulse_analysis(data, trigT, event):
         return
     # Get pulse amplitude --> Defined as range between pulse rising turning points
     data_amplitude = max(data_turning_ranges)
-    Pulse["amplitude_avg"].Fill(data_amplitude)
+    histo_pulse["amplitude"].Fill(data_amplitude)
     imax = data_turning_ranges.index(data_amplitude)
 
     # Get 50% pulse amplitude level
@@ -50,31 +52,28 @@ def Advanced_pulse_analysis(data, trigT, event):
     data_90 = data_turning_peaks[imax].y*0.9 + data_turning_pedestals[imax].y*0.1
     # Get Arrival time
     data_arrivalT = Get_Function_Arrival(data_spline, data_50, data_turning_pedestals[imax].x, data_turning_peaks[imax].x) + config.Pulse_startT + trigT  #int(chTrig_arrivalT) + 205
-    Pulse["arrivalT"].Fill(data_arrivalT)
+    histo_pulse["arrivalT"].Fill(data_arrivalT)
     # Get Rise time
     data_riseT = Get_Function_RiseFall_Range(data_spline, data_10, data_90, data_turning_pedestals[imax].x, data_turning_peaks[imax].x)
-    Pulse["riseT"].Fill(data_riseT)
+    histo_pulse["riseT"].Fill(data_riseT)
 
     debugPrint(f'Pulse amplitude = {data_amplitude:.4f}, arrival Time = {data_arrivalT:.4f}, rise Time = {data_riseT:.4f}')
     display_spline_fit(data_spline, data_xIndex)
 
-def Simple_pulse_analysis(data, event, prePulse, posPulse, Pulse):
+def Simple_pulse_analysis(data, event, histo_sb, histo_pulse):
     event_display(data, f'Waveform#{event}')
-    if (event < 10):
-        for i in range(1000):
-            Pulse_avg_display.SetPoint(i,i,data[i])
 
-    prePulse["std"].Fill(np.std(data[config.prePulse_startT:config.prePulse_endT]))
-    prePulse["mean"].Fill(np.mean(data[config.prePulse_startT:config.prePulse_endT]))
-    prePulse["range"].Fill(np.ptp(data[config.prePulse_startT:config.prePulse_endT]))
-    posPulse["std"].Fill(np.std(data[config.postPulse_startT:config.postPulse_endT]))
-    posPulse["mean"].Fill(np.mean(data[config.postPulse_startT:config.postPulse_endT]))
-    posPulse["range"].Fill(np.ptp(data[config.postPulse_startT:config.postPulse_endT]))
+    histo_sb["pre_std"].Fill(np.std(data[config.prePulse_startT:config.prePulse_endT]))
+    histo_sb["pos_mean"].Fill(np.mean(data[config.prePulse_startT:config.prePulse_endT]))
+    histo_sb["pre_range"].Fill(np.ptp(data[config.prePulse_startT:config.prePulse_endT]))
+    histo_sb["pos_std"].Fill(np.std(data[config.postPulse_startT:config.postPulse_endT]))
+    histo_sb["pre_mean"].Fill(np.mean(data[config.postPulse_startT:config.postPulse_endT]))
+    histo_sb["pos_range"].Fill(np.ptp(data[config.postPulse_startT:config.postPulse_endT]))
 
     # Pulse region
     data_pulse = data[config.Pulse_startT:config.Pulse_endT]
     data_range = np.ptp(data_pulse)
-    Pulse["range"].Fill(data_range)
+    histo_pulse["range"].Fill(data_range)
     debugPrint(f'Range = {data_range:.5f}')
     event_display(data_pulse, f'Waveform#{event}')
 
@@ -96,6 +95,7 @@ def SingleTDMS_analysis(in_filename):
         chSig_average = np.zeros(1000)
         chTrig_arrivalT_average = 0
         pulseCount = 0
+        plotDisplay = True
 
         for event in range(totalEvents):
             # Choose a subset of the whole data to do the analysis. -1 = run All
@@ -120,16 +120,24 @@ def SingleTDMS_analysis(in_filename):
                 # Define time of arrival at the 50% level of the falling slope
                 chTrig_arrivalT = Get_Function_Arrival(chTrig_spline, chTrig_turning_pedestal.y-0.1, chTrig_turning_pedestal.x, chTrig_turning_peak.x)
                 if (chTrig_arrivalT<0) : continue
-                if (event==1 and ipulse == 3):
-                    for i in range(1000):
-                        Pulse_display.SetPoint(i,i,chSig[int(chTrig_arrivalT) + i])
                 chSig_average = np.add(chSig_average,chSig[int(chTrig_arrivalT):int(chTrig_arrivalT) + 1000])
                 chTrig_arrivalT_average = chTrig_arrivalT_average + ( chTrig_arrivalT - int(chTrig_arrivalT) )
                 pulseCount = pulseCount + 1
+                if (args.doSingle):
+                    Simple_pulse_analysis(chSig[int(chTrig_arrivalT):int(chTrig_arrivalT) + 1000], event, sb, Pulse)
+                    Advanced_pulse_analysis(chSig[int(chTrig_arrivalT):int(chTrig_arrivalT) + 1000], chTrig_arrivalT - int(chTrig_arrivalT), event, Pulse)
+                    if (event==1 and ipulse == 3):
+                        for i in range(1000): Pulse_display.SetPoint(i,i,chSig[int(chTrig_arrivalT) + i])
+
             # Analysis after averaging pulses
-            if (pulseCount>20):
-                Simple_pulse_analysis(chSig_average/pulseCount, event)
-                Advanced_pulse_analysis(chSig_average/pulseCount, chTrig_arrivalT_average/pulseCount, event)
+            if (pulseCount>args.avgCount):
+                chSig_average = chSig_average/pulseCount
+                chTrig_arrivalT_average = chTrig_arrivalT_average/pulseCount
+                Simple_pulse_analysis(chSig_average, event, sb_avg, Pulse_avg)
+                Advanced_pulse_analysis(chSig_average, chTrig_arrivalT_average, event, Pulse_avg)
+                if (plotDisplay):
+                    for i in range(1000): Pulse_avg_display.SetPoint(i,i,chSig_average[i])
+                    plotDisplay = False
                 chSig_average = np.zeros(1000)
                 chTrig_arrivalT_average = 0
                 pulseCount = 0
@@ -149,38 +157,44 @@ if __name__ == "__main__":
         basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
     baseDir = in_filename.split('/')[-2]
     plotDir = args.outputDir + '/' + baseDir + '/' + basename
+    avg_plotDir = args.outputDir + '/' + baseDir + '/' + basename + '/Avg_' + str(args.avgCount)
     createDir(args.outputDir)
     createDir(baseDir)
     createDir(plotDir)
-
+    createDir(avg_plotDir)
     # Create root filen
-    hfile = ROOT.TFile(f'{plotDir}/{basename}.root', 'RECREATE', 'analysis histograms of {basename} measurements' )
+    hfile = ROOT.TFile(f'{avg_plotDir}/{basename}.root', 'RECREATE', 'analysis histograms of {basename} measurements' )
 
     # Histogram collection
-    prePulse, posPulse, Pulse = {}, {}, {}
-    prePulse["std"] = ROOT.TH1F("prePulse_std", "prePulse_std", 50, 0, 0.01)
-    posPulse["std"] = ROOT.TH1F("posPulse_std", "posPulse_std", 50, 0, 0.01)
-    prePulse["mean"] = ROOT.TH1F("prePulse_mean", "prePulse_mean", 50, -0.005, 0.005)
-    posPulse["mean"] = ROOT.TH1F("posPulse_mean", "posPulse_mean", 50, -0.005, 0.005)
-    prePulse["range"] = ROOT.TH1F("prePulse_range", "prePulse_range", 100, 0, 0.05)
-    posPulse["range"] = ROOT.TH1F("posPulse_range", "posPulse_range", 100, 0, 0.05)
+    sb, sb_avg, Pulse, Pulse_avg = {}, {}, {}, {}
+    sb["pre_std"] = ROOT.TH1F("prePulse_std", "prePulse_std", 50, 0, 0.1)
+    sb["pos_std"] = ROOT.TH1F("posPulse_std", "posPulse_std", 50, 0, 0.1)
+    sb["pre_mean"] = ROOT.TH1F("prePulse_mean", "prePulse_mean", 50, -0.005, 0.005)
+    sb["pos_mean"] = ROOT.TH1F("posPulse_mean", "posPulse_mean", 50, -0.005, 0.005)
+    sb["pre_range"] = ROOT.TH1F("prePulse_range", "prePulse_range", 1000, 0, 0.2)
+    sb["pos_range"] = ROOT.TH1F("posPulse_range", "posPulse_range", 1000, 0, 0.2)
 
-    prePulse_avg["std"] = ROOT.TH1F("prePulse_std", "prePulse_std", 50, 0, 0.01)
-    posPulse_avg["std"] = ROOT.TH1F("posPulse_std", "posPulse_std", 50, 0, 0.01)
-    prePulse_avg["mean"] = ROOT.TH1F("prePulse_mean", "prePulse_mean", 50, -0.005, 0.005)
-    posPulse_avg["mean"] = ROOT.TH1F("posPulse_mean", "posPulse_mean", 50, -0.005, 0.005)
-    prePulse_avg["range"] = ROOT.TH1F("prePulse_range", "prePulse_range", 100, 0, 0.05)
-    posPulse_avg["range"] = ROOT.TH1F("posPulse_range", "posPulse_range", 100, 0, 0.05)
+    sb_avg["pre_std"] = ROOT.TH1F(f"prePulse_avg_{args.avgCount}_std", f"prePulse_avg_{args.avgCount}_std", 50, 0, 0.01)
+    sb_avg["pos_std"] = ROOT.TH1F(f"posPulse_avg_{args.avgCount}_std", f"posPulse_avg_{args.avgCount}_std", 50, 0, 0.01)
+    sb_avg["pre_mean"] = ROOT.TH1F(f"prePulse_avg_{args.avgCount}_mean", f"prePulse_avg_{args.avgCount}_mean", 50, -0.005, 0.005)
+    sb_avg["pos_mean"] = ROOT.TH1F(f"posPulse_avg_{args.avgCount}_mean", f"posPulse_avg_{args.avgCount}_mean", 50, -0.005, 0.005)
+    sb_avg["pre_range"] = ROOT.TH1F(f"prePulse_avg_{args.avgCount}_range", f"prePulse_avg_{args.avgCount}_range", 1000, 0, 0.2)
+    sb_avg["pos_range"] = ROOT.TH1F(f"posPulse_avg_{args.avgCount}_range", f"posPulse_avg_{args.avgCount}_range", 1000, 0, 0.2)
 
     Pulse["range"] = ROOT.TH1F("Pulse_range", "Pulse Range", 1024, 0, 0.5)
-    Pulse["range"] = ROOT.TH1F("Pulse_range", "Pulse Range Average Over 20 pulses", 1024, 0, 0.5)
-    Pulse["amplitude"] = ROOT.TH1F("Pulse_amplitude", "Pulse Amplitude Average Over 20 pulses", 1024, 0, 0.5)
+    Pulse["amplitude"] = ROOT.TH1F("Pulse_amplitude", "Pulse Amplitude", 1024, 0, 0.5)
     Pulse["arrivalT"] = ROOT.TH1F("Pulse_arrivalT", "Pulse arrival time", 100, 441, 445)
     Pulse["riseT"] = ROOT.TH1F("Pulse_riseT", "Pulse rising time", 100, 0, 6)
+
+    Pulse_avg["range"] = ROOT.TH1F(f"Pulse_avg_{args.avgCount}_range", f"Average {args.avgCount} Pulse Range", 1024, 0, 0.5)
+    Pulse_avg["amplitude"] = ROOT.TH1F(f"Pulse_avg_{args.avgCount}_amplitude", f"Average {args.avgCount} Pulse Amplitude", 1024, 0, 0.5)
+    Pulse_avg["arrivalT"] = ROOT.TH1F(f"Pulse_avg_{args.avgCount}_arrivalT", f"Average {args.avgCount} Pulse arrival time", 100, 441, 445)
+    Pulse_avg["riseT"] = ROOT.TH1F(f"Pulse_avg_{args.avgCount}_riseT", f"Average {args.avgCount} Pulse rising time", 100, 0, 6)
+
     Pulse_display = ROOT.TGraph()
     Pulse_avg_display = ROOT.TGraph()
     Pulse_display.SetName("Pulse_display")
-    Pulse_avg_display.SetName("Pulse_avg_display")
+    Pulse_avg_display.SetName(f"Pulse_avg_{args.avgCount}_display")
 
     #################### Start Analysis ####################
     SingleTDMS_analysis(in_filename)
@@ -190,16 +204,47 @@ if __name__ == "__main__":
     #################### Plots ####################
     ###############################################
     c1 = ROOT.TCanvas()
-    for key in Pulse:
-        Pulse[key].Draw("HIST")
-        c1.SaveAs(f"{plotDir}/{Pulse[key].GetName()}.png")
-    for key in prePulse:
-        prePulse[key].Draw("HIST")
-        c1.SaveAs(f"{plotDir}/{prePulse[key].GetName()}.png")
-    for key in posPulse:
-        posPulse[key].Draw("HIST")
-        c1.SaveAs(f"{plotDir}/{posPulse[key].GetName()}.png")
+    Pulse_avg_display.SetMarkerStyle(4)
+    Pulse_avg_display.SetMarkerSize(0.5)
+    Pulse_avg_display.Draw("ALP")
+    c1.SaveAs(f"{avg_plotDir}/{Pulse_avg_display.GetName()}.png")
+    for key, hist in sb_avg.items():
+        hist.Draw("HIST")
+        c1.SaveAs(f"{avg_plotDir}/{hist.GetName()}.png")
+    for key, hist in Pulse_avg.items():
+        hist.Draw("HIST")
+        c1.SaveAs(f"{avg_plotDir}/{hist.GetName()}.png")
+    if (args.doSingle):
+        Pulse_display.Draw("ALP")
+        c1.SaveAs(f"{plotDir}/{Pulse_display.GetName()}.png")
+        for key, hist in sb.items():
+            hist.Draw("HIST")
+            c1.SaveAs(f"{plotDir}/{hist.GetName()}.png")
+        for key, hist in Pulse.items():
+            hist.Draw("HIST")
+            c1.SaveAs(f"{plotDir}/{hist.GetName()}.png")
 
+    c2 = ROOT.TCanvas("c2","c2",2560,1280)
+    c2.Divide(3,2)
+    c2.cd(1)
+    Pulse_avg_display.Draw("ALP")
+    c2.cd(2)
+    Pulse_avg["amplitude"].Draw("HIST")
+    c2.cd(3)
+    Pulse_avg["arrivalT"].Draw("HIST")
+    c2.cd(4)
+    sb_avg["pre_range"].Draw("HIST")
+    c2.cd(5)
+    sb_avg["pos_range"].Draw("HIST")
+    c2.cd(6)
+    sb_avg["pos_std"].Draw("HIST")
+    c2.SaveAs(f"{avg_plotDir}/test.png")
+
+    # End Info
+    SNR = Pulse_avg["amplitude"].GetMean() / sb_avg["pos_range"].GetMean()
+    print(f"Average Pulse amplitude = {Pulse_avg['amplitude'].GetMean():.3f}, Sideband range = {sb_avg['pos_range'].GetMean():.3f}, SNR = {SNR:.2f}")
+
+    # Write and Close Root file
     Pulse_display.Write()
     Pulse_avg_display.Write()
     hfile.Write()
