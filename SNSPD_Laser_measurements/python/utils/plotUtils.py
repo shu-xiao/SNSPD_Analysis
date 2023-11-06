@@ -3,7 +3,7 @@
 from ..config import config
 
 import matplotlib as mpl
-if (config.DISPLAY==False): mpl.use('Agg')
+# mpl.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -16,7 +16,7 @@ def event_display(np,title='Waveform'):
     # Create a line plot of the data
     plt.plot(range(len(np)), np)
     # Add labels to the plot
-    # plt.title(title,fontsize=15)
+    plt.title(title,fontsize=15)
     plt.xlabel('Index [0.4ns]',fontsize=15)
     plt.ylabel('ADC [Volts]',fontsize=15)
     plt.tight_layout()
