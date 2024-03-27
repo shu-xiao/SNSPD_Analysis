@@ -3,6 +3,9 @@
 import ROOT
 from array import array
 import argparse
+import matplotlib.pyplot as plt
+import numpy as np
+import math
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('in_filenames',nargs="+",help='input filenames')
@@ -91,5 +94,110 @@ def plot_multiHistograms():
     gphoton.SetTitle("photon number")
     c1.SaveAs(f"{outputDir}/multiPhotons.png")
 
+def plot_DE_polar():
+    radians, DEs, Pulse_ranges = [], [], []
+    for in_filename in args.in_filenames:
+        degree = float(in_filename.split('degrees')[0].split('/')[-1])*2
+        radians.append(np.radians(degree))
+        infile = ROOT.TFile.Open(in_filename)
+        h_pulse_range = infile.Get('Pulse_range')
+        h_sb_range = infile.Get('prePulse_range')
+        DE = (h_pulse_range.Integral() / h_sb_range.Integral()) * 100
+        Pulse_range = h_pulse_range.GetMean()
+        print(f"{degree:.0f}: {DE:.1f}%, {Pulse_range:.2f}V")
+        DEs.append(DE)
+        Pulse_ranges.append(Pulse_range)
+
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    ax.plot(radians, DEs, marker='o', markersize=6, fillstyle='none', alpha=0.75)
+    ax.grid(True)
+    ax.set_title("Detection efficiency (%)", va='bottom')
+    plt.savefig('DE.png', format='png')
+    plt.show()
+
+    fig1, ax1 = plt.subplots(subplot_kw={'projection': 'polar'})
+    ax1.plot(radians, Pulse_ranges, marker='o', markersize=6, fillstyle='none', alpha=0.75)
+    ax1.grid(True)
+    ax1.set_title("Pulse range (V)", va='bottom')
+    plt.savefig('Pulse_range.png', format='png')
+    plt.show()
+
+def gettree(in_filename):
+    plotDir= in_filename.rsplit("/",1)[0]
+    infile = ROOT.TFile.Open(in_filename)
+    intree = infile.Get('Result_tree')
+
+    # initialize histo
+    h_pulse_fall_range = ROOT.TH1F("h_pulse_fall_range","h_pulse_fall_range",100,-0.1,0.3)
+    h_pre_range = ROOT.TH1F("h_pre_range","h_pre_range",100,0.,0.3)
+    h_diff = ROOT.TH1F("h_diff","h_diff",100,0,0.3)
+
+    # Draw
+    c1 = ROOT.TCanvas()
+    intree.Draw("pulse_rise_range")
+    c1.SaveAs(f"{plotDir}/pulse_range.pdf")
+    intree.Draw("pulse_fall_range>>h_pulse_fall_range")
+    c1.SaveAs(f"{plotDir}/pulse_fall_range.pdf")
+    intree.Draw("pre_range>>h_pre_range")
+    c1.SaveAs(f"{plotDir}/pre_range.pdf")
+    # intree.Draw("pulse_fall_range>>h_diff","(pulse_fall_range-pre_range)/pre_range > 0.0")
+    intree.Draw("pulse_fall_range>>h_diff","pulse_fall_range > 0.02")
+    c1.SaveAs(f"{plotDir}/pulse_range_cut.pdf")
+    eff = h_diff.Integral()/intree.GetEntries()
+    pulse_amplitude = h_pulse_fall_range.GetMean()
+    pulse_amplitude_error = h_pulse_fall_range.GetRMS()/math.sqrt(h_pulse_fall_range.Integral())
+    pre_range = h_pre_range.GetMean()
+    return eff, pulse_amplitude, pulse_amplitude_error, pre_range
+
+def plots():
+    biases, effs, amps, amp_errs, pre_ranges=[],[],[],[],[]
+    for in_filename in args.in_filenames:
+        bias = float(in_filename.split("mV_")[1].split("nA")[0])/1000
+        print(bias)
+        eff, amp, amp_err, pre_range= gettree(in_filename)
+        biases.append(bias)
+        effs.append(eff)
+        amps.append(amp)
+        amp_errs.append(amp_err)
+        pre_ranges.append(pre_range)
+        print(f"{bias}uA: {eff*100:.1f}%, {amp*1000:.1f}mV+-{amp_err*1000:.2f}mV")
+    # maxEff = max(effs)
+    maxEff = 1
+    g_eff = ROOT.TGraph()
+    g_amp = ROOT.TGraphErrors()
+    g_pre = ROOT.TGraph()
+    for i, (bias,eff,amp,amp_err,pre_range) in enumerate(zip(biases,effs,amps,amp_errs,pre_ranges)):
+        g_eff.SetPoint(i,bias,eff/maxEff)
+        g_amp.SetPoint(i,bias,amp)
+        g_amp.SetPointError(i, 0, amp_err)
+        g_pre.SetPoint(i,bias,pre_range)
+
+
+    plot_Dir = args.in_filenames[0].rsplit("/",2)[0]
+    outfile = ROOT.TFile(f'{plot_Dir}/plots.root', 'RECREATE', f'plots' )
+    c2 = ROOT.TCanvas()
+    g_eff.Draw("AP")
+    g_eff.SetName(f"g_eff")
+    g_eff.GetXaxis().SetTitle("Bias Current (#muA)")
+    g_eff.GetYaxis().SetTitle("Pulse Detection Efficiency")
+    c2.SaveAs(f"{plot_Dir}/eff.png")
+    g_eff.Write()
+    g_amp.Draw("AP")
+    g_amp.SetName(f"g_amp")
+    g_amp.GetXaxis().SetTitle("Bias Current (#muA)")
+    g_amp.GetYaxis().SetTitle("Pulse amplitude")
+    c2.SaveAs(f"{plot_Dir}/amp.png")
+    g_pre.Write()
+    g_pre.Draw("AP")
+    g_pre.SetName(f"g_pre_range")
+    g_pre.GetXaxis().SetTitle("Bias Current (#muA)")
+    g_pre.GetYaxis().SetTitle("Pre pulse range")
+    c2.SaveAs(f"{plot_Dir}/pre_range.png")
+    g_pre.Write()
+    outfile.Write()
+    outfile.Close()
+
 if __name__ == "__main__":
-    plot_multiHistograms()
+    # plot_multiHistograms()
+    # plot_DE_polar()
+    plots()

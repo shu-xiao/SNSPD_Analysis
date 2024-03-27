@@ -32,9 +32,9 @@ def color(i):
     else: return 0
 
 
-plotDir= "plots/" + args.in_filenames[0].split("data/")[1].rsplit("/",1)[0]
+plotDir= "plots/" + args.in_filenames[0].split("/")[-2]
 try:
-    os.mkdir(plotDir)
+    os.makedirs(plotDir)
 except OSError as e:
     if e.errno == errno.EEXIST:
         print('Plot directory exists.')
@@ -70,21 +70,21 @@ for infile in args.in_filenames:
                 Temperr_FC.append(0)
 
         c1 = ROOT.TCanvas()
-        l = ROOT.TLegend(0.6, 0.7, 0.8, 0.85)
+        l = ROOT.TLegend(0.65, 0.3, 0.85, 0.5)
         g_FC = ROOT.TGraphErrors(steps, Temp_FC, Mt_FC, Temperr_FC, Mterr_FC)
         g_ZFC_list[baseName] = ROOT.TGraphErrors(steps, Temp_ZFC, Mt_ZFC, Temperr_ZFC, Mterr_ZFC)
 
-        g_FC.SetTitle("%s" % (baseName))
-        g_FC.GetYaxis().SetTitle("M(10^{-3} emu)")
-        g_FC.GetXaxis().SetTitle("T(K)")
-        g_FC.SetMarkerColor(2)
-        # g_FC.SetMarkerStyle(24)
+        g_ZFC_list[baseName].SetTitle("%s" % (baseName))
+        g_ZFC_list[baseName].GetYaxis().SetTitle("M(10^{-3} emu)")
+        g_ZFC_list[baseName].GetXaxis().SetTitle("T(K)")
         g_ZFC_list[baseName].SetMarkerColor(4)
         # g_FC.SetMarkerStyle(24)
-        g_FC.Draw("APE")
-        g_ZFC_list[baseName].Draw("PEsame")
-        g_FC.GetYaxis().SetRangeUser(-0.005, 0.005)
-        g_FC.GetXaxis().SetRangeUser(6, 9)
+        g_FC.SetMarkerColor(2)
+        # g_FC.SetMarkerStyle(24)
+        g_ZFC_list[baseName].Draw("APE")
+        g_FC.Draw("PEsame")
+        # g_FC.GetYaxis().SetRangeUser(-0.005, 0.005)
+        # g_FC.GetXaxis().SetRangeUser(6, 9)
 
         l.AddEntry(g_FC, "FC", "P")
         l.AddEntry(g_ZFC_list[baseName], "ZFC", "P")
@@ -121,7 +121,7 @@ for infile in args.in_filenames:
         c1.Print("%s/MT_%s.pdf" % (plotDir,baseName) )
 
 # c1.SetLogy();
-leg_multi = ROOT.TLegend(0.2, 0.7, 0.8, 0.85)
+leg_multi = ROOT.TLegend(0.15, 0.7, 0.35, 0.85)
 leg_multi.SetTextSize(0.03)
 for i, gID in enumerate(g_ZFC_list):
     # g_ZFC_list[gID].SetTitle("Purity 99.5% NbN Target")
@@ -134,8 +134,8 @@ for i, gID in enumerate(g_ZFC_list):
     leg_multi.AddEntry(g_ZFC_list[gID], gID, "P")
     if i == 0:
         g_ZFC_list[gID].Draw("APE")
-        g_ZFC_list[gID].GetYaxis().SetRangeUser(-0.05,0.05)
-        g_ZFC_list[gID].GetXaxis().SetRangeUser(0,15)
+        g_ZFC_list[gID].GetYaxis().SetRangeUser(-0.2,0.1)
+        g_ZFC_list[gID].GetXaxis().SetRangeUser(11,12.2)
     else:
         g_ZFC_list[gID].Draw("Psame")
 

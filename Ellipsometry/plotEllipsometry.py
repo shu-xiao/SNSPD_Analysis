@@ -127,6 +127,35 @@ def plot_imag():
     #     values = df[column]
     # plt.plot(x, values, label=column)
 
+def plot_imag_real():
+    for in_filename in args.in_filenames:
+        # Read the data from the provided text
+        df = pd.read_csv(in_filename, delimiter='\t')
+        x = df.iloc[:, 0]
+
+        # Create figure and axis objects
+        fig, ax1 = plt.subplots()
+
+        # Plot the first line on the left y-axis
+        ax1.plot(x, df['e1'], 'tab:blue', label=in_filename.split('/')[-1].split('.txt')[0])
+        ax1.set_xlabel(r'Wavelength $\lambda$ [nm]',fontsize=15)
+        ax1.set_ylabel(r'$Re(\varepsilon)$',fontsize=15, color='tab:blue')
+        ax1.tick_params(axis='y', labelcolor='tab:blue')
+        # Create a twin axis sharing the x-axis
+        ax2 = ax1.twinx()
+
+        # Plot the second line on the right y-axis
+        ax2.plot(x, df['e2'], 'tab:red', label=in_filename.split('/')[-1].split('.txt')[0])
+        ax2.set_ylabel(r'$Im(\varepsilon)$',fontsize=15, color='tab:red')
+        ax2.tick_params(axis='y', labelcolor='tab:red')
+
+        # Add title
+        plt.title(in_filename.split('/')[-1].split('.txt')[0])
+        plt.savefig(f"{args.outputDir}/{in_filename.split('/')[-1].split('.txt')[0]}.png")
+        plt.show()
+
+
 if __name__ == "__main__":
-    plot_real()
-    plot_imag()
+    # plot_real()
+    # plot_imag()
+    plot_imag_real()

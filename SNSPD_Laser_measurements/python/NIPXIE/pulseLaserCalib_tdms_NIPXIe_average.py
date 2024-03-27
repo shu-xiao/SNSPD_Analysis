@@ -82,7 +82,7 @@ def Simple_pulse_analysis(data, event, ipulse, histo_sb, histo_pulse):
         histo_pulse["range"].Fill(data_range)
         histo_pulse["range_200uV"].Fill(data_range)
         debugPrint(f'Range = {data_range:.5f}')
-        # event_display(data_pulse, f'Waveform#{event}_{ipulse}')
+        event_display(data_pulse, f'Waveform#{event}_{ipulse}')
 
 def Find_Trigger_time_predefined():
     chTrig_arrivalTs = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000]
@@ -130,7 +130,7 @@ def SingleTDMS_analysis(in_filename):
         plotDisplay = True
 
         for event in range(totalEvents):
-            if (args.dryRun): break
+            # if (args.dryRun): break
             # Choose a subset of the whole data to do the analysis. -1 = run All
             if (event == args.subset ): break
             # Loop progress
@@ -138,13 +138,13 @@ def SingleTDMS_analysis(in_filename):
             # Read chSig into np array
             chSig = chSig_total[event * recordlength:(event+1) * recordlength]
             chTrig = chTrig_total[event * recordlength:(event+1) * recordlength]
-            event_display_2ch(chSig,chTrig,f'Waveform', 0.02)
+            # event_display_2ch(chSig,chTrig,f'Waveform', 0.02)
             # Find Trigger timeing
             chTrig_arrivalTs = Find_Trigger_time_splineFit(chTrig) if args.doAdvanced else Find_Trigger_time_predefined()
 
             for ipulse, chTrig_arrivalT in enumerate(chTrig_arrivalTs):
                 debugPrint(f'==========Event{event}_Pulse{ipulse}==========')
-                    # Record simple signal and sideband ranges into histogram
+                # Record simple signal and sideband ranges into histogram
                 Simple_pulse_analysis(chSig[int(chTrig_arrivalT):int(chTrig_arrivalT) + avg_buffer], event, ipulse, sb, Pulse)
                 # Record an example pulse waveform
                 if (event==2 and ipulse == 4):
@@ -224,13 +224,14 @@ def plots():
     hfile.Close()
     ROOT.gROOT.GetListOfFiles().Remove(hfile)
 
+# def init():
 
 
 
 if __name__ == "__main__":
 
     avg_buffer = 800
-    threshold = -0.1
+    threshold = 0.015
     in_filename = args.in_filenames[0]
     laserIntensity = in_filename.split('uW')[0].split('/')[-1]
     if (args.debug_report==True): config.DEBUG = True
@@ -248,47 +249,53 @@ if __name__ == "__main__":
     # Create root filen
     if (args.dryRun==False):
         hfile = ROOT.TFile(f'{avg_plotDir}/{laserIntensity}uW{basename}.root', 'RECREATE', f'analysis histograms of {basename} measurements' )
-
         print (f'{laserIntensity}_{basename}.root')
 
     # Histogram collection
-
-    sb, sb_avg, Pulse, Pulse_avg = {}, {}, {}, {}
+    sb, Pulse = {}, {}
+    # Sideband
     sb["pre_std"] = ROOT.TH1F("prePulse_std", "prePulse_std", 50, 0, 0.1)
     sb["pos_std"] = ROOT.TH1F("posPulse_std", "posPulse_std", 50, 0, 0.1)
     sb["pre_mean"] = ROOT.TH1F("prePulse_mean", "prePulse_mean", 50, -0.005, 0.005)
     sb["pos_mean"] = ROOT.TH1F("posPulse_mean", "posPulse_mean", 50, -0.005, 0.005)
     sb["pre_range"] = ROOT.TH1F("prePulse_range", "prePulse_range", 1000, 0, 0.2)
     sb["pos_range"] = ROOT.TH1F("posPulse_range", "posPulse_range", 1000, 0, 0.2)
-
-    sb_avg["pre_std"] = ROOT.TH1F(f"prePulse_avg_{args.avgCount}_std", f"prePulse_avg_{args.avgCount}_std", 50, 0, 0.01)
-    sb_avg["pos_std"] = ROOT.TH1F(f"posPulse_avg_{args.avgCount}_std", f"posPulse_avg_{args.avgCount}_std", 50, 0, 0.01)
-    sb_avg["pre_mean"] = ROOT.TH1F(f"prePulse_avg_{args.avgCount}_mean", f"prePulse_avg_{args.avgCount}_mean", 50, -0.005, 0.005)
-    sb_avg["pos_mean"] = ROOT.TH1F(f"posPulse_avg_{args.avgCount}_mean", f"posPulse_avg_{args.avgCount}_mean", 50, -0.005, 0.005)
-    sb_avg["pre_range"] = ROOT.TH1F(f"prePulse_avg_{args.avgCount}_range", f"prePulse_avg_{args.avgCount}_range", 1000, 0, 0.2)
-    sb_avg["pos_range"] = ROOT.TH1F(f"posPulse_avg_{args.avgCount}_range", f"posPulse_avg_{args.avgCount}_range", 1000, 0, 0.2)
-
+    # Pulse
     Pulse["range"] = ROOT.TH1F("Pulse_range", "Pulse Range", 4096, 0, 2)
     Pulse["amplitude"] = ROOT.TH1F("Pulse_amplitude", "Pulse Amplitude", 4096, 0, 2)
     Pulse["range_200uV"] = ROOT.TH1F("Pulse_range_200uV", "Pulse Range 200uV binning", 5000, 0, 1)
     Pulse["amplitude_200uV"] = ROOT.TH1F("Pulse_amplitude_200uV", "Pulse Amplitude 200uV binning", 5000, 0, 1)
     Pulse["arrivalT"] = ROOT.TH1F("Pulse_arrivalT", "Pulse arrival time", 100, 441, 445)
     Pulse["riseT"] = ROOT.TH1F("Pulse_riseT", "Pulse rising time", 100, 0, 6)
-
-    Pulse_avg["range"] = ROOT.TH1F(f"Pulse_avg_{args.avgCount}_range", f"Average {args.avgCount} Pulse Range", 1024, 0, 1)
-    Pulse_avg["amplitude"] = ROOT.TH1F(f"Pulse_avg_{args.avgCount}_amplitude", f"Average {args.avgCount} Pulse Amplitude", 1024, 0, 1)
-    Pulse_avg["range_200uV"] = ROOT.TH1F(f"Pulse_avg_{args.avgCount}_range_200uV", "Pulse Range 200uV binning", 5000, 0, 1)
-    Pulse_avg["amplitude_200uV"] = ROOT.TH1F(f"Pulse_avg_{args.avgCount}_amplitude_200uV", "Pulse Amplitude 200uV binning", 5000, 0, 1)
-    Pulse_avg["arrivalT"] = ROOT.TH1F(f"Pulse_avg_{args.avgCount}_arrivalT", f"Average {args.avgCount} Pulse arrival time", 100, 441, 445)
-    Pulse_avg["riseT"] = ROOT.TH1F(f"Pulse_avg_{args.avgCount}_riseT", f"Average {args.avgCount} Pulse rising time", 100, 0, 6)
-
+    # Pulse display
     Pulse_display = ROOT.TGraph()
-    Pulse_avg_display = ROOT.TGraph()
     Pulse_display.SetName("Pulse_display")
-    Pulse_avg_display.SetName(f"Pulse_avg_{args.avgCount}_display")
+
+
+    if (args.doAverage):
+        sb_avg, Pulse_avg = {}, {}
+        # Sideband
+        sb_avg["pre_std"] = ROOT.TH1F(f"prePulse_avg_{args.avgCount}_std", f"prePulse_avg_{args.avgCount}_std", 50, 0, 0.01)
+        sb_avg["pos_std"] = ROOT.TH1F(f"posPulse_avg_{args.avgCount}_std", f"posPulse_avg_{args.avgCount}_std", 50, 0, 0.01)
+        sb_avg["pre_mean"] = ROOT.TH1F(f"prePulse_avg_{args.avgCount}_mean", f"prePulse_avg_{args.avgCount}_mean", 50, -0.005, 0.005)
+        sb_avg["pos_mean"] = ROOT.TH1F(f"posPulse_avg_{args.avgCount}_mean", f"posPulse_avg_{args.avgCount}_mean", 50, -0.005, 0.005)
+        sb_avg["pre_range"] = ROOT.TH1F(f"prePulse_avg_{args.avgCount}_range", f"prePulse_avg_{args.avgCount}_range", 1000, 0, 0.2)
+        sb_avg["pos_range"] = ROOT.TH1F(f"posPulse_avg_{args.avgCount}_range", f"posPulse_avg_{args.avgCount}_range", 1000, 0, 0.2)
+        # Pulse
+        Pulse_avg["range"] = ROOT.TH1F(f"Pulse_avg_{args.avgCount}_range", f"Average {args.avgCount} Pulse Range", 1024, 0, 1)
+        Pulse_avg["amplitude"] = ROOT.TH1F(f"Pulse_avg_{args.avgCount}_amplitude", f"Average {args.avgCount} Pulse Amplitude", 1024, 0, 1)
+        Pulse_avg["range_200uV"] = ROOT.TH1F(f"Pulse_avg_{args.avgCount}_range_200uV", "Pulse Range 200uV binning", 5000, 0, 1)
+        Pulse_avg["amplitude_200uV"] = ROOT.TH1F(f"Pulse_avg_{args.avgCount}_amplitude_200uV", "Pulse Amplitude 200uV binning", 5000, 0, 1)
+        Pulse_avg["arrivalT"] = ROOT.TH1F(f"Pulse_avg_{args.avgCount}_arrivalT", f"Average {args.avgCount} Pulse arrival time", 100, 441, 445)
+        Pulse_avg["riseT"] = ROOT.TH1F(f"Pulse_avg_{args.avgCount}_riseT", f"Average {args.avgCount} Pulse rising time", 100, 0, 6)
+        # Pulse display
+        Pulse_avg_display = ROOT.TGraph()
+        Pulse_avg_display.SetName(f"Pulse_avg_{args.avgCount}_display")
 
     #################### Start Analysis ####################
     SingleTDMS_analysis(in_filename)
+    DE = Pulse["range"].Integral() / sb["pre_std"].Integral()
+    print(f"Detection Efficiency: {DE}")
     #################### End Analysis ####################
     if (args.dryRun==False):
         plots()
