@@ -24,6 +24,6 @@ cut_posRange = 0.12
 cut_preStd = 0.025
 cut_posStd = 0.03
 
-totalTreeEvents = 2000
+totalTreeEvents = 10000
 avg_buffer = 100
 threshold = 0.015
