@@ -15,7 +15,7 @@ from scipy.signal import find_peaks
 from utils.Timing_Analyzer import *
 from utils.tdmsUtils import *
 from utils.plotUtils import *
-import config
+# import config.config
 
 import argparse
 parser = argparse.ArgumentParser(description='')
@@ -28,7 +28,7 @@ parser.add_argument('--subset','-s',default=-1,type=int,help='Process a subset o
 args = parser.parse_args()
 
 def debugPrint(string):
-    if (config.DEBUG): print(string)
+    if (args.debug_report): print(string)
 
 def SingleTDMS_CW_analysis(in_filename):
     with TdmsFile.open(in_filename) as tdms_file:
@@ -50,8 +50,8 @@ def SingleTDMS_CW_analysis(in_filename):
             if (event == args.subset ): break
             # Loop progress
             if ((event+1)%args.report==0): print (f"==========Processing {event}/{totalEvents} event==========")
-            config.DEBUG = True if (event+1)%args.debug_report==0 else False
-            config.DISPLAY = True if (event+1)%args.display_report==0 else False
+            args.debug_report = True if (event+1)%args.debug_report==0 else False
+            args.display_report = True if (event+1)%args.display_report==0 else False
             # Skip chunk larger than totalEvents
             if (event > int(totalEvents)-1): break
             # Read chSig into np array
@@ -72,7 +72,7 @@ def SingleTDMS_CW_analysis(in_filename):
                 pulseRanges = np.append(pulseRanges, pulseRange)
 
             # Plot waveform with peaks
-            if (config.DISPLAY):
+            if (args.display_report):
                 info = r'$T=4.6K,\quad V_{Bias}=1.7V,\quad 100 \mu W,\quad 532nm\, CW\, laser$'
                 plt.title(info, fontsize = 13, loc='right')
                 plt.plot(chSig, label='data')
