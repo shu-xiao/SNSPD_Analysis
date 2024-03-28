@@ -12,9 +12,9 @@ import math
 from scipy.signal import find_peaks
 
 # User defined functions
-from Timing_Analyzer import *
-from tdmsUtils import *
-from plotUtils import *
+from utils.Timing_Analyzer import *
+from utils.tdmsUtils import *
+from utils.plotUtils import *
 import config
 
 import argparse
