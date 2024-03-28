@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 #!/usr/bin/env python3
 
 from nptdms import TdmsFile
@@ -42,9 +40,10 @@ def SingleTDMS_CW_analysis(in_filename):
         timeWindow = float(metadata_df.loc[metadata_df['metaKey'] == 'Time window', 'metaValue'].iloc[0]) * 1E-9
         # Read Groups and Channels
         Read_Groups_and_Channels(tdms_file)
-
-
+        # Initialize arrays
         counts, pulseRanges = np.array([]), np.array([])
+        # Set threshold
+        threshold = 0.3
         # Start Looping through events
         for event, chunk in enumerate(tdms_file.data_chunks()):
             # Choose a subset of the whole data to do the analysis. -1 = run All
@@ -55,15 +54,12 @@ def SingleTDMS_CW_analysis(in_filename):
             config.DISPLAY = True if (event+1)%args.display_report==0 else False
             # Skip chunk larger than totalEvents
             if (event > int(totalEvents)-1): break
-            # Read ch1 into np array
-            ch1 = chunk['ADC Readout Channels']['ch1']._data()
+            # Read chSig into np array
+            chSig = chunk['ADC Readout Channels']['chSig']._data()
             # Initialize counts
             count=0
-
-            # Set threshold
-            threshold = 0.03
             # Find peaks
-            peaks, _ = find_peaks(ch1, height=threshold, distance=300)
+            peaks, _ = find_peaks(chSig, height=threshold, distance=300)
 
             # Count peaks
             num_peaks = len(peaks)
@@ -72,15 +68,15 @@ def SingleTDMS_CW_analysis(in_filename):
 
             # peak ranges
             for peak in peaks:
-                pulseRange = np.ptp(ch1[peak:peak+250])
+                pulseRange = np.ptp(chSig[peak:peak+250])
                 pulseRanges = np.append(pulseRanges, pulseRange)
 
             # Plot waveform with peaks
             if (config.DISPLAY):
                 info = r'$T=4.6K,\quad V_{Bias}=1.7V,\quad 100 \mu W,\quad 532nm\, CW\, laser$'
                 plt.title(info, fontsize = 13, loc='right')
-                plt.plot(ch1, label='data')
-                plt.plot(peaks, ch1[peaks], "x", label='Found peaks')
+                plt.plot(chSig, label='data')
+                plt.plot(peaks, chSig[peaks], "x", label='Found peaks')
                 plt.xlabel('Index [0.4ns], Gate width 2ms',fontsize=15)
                 plt.ylabel('ADC [V]',fontsize=15)
                 plt.ylim(-0.06,0.06)
