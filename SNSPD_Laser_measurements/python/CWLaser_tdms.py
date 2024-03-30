@@ -32,6 +32,7 @@ def debugPrint(string):
 
 def SingleTDMS_CW_analysis(in_filename):
     with TdmsFile.open(in_filename) as tdms_file:
+        print(f"\n########## Processing {in_filename} ##########")
         # Read Meta Data (Basic information)
         metadata = tdms_file.properties
         metadata_df = pd.DataFrame(metadata.items(), columns=['metaKey', 'metaValue'])
@@ -47,11 +48,12 @@ def SingleTDMS_CW_analysis(in_filename):
         # Set threshold
         threshold = 0.5
         # Start Looping through events
+        print("========== Start Loop ==========")
         for event, chunk in enumerate(tdms_file.data_chunks()):
             # Choose a subset of the whole data to do the analysis. -1 = run All
             if (event == args.subset ): break
             # Loop progress
-            if ((event+1)%args.report==0): print (f"==========Processing {event}/{totalEvents} event==========")
+            if ((event)%args.report==0): print (f"==========Processing {event}/{totalEvents} event==========")
             # Skip chunk larger than totalEvents
             if (event > int(totalEvents)-1): break
             # Read chSig into np array
@@ -84,7 +86,7 @@ def SingleTDMS_CW_analysis(in_filename):
                 plt.tight_layout()
                 # plt.title('Waveform with Peaks')
                 plt.show()
-
+        print("========== End Loop ==========")
         if ( len(pulseRanges) == 0 or len(counts) == 0 ):
             print("No Signal Pulses")
             return
@@ -93,6 +95,7 @@ def SingleTDMS_CW_analysis(in_filename):
         basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
         baseDir= in_filename.split('Laser/')[1].rsplit('/',1)[0]
         plotDir = args.outputDir + '/' + baseDir
+        print(f"output plot Directory: {plotDir}")
         # make outputDir
         try:
             os.makedirs(plotDir)
