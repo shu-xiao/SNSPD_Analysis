@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from ..config import config
+# from config import config
 
 import matplotlib as mpl
 # mpl.use('Agg')
@@ -21,7 +21,7 @@ def event_display(np,title='Waveform'):
     plt.ylabel('ADC [Volts]',fontsize=15)
     plt.tight_layout()
     # Display the plot
-    if (config.DISPLAY): plt.show()
+    # if (config.DISPLAY): plt.show()
 
 def event_display_spline(array, spline_func, title='Waveform'):
     # Create a line plot of the data
@@ -36,7 +36,7 @@ def event_display_spline(array, spline_func, title='Waveform'):
     plt.legend(fontsize='large')
     plt.tight_layout()
     # Display the plot
-    if (config.DISPLAY): plt.show()
+    # if (config.DISPLAY): plt.show()
     plt.close('all')
 
 def event_display_2ch(np1, np2, title='Waveform', offset=0.15):
@@ -56,14 +56,14 @@ def event_display_2ch(np1, np2, title='Waveform', offset=0.15):
     # ax.set_xlim(760,780)
     plt.grid()
     # Display the plot
-    if (config.DISPLAY): plt.show()
+    # if (config.DISPLAY): plt.show()
     plt.close('all')
 
 def display_spline_fit(spline_func, x_index):
     x_spline_range = np.linspace(x_index.min(), x_index.max(), num=10000)
     y_spline = spline_func(x_spline_range)
     plt.plot(x_spline_range, y_spline, '-', label='Spline Fit')
-    if (config.DISPLAY): plt.show()
+    # if (config.DISPLAY): plt.show()
     plt.close('all')
 
 
@@ -77,7 +77,7 @@ def plot_histo(np1, nbin, rangemin, rangemax, xTitle, title, saveTitle):
     ax.set_ylabel('Events')
     ax.set_title(title)
     plt.savefig(saveTitle)
-    if (config.DISPLAY): plt.show()
+    # if (config.DISPLAY): plt.show()
     plt.close('all')
     return mean, std
 
@@ -96,7 +96,7 @@ def plot_2histo(np1, np2, nbin, rangemin, rangemax, label1, label2, title, saveT
     ax2.text(0.7, 0.75, textstr2, transform=ax2.transAxes, fontsize=14, verticalalignment='top')
     fig.suptitle(title)
     plt.savefig(saveTitle)
-    if (config.DISPLAY): plt.show()
+    # if (config.DISPLAY): plt.show()
     array = [mean1, std1, mean2, std2]
     plt.close('all')
     return array
