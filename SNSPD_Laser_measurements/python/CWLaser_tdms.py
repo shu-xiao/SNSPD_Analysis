@@ -100,8 +100,8 @@ def SingleTDMS_CW_analysis(in_filename):
                 raise
         # Create root filen
         plotfile = ROOT.TFile(f'{plotDir}/{basename}.root', 'RECREATE', 'analysis histograms of {basename} measurements' )
-        hist_counts  = plot_histo(counts      , 15, 0, np.max(counts), 'counts', f'Photon Counts / {timeWindow}s', f'{plotDir}/counts.png')
-        hist_range   = plot_histo(pulseRanges , 15, 0.02, 2, 'signal_range', 'Voltage [V]', f'{plotDir}/signal_range.png')
+        hist_counts  = plot_histo(counts      , 15, 0, np.max(counts), 'counts', f'Photon Counts / {timeWindow}s', f'{plotDir}/{basename}_counts.png')
+        hist_range   = plot_histo(pulseRanges , 15, 0.02, 2, 'signal_range', 'Voltage [V]', f'{plotDir}/{basename}_signal_range.png')
 
         PC_mean = np.mean(counts)
         PC_meanE = np.std(counts)/math.sqrt(len(counts))
