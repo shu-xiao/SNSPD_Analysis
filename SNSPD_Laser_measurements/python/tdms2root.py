@@ -21,6 +21,15 @@ args = parser.parse_args()
 def Convert_Single_TDMS(in_filename):
     with TdmsFile.open(in_filename) as tdms_file:
         baseName = in_filename.rsplit('/',1)[1].split('.tdms')[0]
+        baseDir= in_filename.split('Laser/').rsplit('/',1)[0]
+        # make outputDir
+        try:
+            os.makedirs(f'{args.outputDir}/{baseDir}')
+        except OSError as e:
+            if e.errno == errno.EEXIST:
+                print('output directory exists.')
+            else:
+                raise
         # Read Meta Data (Basic information)
         metadata = tdms_file.properties
         metadata_df = pd.DataFrame(metadata.items(), columns=['metaKey', 'metaValue'])
@@ -29,10 +38,10 @@ def Convert_Single_TDMS(in_filename):
         recordlength = int(metadata_df.loc[metadata_df['metaKey'] == 'record length', 'metaValue'].iloc[0])
         vertical_range = float(metadata_df.loc[metadata_df['metaKey'] == 'vertical range Sig', 'metaValue'].iloc[0])
         # Write metadata to json file
-        metadata_df.to_json(f'{args.outputDir}/{baseName}.json',orient="records",lines=True)
+        metadata_df.to_json(f'{args.outputDir}/{baseDir}/{baseName}.json',orient="records",lines=True)
         # Write metadata to txt file
         metadata_df = metadata_df.reset_index()  # make sure indexes pair with number of rows
-        with open(f'{args.outputDir}/{baseName}.txt', 'w') as txtFile:
+        with open(f'{args.outputDir}/{baseDir}/{baseName}.txt', 'w') as txtFile:
             for index, row in metadata_df.iterrows():
                 txtFile.write(f"{row['metaKey']} : {row['metaValue']}\n")
         # Create output tree
@@ -63,7 +72,7 @@ def Convert_Single_TDMS(in_filename):
             # Fill Tree
             outtree.Fill()
     # Output
-    rootFileName = f"{args.outputDir}/{baseName}.root"
+    rootFileName = f"{args.outputDir}/{baseDir}/{baseName}.root"
     print(f"output file: {rootFileName}")
     rootFile = ROOT.TFile.Open(rootFileName,"RECREATE")
     rootFile.cd()
@@ -72,14 +81,7 @@ def Convert_Single_TDMS(in_filename):
 
 
 if __name__ == "__main__":
-    # make outputDir
-    try:
-        os.makedirs(args.outputDir)
-    except OSError as e:
-        if e.errno == errno.EEXIST:
-            print('output directory exists.')
-        else:
-            raise
+
     # Loop the input tdms files
     for in_filename in args.in_filenames:
         Convert_Single_TDMS(in_filename)
