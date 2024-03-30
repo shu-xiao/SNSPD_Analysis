@@ -85,6 +85,9 @@ def SingleTDMS_CW_analysis(in_filename):
                 # plt.title('Waveform with Peaks')
                 plt.show()
 
+        if ( len(pulseRanges) == 0 or len(counts) == 0 ):
+            print("No Signal Pulses")
+            return
         # Results
         # Directories
         basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
