@@ -21,7 +21,7 @@ args = parser.parse_args()
 def Convert_Single_TDMS(in_filename):
     with TdmsFile.open(in_filename) as tdms_file:
         baseName = in_filename.rsplit('/',1)[1].split('.tdms')[0]
-        baseDir= in_filename.split('Laser/').rsplit('/',1)[0]
+        baseDir= in_filename.split('Laser/')[1].rsplit('/',1)[0]
         # make outputDir
         try:
             os.makedirs(f'{args.outputDir}/{baseDir}')
