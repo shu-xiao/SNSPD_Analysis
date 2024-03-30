@@ -50,7 +50,7 @@ def Convert_Single_TDMS(in_filename):
         chSig = array( 'f', [ 0 ] * recordlength)
         if (pulsedFlag): chTrig = array( 'f', [ 0 ] * recordlength)
         outtree.Branch('chSig',chSig,"chSig[%d]/F" %(recordlength))
-        outtree.Branch('chTrig',chTrig,"chTrig[%d]/F" %(recordlength))
+        if (pulsedFlag): outtree.Branch('chTrig',chTrig,"chTrig[%d]/F" %(recordlength))
         # Read Groups and Channels
         Read_Groups_and_Channels(tdms_file)
         # Start Loop
@@ -62,11 +62,11 @@ def Convert_Single_TDMS(in_filename):
             if (event > totalEvents-1): break
             # Read data into np array
             chSig_chunk = chunk['ADC Readout Channels']['chSig']._data()
-            chTrig_chunk = chunk['ADC Readout Channels']['chTrig']._data()
+            if (pulsedFlag): chTrig_chunk = chunk['ADC Readout Channels']['chTrig']._data()
             # copy to tree branch
             for i in range(0, recordlength):
                 chSig[i] = chSig_chunk[i];
-                chTrig[i] = chTrig_chunk[i];
+                if (pulsedFlag): chTrig[i] = chTrig_chunk[i];
             # Fill Tree
             outtree.Fill()
     # Output
