@@ -22,6 +22,7 @@ def Convert_Single_TDMS(in_filename):
     with TdmsFile.open(in_filename) as tdms_file:
         baseName = in_filename.rsplit('/',1)[1].split('.tdms')[0]
         baseDir= in_filename.split('Laser/')[1].rsplit('/',1)[0]
+        pulseFlag = True if in_filename.find('Pulse') != -1 else False
         # make outputDir
         try:
             os.makedirs(f'{args.outputDir}/{baseDir}')
@@ -47,14 +48,11 @@ def Convert_Single_TDMS(in_filename):
         # Create output tree
         outtree = ROOT.TTree("SNSPD_data", "SNSPD_data")
         chSig = array( 'f', [ 0 ] * recordlength)
-        chTrig = array( 'f', [ 0 ] * recordlength)
+        if (pulsedFlag): chTrig = array( 'f', [ 0 ] * recordlength)
         outtree.Branch('chSig',chSig,"chSig[%d]/F" %(recordlength))
         outtree.Branch('chTrig',chTrig,"chTrig[%d]/F" %(recordlength))
         # Read Groups and Channels
         Read_Groups_and_Channels(tdms_file)
-        chSig_total = tdms_file['ADC Readout Channels']['chSig']
-        chTrig_total = tdms_file['ADC Readout Channels']['chTrig']
-        # chSig_average = np.zeros(avg_buffer)
         # Start Loop
         print (f"==========Start Looping==========")
         for event, chunk in enumerate(tdms_file.data_chunks()):
