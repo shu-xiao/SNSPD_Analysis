@@ -197,7 +197,7 @@ if __name__ == "__main__":
     ########## Init ##########
     in_filename = args.in_filenames[0]
     basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
-    baseDir = in_filename.split('/')[-2]
+    baseDir = in_filename.split('Laser/')[1].rsplit('/',1)[0]
     outDir = args.outputDir + '/' + baseDir + '/' + basename
     createDir(outDir)
     # Create root filen
