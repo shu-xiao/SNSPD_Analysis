@@ -59,7 +59,7 @@ def SingleTDMS_CW_analysis(in_filename):
             # Read chSig into np array
             try:
                 chSig = chunk['ADC Readout Channels']['chSig']._data()
-             except KeyError:
+            except KeyError:
                 print ('No ADC Readout Channels key')
                 continue
             # Initialize counts
