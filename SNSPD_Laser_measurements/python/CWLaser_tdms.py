@@ -4,7 +4,7 @@ from nptdms import TdmsFile
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import array as array
+from array import array
 import os
 import errno
 from enum import Enum
