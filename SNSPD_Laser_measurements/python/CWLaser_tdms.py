@@ -57,7 +57,11 @@ def SingleTDMS_CW_analysis(in_filename):
             # Skip chunk larger than totalEvents
             if (event > int(totalEvents)-1): break
             # Read chSig into np array
-            chSig = chunk['ADC Readout Channels']['chSig']._data()
+            try:
+                chSig = chunk['ADC Readout Channels']['chSig']._data()
+             except KeyError:
+                print ('No ADC Readout Channels key')
+                continue
             # Initialize counts
             count=0
             # Find peaks
