@@ -105,7 +105,7 @@ def plot_histo_root(np1, nbin, rangemin, rangemax, name, xTitle, title, saveTitl
     c1 = ROOT.TCanvas()
     hist = ROOT.TH1F(name, name, nbin, rangemin, rangemax)
     array = np.array(np1, dtype=float)
-    # root_numpy.fill_hist(hist, array, weights=None, return_indices=False)
+    root_numpy.fill_hist(hist, array, weights=None, return_indices=False)
     # Draw hist
     hist.SetTitle(title)
     hist.GetXaxis().SetTitle(xTitle)

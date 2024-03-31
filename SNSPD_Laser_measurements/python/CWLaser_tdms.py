@@ -117,8 +117,8 @@ def SingleTDMS_CW_analysis(in_filename):
             print("No Signal Pulses")
             return
         # Results
-        hist_counts  = plot_histo(counts      , 15, 0, np.max(counts), 'counts', f'Photon Counts / {timeWindow}s', f'{plotDir}/{basename}_counts.png')
-        hist_range   = plot_histo(pulseRanges , 15, 0.02, 2, 'signal_range', 'Voltage [V]', f'{plotDir}/{basename}_signal_range.png')
+        hist_counts  = plot_histo_root(counts      , 15, 0, np.max(counts), 'counts', f'Photon Counts / {timeWindow}s', f'{plotDir}/{basename}_counts.png')
+        hist_range   = plot_histo_root(pulseRanges , 15, 0.02, 2, 'signal_range', 'Voltage [V]', f'{plotDir}/{basename}_signal_range.png')
 
         PC_mean = np.mean(counts)
         PC_meanE = np.std(counts)/math.sqrt(len(counts))
