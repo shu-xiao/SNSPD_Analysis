@@ -33,6 +33,28 @@ def debugPrint(string):
 def SingleTDMS_CW_analysis(in_filename):
     with TdmsFile.open(in_filename) as tdms_file:
         print(f"\n########## Processing {in_filename} ##########")
+        # Directories
+        basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
+        baseDir= in_filename.split('Laser/')[1].rsplit('/',1)[0]
+        plotDir = args.outputDir + '/' + baseDir
+        print(f"output plot Directory: {plotDir}")
+        # make outputDir
+        try:
+            os.makedirs(plotDir)
+        except OSError as e:
+            if e.errno == errno.EEXIST:
+                print('output directory exists.')
+            else:
+                raise
+        # Create root filen
+        plotfile = ROOT.TFile(f'{plotDir}/{basename}.root', 'RECREATE', 'analysis histograms of {basename} measurements' )
+        # Create output tree
+        outtree = ROOT.TTree("SNSPD_data", "SNSPD_data")
+        pulseCount = array( 'f', [ 0 ] )
+        pulseRange = array( 'f', [ 0 ])
+        outtree.Branch('pulseCount',pulseCount,"pulseCount/F")
+        outtree.Branch('pulseRange',pulseRange,"pulseRange/F")
+
         # Read Meta Data (Basic information)
         metadata = tdms_file.properties
         metadata_df = pd.DataFrame(metadata.items(), columns=['metaKey', 'metaValue'])
@@ -66,17 +88,17 @@ def SingleTDMS_CW_analysis(in_filename):
             count=0
             # Find peaks
             peaks, _ = find_peaks(chSig, height=threshold, distance=100)
-
             # Count peaks
-            num_peaks = len(peaks)
+            pulseCount = len(peaks)
             # print(f"Event {event} Number of peaks above threshold:", num_peaks)
-            counts = np.append(counts, num_peaks)
-
+            counts = np.append(counts, pulseCount)
             # peak ranges
             for peak in peaks:
                 pulseRange = np.ptp(chSig[peak:peak+250])
                 pulseRanges = np.append(pulseRanges, pulseRange)
 
+            # Write Tree
+            outtree.Fill()
             # Plot waveform with peaks
             if (args.display_report):
                 # info = r'$T=4.6K,\quad V_{Bias}=1.7V,\quad 100 \mu W,\quad 532nm\, CW\, laser$'
@@ -95,21 +117,6 @@ def SingleTDMS_CW_analysis(in_filename):
             print("No Signal Pulses")
             return
         # Results
-        # Directories
-        basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
-        baseDir= in_filename.split('Laser/')[1].rsplit('/',1)[0]
-        plotDir = args.outputDir + '/' + baseDir
-        print(f"output plot Directory: {plotDir}")
-        # make outputDir
-        try:
-            os.makedirs(plotDir)
-        except OSError as e:
-            if e.errno == errno.EEXIST:
-                print('output directory exists.')
-            else:
-                raise
-        # Create root filen
-        plotfile = ROOT.TFile(f'{plotDir}/{basename}.root', 'RECREATE', 'analysis histograms of {basename} measurements' )
         hist_counts  = plot_histo(counts      , 15, 0, np.max(counts), 'counts', f'Photon Counts / {timeWindow}s', f'{plotDir}/{basename}_counts.png')
         hist_range   = plot_histo(pulseRanges , 15, 0.02, 2, 'signal_range', 'Voltage [V]', f'{plotDir}/{basename}_signal_range.png')
 
