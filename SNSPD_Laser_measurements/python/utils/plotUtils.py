@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import ROOT
+import root_numpy
 import warnings
 import os
 import errno
