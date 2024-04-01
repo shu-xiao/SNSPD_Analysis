@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
-# from config import config
-
 import matplotlib as mpl
 # mpl.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import ROOT
-import root_numpy
+# import root_numpy
 import warnings
 import os
 import errno
@@ -22,7 +20,7 @@ def event_display(np,title='Waveform'):
     plt.ylabel('ADC [Volts]',fontsize=15)
     plt.tight_layout()
     # Display the plot
-    # if (config.DISPLAY): plt.show()
+    plt.show()
 
 def event_display_spline(array, spline_func, title='Waveform'):
     # Create a line plot of the data
@@ -57,7 +55,7 @@ def event_display_2ch(np1, np2, title='Waveform', offset=0.15):
     # ax.set_xlim(760,780)
     plt.grid()
     # Display the plot
-    # if (config.DISPLAY): plt.show()
+    plt.show()
     plt.close('all')
 
 def display_spline_fit(spline_func, x_index):
@@ -72,7 +70,7 @@ def plot_histo(np1, nbin, rangemin, rangemax, xTitle, title, saveTitle):
     fig, ax = plt.subplots()
     ax.hist(np1, bins=nbin, range=(rangemin, rangemax), alpha=0.6, color='blue')
     Events, mean, std = len(np1), np.mean(np1), np.std(np1)
-    textstr = f'Events={Events}\n$\mu={mean:.4f}$\n$\sigma={std:.4f}$'
+    textstr = f'Events={Events}\nmean={mean:.4f}\nsigma={std:.4f}'
     ax.text(0.73, 0.93, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top')
     ax.set_xlabel(xTitle)
     ax.set_ylabel('Events')
@@ -91,8 +89,8 @@ def plot_2histo(np1, np2, nbin, rangemin, rangemax, label1, label2, title, saveT
     # Add mean and standard deviation to the plot
     Events1, mean1, std1 = len(np1), np.mean(np1), np.std(np1)
     Events2, mean2, std2 = len(np2), np.mean(np2), np.std(np2)
-    textstr1 = f'Events={Events1}\n$\mu_1={mean1:.4f}$\n$\sigma_1={std1:.4f}$'
-    textstr2 = f'Events={Events1}\n$\mu_2={mean2:.4f}$\n$\sigma_2={std2:.4f}$'
+    textstr1 = f'Events={Events1}\nmean1={mean1:.4f}\nsigma1={std1:.4f}'
+    textstr2 = f'Events={Events1}\nmean2={mean2:.4f}\nsigma2={std2:.4f}'
     ax1.text(0.7, 0.75, textstr1, transform=ax1.transAxes, fontsize=14, verticalalignment='top')
     ax2.text(0.7, 0.75, textstr2, transform=ax2.transAxes, fontsize=14, verticalalignment='top')
     fig.suptitle(title)
@@ -106,7 +104,7 @@ def plot_histo_root(np1, nbin, rangemin, rangemax, name, xTitle, title, saveTitl
     c1 = ROOT.TCanvas()
     hist = ROOT.TH1F(name, name, nbin, rangemin, rangemax)
     array = np.array(np1, dtype=float)
-    root_numpy.fill_hist(hist, array, weights=None, return_indices=False)
+    # root_numpy.fill_hist(hist, array, weights=None, return_indices=False)
     # Draw hist
     hist.SetTitle(title)
     hist.GetXaxis().SetTitle(xTitle)

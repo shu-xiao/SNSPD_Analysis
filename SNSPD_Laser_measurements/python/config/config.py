@@ -7,10 +7,10 @@ DISPLAY = False
 ########## 20240223 Prima data ##########
 NpulsePerTrigger=1
 # Define signal region
-Pulse_startT     =  67 #200 #215
-Pulse_endT       =  125 #215 #245
+Pulse_startT     =  308 #312 #67 #200 #215
+Pulse_endT       =  340 #125 #215 #245
 # Define rising and falling separation
-Pulse_rise_endT     =  75 #200 #215
+Pulse_rise_endT     =  312 #75 #200 #215
 # Define pre-pulse (sideband) region
 prePulse_startT  =  5 #100
 prePulse_endT    =  60 #160

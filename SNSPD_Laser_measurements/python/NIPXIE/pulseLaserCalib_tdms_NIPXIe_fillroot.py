@@ -26,7 +26,7 @@ parser = argparse.ArgumentParser(description='')
 parser.add_argument('in_filenames',nargs="+",help='input filenames')
 parser.add_argument('--outputDir','-d',default="./plots/test",type=str,help='output directory')
 parser.add_argument('--avgCount','-a',default=20,type=int,help='average pulse counts')
-parser.add_argument('--report','-r',default=100,type=int,help='report every x events')
+parser.add_argument('--report','-r',default=1000,type=int,help='report every x events')
 parser.add_argument('--debug_report','-b',action="store_true",help='report every x events')
 parser.add_argument('--display_report','-p',action="store_true",help='report every x events')
 parser.add_argument('--doAdvanced',action="store_true",help='do single pulse analysis')
@@ -73,14 +73,14 @@ def Advanced_pulse_analysis(data, trigT, event):
 def Simple_pulse_analysis(data, event, ipulse):
     # event_display(data, f'Waveform#{event}_{ipulse}')
     pre_std[0] = (np.std(data[config.prePulse_startT:config.prePulse_endT]))
-    # pos_mean[0] = (np.mean(data[config.prePulse_startT:config.prePulse_endT]))
+    pos_mean[0] = (np.mean(data[config.prePulse_startT:config.prePulse_endT]))
     pre_range[0] = (np.ptp(data[config.prePulse_startT:config.prePulse_endT]))
     pos_std[0] = (np.std(data[config.postPulse_startT:config.postPulse_endT]))
-    # pre_mean[0] = (np.mean(data[config.postPulse_startT:config.postPulse_endT]))
+    pre_mean[0] = (np.mean(data[config.postPulse_startT:config.postPulse_endT]))
     pos_range[0] = (np.ptp(data[config.postPulse_startT:config.postPulse_endT]))
     # Pulse region
     pulse_rise_range[0] = data[config.Pulse_rise_endT] - data[config.Pulse_startT]
-    pulse_fall_range[0] = data[config.Pulse_rise_endT] - data[config.Pulse_endT]
+    pulse_fall_range[0] = np.ptp(data[config.Pulse_rise_endT:config.Pulse_endT])
     pulse_pre_range = (pulse_fall_range[0]-pre_range[0])/pre_range[0]
     debugPrint(f'Rise Range = {pulse_rise_range[0]:.5f}, Fall Range = {pulse_fall_range[0]:.5f}, Pre-range = {pre_range[0]:.5f}, (pulse-pre)/pre = {pulse_pre_range:.5f}')
 
@@ -112,14 +112,19 @@ def Find_Trigger_time_splineFit(chTrig):
         chTrig_arrivalTs.append(chTrig_arrivalT)
     return chTrig_arrivalTs
 
-def average_plots(chSig_average, pulseCount):
+def average_plots(chSig_average,title):
     c1 = ROOT.TCanvas()
     Pulse_avg_display = ROOT.TGraph()
-    Pulse_avg_display.SetName(f"Pulse_avg_{args.avgCount}_display")
-    for i in range(len(chSig_average)): Pulse_avg_display.SetPoint(i,i,chSig_average[i]/outtree.GetEntries())
+    Pulse_avg_display.SetName(f"Pulse_avg_display")
+    Pulse_avg_display.SetTitle(title)
+    Pulse_avg_display.GetXaxis().SetTitle(f"index(0.4ns)")
+    Pulse_avg_display.GetYaxis().SetTitle(f"Voltage(V)")
+    for i in range(len(chSig_average)): Pulse_avg_display.SetPoint(i,i,chSig_average[i]/args.avgCount)
     Pulse_avg_display.SetMarkerStyle(4)
     Pulse_avg_display.SetMarkerSize(0.5)
     Pulse_avg_display.Draw("ALP")
+    leg = ROOT.TLegend(0.6,0.6,0.8,0.8)
+    leg.AddEntry(Pulse_avg_display,f"{args.avgCount}-event-average signal spectrum","lp")
     # c1.SaveAs(f"{outDir}/{Pulse_avg_display.GetName()}.png")
     Pulse_avg_display.Write()
 
@@ -164,29 +169,26 @@ def SingleTDMS_analysis():
                 debugPrint(f'==========Event{event}_Pulse{ipulse}==========')
                 pulseCount = pulseCount + 1
                 # Record simple signal and sideband ranges into histogram
-                # Simple_pulse_analysis(chSig[int(chTrig_arrivalT):int(chTrig_arrivalT) + avg_buffer], event, ipulse)
                 Simple_pulse_analysis(chSig, event, ipulse)
-                # chSig_average = Common_mode_analysis(chSig_average, chSig[int(chTrig_arrivalT):int(chTrig_arrivalT) + avg_buffer])
+                # Do advanced analysis (Rising time, timing jitter, sophisticated amplitude)
+                if (args.doAdvanced): Advanced_pulse_analysis(chSig[int(chTrig_arrivalT):int(chTrig_arrivalT) + avg_buffer], chTrig_arrivalT - int(chTrig_arrivalT), event)
                 # Record an example pulse waveform
                 # if (event==2 and ipulse == 4):
                 #     for i in range(avg_buffer): Pulse_display.SetPoint(i,i,chSig[int(chTrig_arrivalT) + i])
-                # Do advanced analysis (Rising time, timing jitter, sophisticated amplitude)
-                if (args.doAdvanced):
-                    Advanced_pulse_analysis(chSig[int(chTrig_arrivalT):int(chTrig_arrivalT) + avg_buffer], chTrig_arrivalT - int(chTrig_arrivalT), event)
                 if Sideband_selection():
                     debugPrint("pass sideband selection")
+                    if (config.DISPLAY): event_display_2ch(chSig,chTrig,f'Waveform', 0.02)
                     outtree.Fill()
-                    # chSig_average = Common_mode_analysis(chSig_average, chSig)
-                    # event_display_2ch(chSig,chTrig,f'Waveform', 0.02)
+                    # Create average signal spectrum
+                    if (event<args.avgCount): chSig_average = Common_mode_analysis(chSig_average, chSig)
                 else:
-                    debugPrint("fail sideband selection")
-                    debugPrint(f"{pre_std[0]}, {pos_std[0]}, {pre_range[0]}, {pos_range[0]}")
+                    debugPrint(f"fail sideband selection: {pre_std[0]}, {pos_std[0]}, {pre_range[0]}, {pos_range[0]}")
         ########## End Reading TDMS file ##########
         print (f"==========End Looping==========")
     # Output some numbers
     print(f"TotalEvents:{totalEvents}, TriggerPulse_Count:{pulseCount}, PassSideband_Count: {outtree.GetEntries()}")
     # Plots
-    average_plots(chSig_average, pulseCount)
+    average_plots(chSig_average,basename)
 
 
 if __name__ == "__main__":
@@ -195,37 +197,37 @@ if __name__ == "__main__":
     if (args.display_report==True): config.DISPLAY = True
 
     ########## Init ##########
-    in_filename = args.in_filenames[0]
-    basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
-    baseDir = in_filename.split('Laser/')[1].rsplit('/',1)[0]
-    outDir = args.outputDir + '/' + baseDir + '/' + basename
-    createDir(outDir)
-    # Create root filen
-    outfile = ROOT.TFile(f'{outDir}/{basename}.root', 'RECREATE', f'analysis histograms of {basename} measurements' )
-    print (f'{outDir}/{basename}.root')
-    outtree = ROOT.TTree("Result_tree","Pulse laser analysis results")
-    # Define variables for branch
-    pre_std, pos_std, pre_mean, pos_mean, pre_range, pos_range = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
-    pulse_rise_range, pulse_fall_range, pulse_amplitude, pulse_arrivalT, pulse_riseT, pulse_pre_range = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
-    # init branches
-    # outtree.Branch('pre_std', pre_std, 'pre_std/F')
-    # outtree.Branch('pos_std', pos_std, 'pos_std/F')
-    # outtree.Branch('pre_mean', pre_mean, 'pre_mean/F')
-    # outtree.Branch('pos_mean', pos_mean, 'pos_mean/F')
-    outtree.Branch('pre_range', pre_range, 'pre_range/F')
-    # outtree.Branch('pos_range', pos_range, 'pos_range/F')
-    outtree.Branch('pulse_rise_range', pulse_rise_range, 'pulse_rise_range/F')
-    outtree.Branch('pulse_fall_range', pulse_fall_range, 'pulse_fall_range/F')
-    # outtree.Branch('pulse_pre_range', pulse_pre_range, 'pulse_pre_range/F')
-    # outtree.Branch('pulse_amplitude', pulse_amplitude, 'pulse_amplitude/F')
-    # outtree.Branch('pulse_arrivalT', pulse_arrivalT, 'pulse_arrivalT/F')
-    # outtree.Branch('pulse_riseT', pulse_riseT, 'pulse_riseT/F')
-    ########## End Init ##########
+    for in_filename in args.in_filenames:
+        print(f"########## input file: {in_filename} ##########")
+        basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
+        baseDir = in_filename.split('Laser/')[1].rsplit('/',1)[0]
+        outDir = args.outputDir + '/' + baseDir + '/' + basename
+        createDir(outDir)
+        # Create root filen
+        outfile = ROOT.TFile(f'{outDir}/{basename}.root', 'RECREATE', f'analysis histograms of {basename} measurements' )
+        outtree = ROOT.TTree("Result_tree","Pulse laser analysis results")
+        # Define variables for branch
+        pre_std, pos_std, pre_mean, pos_mean, pre_range, pos_range = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
+        pulse_rise_range, pulse_fall_range, pulse_amplitude, pulse_arrivalT, pulse_riseT, pulse_pre_range = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
+        # init branches
+        outtree.Branch('pre_std', pre_std, 'pre_std/F')
+        outtree.Branch('pos_std', pos_std, 'pos_std/F')
+        outtree.Branch('pre_mean', pre_mean, 'pre_mean/F')
+        outtree.Branch('pos_mean', pos_mean, 'pos_mean/F')
+        outtree.Branch('pre_range', pre_range, 'pre_range/F')
+        outtree.Branch('pos_range', pos_range, 'pos_range/F')
+        outtree.Branch('pulse_rise_range', pulse_rise_range, 'pulse_rise_range/F')
+        outtree.Branch('pulse_fall_range', pulse_fall_range, 'pulse_fall_range/F')
+        # outtree.Branch('pulse_pre_range', pulse_pre_range, 'pulse_pre_range/F')
+        # outtree.Branch('pulse_amplitude', pulse_amplitude, 'pulse_amplitude/F')
+        # outtree.Branch('pulse_arrivalT', pulse_arrivalT, 'pulse_arrivalT/F')
+        # outtree.Branch('pulse_riseT', pulse_riseT, 'pulse_riseT/F')
+        ########## End Init ##########
 
-    # Start Analysis
-    SingleTDMS_analysis()
-    # plots()
-    # End Analysis
-
-    outtree.Write()
-    outfile.Close()
+        # Start Analysis
+        SingleTDMS_analysis()
+        # plots()
+        # End Analysis
+        print (f'Output: {outDir}/{basename}.root')
+        outtree.Write()
+        outfile.Close()
