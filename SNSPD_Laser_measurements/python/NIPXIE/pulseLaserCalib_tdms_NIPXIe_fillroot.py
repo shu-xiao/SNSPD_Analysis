@@ -176,8 +176,8 @@ def SingleTDMS_analysis():
                 if Sideband_selection():
                     debugPrint("pass sideband selection")
                     outtree.Fill()
-                    chSig_average = Common_mode_analysis(chSig_average, chSig)
-                    event_display_2ch(chSig,chTrig,f'Waveform', 0.02)
+                    # chSig_average = Common_mode_analysis(chSig_average, chSig)
+                    # event_display_2ch(chSig,chTrig,f'Waveform', 0.02)
                 else:
                     debugPrint("fail sideband selection")
                     debugPrint(f"{pre_std[0]}, {pos_std[0]}, {pre_range[0]}, {pos_range[0]}")
