@@ -138,7 +138,7 @@ def SingleTDMS_analysis():
         recordlength = int(metadata_df.loc[metadata_df['metaKey'] == 'record length', 'metaValue'].iloc[0])
         vertical_range = float(metadata_df.loc[metadata_df['metaKey'] == 'vertical range Sig', 'metaValue'].iloc[0])
         # Write metadata to json file
-        metadata_df.to_json(f'{args.outputDir}/{baseDir}/{baseName}.json',orient="records",lines=True)
+        metadata_df.to_json(metaFileName,orient="records",lines=True)
         # Read Groups and Channels
         Read_Groups_and_Channels(tdms_file)
         chSig_total = tdms_file['ADC Readout Channels']['chSig']
@@ -201,11 +201,12 @@ if __name__ == "__main__":
         basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
         baseDir = in_filename.split('Laser/')[1].rsplit('/',1)[0]
         outDir = args.outputDir + '/' + baseDir + '/' + basename
+        metaFileName = in_filename.split('.tdms')[0] + ".json"
         createDir(outDir)
         # Create root filen
         outfile = ROOT.TFile(f'{outDir}/{basename}.root', 'RECREATE', f'analysis histograms of {basename} measurements' )
         outtree = ROOT.TTree("Result_tree","Pulse laser analysis results")
-        metaFileName = ROOT.TNamed("metaFileName",f"{in_filename}")
+        outname = ROOT.TNamed("metaFileName",metaFileName)
         # Define variables for branch
         pre_std, pos_std, pre_mean, pos_mean, pre_range, pos_range = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
         pulse_rise_range, pulse_fall_range, pulse_amplitude, pulse_arrivalT, pulse_riseT, pulse_pre_range = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
@@ -230,5 +231,6 @@ if __name__ == "__main__":
         # plots()
         # End Analysis
         print (f'Output: {outDir}/{basename}.root')
+        outname.Write()
         outtree.Write()
         outfile.Close()
