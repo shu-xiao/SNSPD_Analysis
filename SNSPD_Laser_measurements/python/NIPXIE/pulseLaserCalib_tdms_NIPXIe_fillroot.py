@@ -25,7 +25,7 @@ import argparse
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('in_filenames',nargs="+",help='input filenames')
 parser.add_argument('--outputDir','-d',default="./plots/test",type=str,help='output directory')
-parser.add_argument('--avgCount','-a',default=20,type=int,help='average pulse counts')
+parser.add_argument('--avgCount','-a',default=100,type=int,help='average pulse counts')
 parser.add_argument('--report','-r',default=1000,type=int,help='report every x events')
 parser.add_argument('--debug_report','-b',action="store_true",help='report every x events')
 parser.add_argument('--display_report','-p',action="store_true",help='report every x events')
@@ -33,7 +33,6 @@ parser.add_argument('--doAdvanced',action="store_true",help='do single pulse ana
 parser.add_argument('--doAverage',action="store_true",help='do average pulse analysis')
 parser.add_argument('--dryRun',action="store_true",help='dry run')
 parser.add_argument('--subset','-s',default=-1,type=int,help='Process a subset of data. -1 = all')
-parser.add_argument('--txtfilename','-t',default="test",type=str,help='results txt file')
 args = parser.parse_args()
 
 
@@ -51,7 +50,7 @@ def Advanced_pulse_analysis(data, trigT, event):
     # Cubic Spline Fit
     data_spline = CubicSpline(data_xIndex, data)
     # Find turning point
-    data_turning_pedestals, data_turning_peaks, data_turning_ranges = Get_turning_times(data_spline, threshold, 0, len(data), 'Rise', config.DEBUG)
+    data_turning_pedestals, data_turning_peaks, data_turning_ranges = Get_turning_times(data_spline, config.threshold, 0, len(data), 'Rise', config.DEBUG)
     if (len(data_turning_peaks)<1):
         # print(f'Abnormal Event{event}. Pass Event Selection, but can\'t find turning points')
         return
@@ -68,7 +67,7 @@ def Advanced_pulse_analysis(data, trigT, event):
     # Get Rise time
     pulse_riseT[0] = Get_Function_RiseFall_Range(data_spline, data_10, data_90, data_turning_pedestals[imax].x, data_turning_peaks[imax].x)
     # display_spline_fit(data_spline, data_xIndex)
-    debugPrint(f'Pulse amplitude = {pulse_amplitude:.4f}, arrival Time = {pulse_arrivalT:.4f}, rise Time = {pulse_riseT:.4f}')
+    debugPrint(f'Pulse amplitude = {pulse_amplitude[0]:.4f}, arrival Time = {pulse_arrivalT[0]:.4f}, rise Time = {pulse_riseT[0]:.4f}')
 
 def Simple_pulse_analysis(data, event, ipulse):
     # event_display(data, f'Waveform#{event}_{ipulse}')
@@ -99,11 +98,9 @@ def Find_Trigger_time_splineFit(chTrig):
     # Get chTrig (trigger) arrival times
     x_index = np.arange(len(chTrig))
     chTrig_spline = CubicSpline(x_index, chTrig)
-    chTrig_turning_pedestals, chTrig_turning_peaks, chTrig_turning_ranges = Get_turning_times(chTrig_spline, 0.2, 0, len(chTrig), 'Fall', config.DEBUG)
+    chTrig_turning_pedestals, chTrig_turning_peaks, chTrig_turning_ranges = Get_turning_times(chTrig_spline, 0.1, 0, len(chTrig), 'Fall', config.DEBUG)
     # Loop over laser pulse
     for ipulse, (chTrig_turning_pedestal, chTrig_turning_peak) in enumerate(zip(chTrig_turning_pedestals, chTrig_turning_peaks)):
-        # Skip last pulse due to distortion of the oscilloscop at the boundary
-        if (ipulse >= config.NpulsePerTrigger-1): continue
         # Skip unreasonable turning points
         if ( chTrig_turning_peak.x < 0 or chTrig_turning_pedestal.x < 0 ): continue
         # Define time of arrival at the 50% level of the falling slope
@@ -140,6 +137,8 @@ def SingleTDMS_analysis():
         totalEvents = int(metadata_df.loc[metadata_df['metaKey'] == 'Total Events', 'metaValue'].iloc[0])
         recordlength = int(metadata_df.loc[metadata_df['metaKey'] == 'record length', 'metaValue'].iloc[0])
         vertical_range = float(metadata_df.loc[metadata_df['metaKey'] == 'vertical range Sig', 'metaValue'].iloc[0])
+        # Write metadata to json file
+        metadata_df.to_json(f'{args.outputDir}/{baseDir}/{baseName}.json',orient="records",lines=True)
         # Read Groups and Channels
         Read_Groups_and_Channels(tdms_file)
         chSig_total = tdms_file['ADC Readout Channels']['chSig']
@@ -171,13 +170,13 @@ def SingleTDMS_analysis():
                 # Record simple signal and sideband ranges into histogram
                 Simple_pulse_analysis(chSig, event, ipulse)
                 # Do advanced analysis (Rising time, timing jitter, sophisticated amplitude)
-                if (args.doAdvanced): Advanced_pulse_analysis(chSig[int(chTrig_arrivalT):int(chTrig_arrivalT) + avg_buffer], chTrig_arrivalT - int(chTrig_arrivalT), event)
+                if (args.doAdvanced): Advanced_pulse_analysis(chSig, chTrig_arrivalT, event)
                 # Record an example pulse waveform
                 # if (event==2 and ipulse == 4):
                 #     for i in range(avg_buffer): Pulse_display.SetPoint(i,i,chSig[int(chTrig_arrivalT) + i])
                 if Sideband_selection():
                     debugPrint("pass sideband selection")
-                    if (config.DISPLAY): event_display_2ch(chSig,chTrig,f'Waveform', 0.02)
+                    if (config.DISPLAY): event_display_2ch(chSig,chTrig,f'Waveform{event}', 0.02)
                     outtree.Fill()
                     # Create average signal spectrum
                     if (event<args.avgCount): chSig_average = Common_mode_analysis(chSig_average, chSig)
@@ -206,6 +205,7 @@ if __name__ == "__main__":
         # Create root filen
         outfile = ROOT.TFile(f'{outDir}/{basename}.root', 'RECREATE', f'analysis histograms of {basename} measurements' )
         outtree = ROOT.TTree("Result_tree","Pulse laser analysis results")
+        metaFileName = ROOT.TNamed("metaFileName",f"{in_filename}")
         # Define variables for branch
         pre_std, pos_std, pre_mean, pos_mean, pre_range, pos_range = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
         pulse_rise_range, pulse_fall_range, pulse_amplitude, pulse_arrivalT, pulse_riseT, pulse_pre_range = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
@@ -219,9 +219,10 @@ if __name__ == "__main__":
         outtree.Branch('pulse_rise_range', pulse_rise_range, 'pulse_rise_range/F')
         outtree.Branch('pulse_fall_range', pulse_fall_range, 'pulse_fall_range/F')
         # outtree.Branch('pulse_pre_range', pulse_pre_range, 'pulse_pre_range/F')
-        # outtree.Branch('pulse_amplitude', pulse_amplitude, 'pulse_amplitude/F')
-        # outtree.Branch('pulse_arrivalT', pulse_arrivalT, 'pulse_arrivalT/F')
-        # outtree.Branch('pulse_riseT', pulse_riseT, 'pulse_riseT/F')
+        if (args.doAdvanced):
+            outtree.Branch('pulse_amplitude', pulse_amplitude, 'pulse_amplitude/F')
+            outtree.Branch('pulse_arrivalT', pulse_arrivalT, 'pulse_arrivalT/F')
+            outtree.Branch('pulse_riseT', pulse_riseT, 'pulse_riseT/F')
         ########## End Init ##########
 
         # Start Analysis

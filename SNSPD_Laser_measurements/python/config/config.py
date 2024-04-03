@@ -26,4 +26,4 @@ cut_posStd = 0.03
 
 totalTreeEvents = 10000
 avg_buffer = 100
-threshold = 0.015
+threshold = 0.1

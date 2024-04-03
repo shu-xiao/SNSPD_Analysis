@@ -47,7 +47,7 @@ def event_display_2ch(np1, np2, title='Waveform', offset=0.15):
     ax.plot(range(len(np1)), np1, label='signal', marker='o',fillstyle='none')
     # Add labels to the plot
     ax.legend(fontsize='large')
-    # ax.set_title(title, fontsize=15)
+    ax.set_title(title, fontsize=15)
     ax.set_xlabel('Index [0.4ns]',fontsize=15)
     ax.set_ylabel('ADC [Volts]',fontsize=15)
     plt.tight_layout()
