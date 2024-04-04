@@ -145,7 +145,10 @@ def gettree(in_filename):
     c1.SaveAs(f"{plotDir}/pulse_range_cut.pdf")
     eff = h_diff.Integral()/intree.GetEntries()
     pulse_amplitude = h_pulse_fall_range.GetMean()
-    pulse_amplitude_error = h_pulse_fall_range.GetRMS()/math.sqrt(h_pulse_fall_range.Integral())
+    try:
+        pulse_amplitude_error = h_pulse_fall_range.GetRMS()/math.sqrt(h_pulse_fall_range.Integral())
+    except ValueError as ve:
+        pulse_amplitude_error = 0
     pre_range = h_pre_range.GetMean()
     return eff, pulse_amplitude, pulse_amplitude_error, pre_range
 
