@@ -233,7 +233,7 @@ if __name__ == "__main__":
         basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
         baseDir = in_filename.split('Laser/')[1].rsplit('/',1)[0]
         outDir = args.outputDir + '/' + baseDir + '/' + basename
-        metaFileName = in_filename.split('.tdms')[0] + ".json"
+        metaFileName = outDir + '/' + in_filename.rsplit('/',1)[1].split('.tdms')[0] + ".json"
         createDir(outDir)
         # Create root filen
         outfile = ROOT.TFile(f'{outDir}/{basename}.root', 'RECREATE', f'analysis histograms of {basename} measurements' )
