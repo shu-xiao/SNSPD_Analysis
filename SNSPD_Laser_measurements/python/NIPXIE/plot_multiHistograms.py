@@ -147,7 +147,7 @@ def gettree(in_filename):
     pulse_amplitude = h_pulse_fall_range.GetMean()
     try:
         pulse_amplitude_error = h_pulse_fall_range.GetRMS()/math.sqrt(h_pulse_fall_range.Integral())
-    except ValueError as ve:
+    except ZeroDivisionError:
         pulse_amplitude_error = 0
     pre_range = h_pre_range.GetMean()
     return eff, pulse_amplitude, pulse_amplitude_error, pre_range
