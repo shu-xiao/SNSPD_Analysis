@@ -19,10 +19,13 @@ postPulse_startT =  180 #230
 postPulse_endT   =  199 #250
 
 # Sideband pre-selection
-cut_preRange = 0.07
-cut_posRange = 0.12
-cut_preStd = 0.025
-cut_posStd = 0.03
+cut_preRange = 0.09
+cut_posRange = 0.11
+cut_preStd = 0.021
+cut_posStd = 0.025
+
+# Pulse selection
+cut_pulseRange = 0.05
 
 totalTreeEvents = 10000
 avg_buffer = 100

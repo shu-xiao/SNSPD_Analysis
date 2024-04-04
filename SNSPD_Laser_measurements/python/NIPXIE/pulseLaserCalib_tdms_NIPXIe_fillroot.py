@@ -43,6 +43,12 @@ def Sideband_selection():
     if pre_range[0] < config.cut_preRange and pos_range[0] < config.cut_posRange and pre_std[0] < config.cut_preStd and pos_std[0] < config.cut_posStd:
         return True
     else:
+        return False
+
+def Pulse_selection():
+     if pulse_fall_range[0] > config.cut_pulseRange:
+        return True
+     else:
         return True
 
 def Advanced_pulse_analysis(data, trigT, event):
@@ -125,6 +131,27 @@ def average_plots(chSig_average,title):
     # c1.SaveAs(f"{outDir}/{Pulse_avg_display.GetName()}.png")
     Pulse_avg_display.Write()
 
+def single_pulse_spectrum(chSig,Pulse_spectrums,event):
+    Pulse_spectrums[event] = ROOT.TGraph()
+    Pulse_spectrums[event].SetName(f"Pulse_spectrum_Event_{event}")
+    Pulse_spectrums[event].SetTitle("Pulse_spectrum")
+    Pulse_spectrums[event].GetXaxis().SetTitle(f"index(0.4ns)")
+    Pulse_spectrums[event].GetYaxis().SetTitle(f"Voltage(V)")
+    Pulse_spectrums[event].SetMarkerStyle(4)
+    Pulse_spectrums[event].SetMarkerSize(0.5)
+    for i in range(len(chSig)): Pulse_spectrums[event].SetPoint(i,i,chSig[i])
+
+def Stack_spectrums(Pulse_spectrums):
+    c_stack_spectrum = ROOT.TCanvas("c_stack_spectrum","Stack_spectrums",1500,900)
+    for i, (key, graph) in enumerate(Pulse_spectrums.items()):
+        if (i==0):
+            graph.GetYaxis().SetRangeUser(-0.5,1.5);
+            graph.GetXaxis().SetRangeUser(300,400);
+            graph.Draw("ALP PLC PMC")
+        else:
+            graph.Draw("LPSame PLC PMC")
+    c_stack_spectrum.Write()
+
 ###############################################
 #################### Main  ####################
 ###############################################
@@ -143,9 +170,10 @@ def SingleTDMS_analysis():
         Read_Groups_and_Channels(tdms_file)
         chSig_total = tdms_file['ADC Readout Channels']['chSig']
         chTrig_total = tdms_file['ADC Readout Channels']['chTrig']
-        # chSig_average = np.zeros(avg_buffer)
+        # Initialize variables
         chSig_average = np.zeros(recordlength)
         pulseCount = 0
+        Pulse_spectrums = {}
         # Start Loop
         print (f"==========Start Looping==========")
         for event in range(totalEvents):
@@ -179,7 +207,9 @@ def SingleTDMS_analysis():
                     if (config.DISPLAY): event_display_2ch(chSig,chTrig,f'Waveform{event}', 0.02)
                     outtree.Fill()
                     # Create average signal spectrum
-                    if (event<args.avgCount): chSig_average = Common_mode_analysis(chSig_average, chSig)
+                    if (event<args.avgCount):
+                        chSig_average = Common_mode_analysis(chSig_average, chSig)
+                        if Pulse_selection(): single_pulse_spectrum(chSig, Pulse_spectrums, event)
                 else:
                     debugPrint(f"fail sideband selection: {pre_std[0]}, {pos_std[0]}, {pre_range[0]}, {pos_range[0]}")
         ########## End Reading TDMS file ##########
@@ -188,12 +218,14 @@ def SingleTDMS_analysis():
     print(f"TotalEvents:{totalEvents}, TriggerPulse_Count:{pulseCount}, PassSideband_Count: {outtree.GetEntries()}")
     # Plots
     average_plots(chSig_average,basename)
+    Stack_spectrums(Pulse_spectrums)
 
 
 if __name__ == "__main__":
 
     if (args.debug_report==True): config.DEBUG = True
     if (args.display_report==True): config.DISPLAY = True
+    ROOT.gStyle.SetPalette(ROOT.kBird)
 
     ########## Init ##########
     for in_filename in args.in_filenames:
