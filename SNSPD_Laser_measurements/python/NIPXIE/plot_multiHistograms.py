@@ -141,7 +141,7 @@ def gettree(in_filename):
     intree.Draw("pre_range>>h_pre_range")
     c1.SaveAs(f"{plotDir}/pre_range.pdf")
     # intree.Draw("pulse_fall_range>>h_diff","(pulse_fall_range-pre_range)/pre_range > 0.0")
-    intree.Draw("pulse_fall_range>>h_diff","pulse_fall_range > 0.02")
+    intree.Draw("pulse_fall_range>>h_diff","pulse_fall_range > 0.1")
     c1.SaveAs(f"{plotDir}/pulse_range_cut.pdf")
     eff = h_diff.Integral()/intree.GetEntries()
     pulse_amplitude = h_pulse_fall_range.GetMean()
