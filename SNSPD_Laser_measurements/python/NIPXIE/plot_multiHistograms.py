@@ -130,6 +130,7 @@ def gettree(in_filename):
     # initialize histo
     h_pulse_fall_range = ROOT.TH1F("h_pulse_fall_range","h_pulse_fall_range",100,-0.1,0.3)
     h_pre_range = ROOT.TH1F("h_pre_range","h_pre_range",100,0.,0.3)
+    h_eff = ROOT.TH1F("h_eff","h_eff",2,0,2)
     h_diff = ROOT.TH1F("h_diff","h_diff",100,0,0.3)
 
     # Draw
@@ -143,7 +144,10 @@ def gettree(in_filename):
     # intree.Draw("pulse_fall_range>>h_diff","(pulse_fall_range-pre_range)/pre_range > 0.0")
     intree.Draw("pulse_fall_range>>h_diff","pulse_fall_range > 0.1")
     c1.SaveAs(f"{plotDir}/pulse_range_cut.pdf")
-    eff = h_diff.Integral()/intree.GetEntries()
+    # Efficiency
+    intree.Draw("1>>h_eff","pulse_fall_range>0.1")
+    c1.SaveAs(f"{plotDir}/eff.pdf")
+    eff = h_eff.Integral()/intree.GetEntries()
     pulse_amplitude = h_pulse_fall_range.GetMean()
     try:
         pulse_amplitude_error = h_pulse_fall_range.GetRMS()/math.sqrt(h_pulse_fall_range.Integral())
