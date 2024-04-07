@@ -194,7 +194,6 @@ def FFT(data,dt):
     # Perform FFT
     mag = np.fft.fft(data, cf.freq_steps)
     freqs = np.fft.fftfreq(cf.freq_steps, dt)
-    mag /= cf.freq_steps
     positive_indices = np.where(freqs > 0)
     positive_freqs = freqs[positive_indices]
     positive_mags = mag[positive_indices]
@@ -235,7 +234,7 @@ def FFT_plot(freqs, mags, title=""):
     fft_display.SetTitle(title)
     fft_display.GetXaxis().SetTitle(f"frequency(Hz)")
     fft_display.GetYaxis().SetTitle(f"Normalized Magnitude")
-    for i, (freq,mag) in enumerate(zip(freqs,np.abs(mags))): fft_display.SetPoint(i,freq,mag)
+    for i, (freq,mag) in enumerate(zip(freqs,np.abs(mags))): fft_display.SetPoint(i,freq,mag/np.sum(np.abs(mags)))
     fft_display.SetMarkerStyle(4)
     fft_display.SetMarkerSize(0.5)
     fft_display.Draw("ALP")
