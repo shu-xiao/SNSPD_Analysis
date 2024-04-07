@@ -186,7 +186,7 @@ def plots():
 
 
 if __name__ == "__main__":
-    laser_power = float(args.in_filenames[0].split('uW')[0].split('/')[-1])
+    laser_power = args.in_filenames[0].split('uW')[0].split('/')[-1]
     baseDir = args.in_filenames[0].split('uW/')[0]
     outDir = baseDir + "uW/"
     createDir(outDir)
