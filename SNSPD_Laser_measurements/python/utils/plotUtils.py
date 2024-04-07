@@ -58,13 +58,32 @@ def event_display_2ch(np1, np2, title='Waveform', offset=0.15):
     plt.show()
     plt.close('all')
 
+def event_display_fft(np1, freqs, mags, xmin, xmax):
+    # Create a new figure
+    plt.figure(figsize=(10, 6))
+    # Plot the time domain signal
+    plt.subplot(2, 1, 1)
+    plt.plot(range(len(np1)), np1, label='signal',marker='o',fillstyle='none')
+    plt.title('Time Domain Signal')
+    plt.xlabel('Index (0.4ns)',fontsize=15)
+    plt.ylabel('ADC (Volts)',fontsize=15)
+    # Plot the frequency domain signal
+    plt.subplot(2, 1, 2)
+    plt.plot(freqs, np.abs(mags))
+    plt.title('Frequency Domain Signal')
+    plt.xlabel('Frequency (Hz)',fontsize=15)
+    plt.ylabel('Magnitude',fontsize=15)
+    plt.xlim(xmin, xmax)  # Limit x-axis to frequencies below 500 MHz
+    plt.tight_layout()
+    plt.show()
+    plt.close('all')
+
 def display_spline_fit(spline_func, x_index):
     x_spline_range = np.linspace(x_index.min(), x_index.max(), num=10000)
     y_spline = spline_func(x_spline_range)
     plt.plot(x_spline_range, y_spline, '-', label='Spline Fit')
     # if (config.DISPLAY): plt.show()
     plt.close('all')
-
 
 def plot_histo(np1, nbin, rangemin, rangemax, xTitle, title, saveTitle):
     fig, ax = plt.subplots()

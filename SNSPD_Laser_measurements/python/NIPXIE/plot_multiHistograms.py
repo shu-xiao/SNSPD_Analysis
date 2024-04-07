@@ -14,6 +14,10 @@ parser.add_argument('--report','-r',default=10000,type=int,help='report every x 
 parser.add_argument('--debug','-d',action="store_true",help='debug mode')
 args = parser.parse_args()
 
+def project(tree, h, var, cut):
+    print (f'projecting var: {var}, cut: {cut} from tree: {tree.GetName()} into hist: {h.GetName()}')
+    tree.Project(h.GetName(),var,cut)
+
 def color(i):
     colorwheel = [416, 600, 800, 632, 880, 432, 616, 860, 820, 900, 420, 620, 820, 652, 1000, 452, 636, 842, 863, 823]
     # colorindex = int(i/11) + int(i%11)
@@ -122,7 +126,7 @@ def plot_DE_polar():
     plt.savefig('Pulse_range.png', format='png')
     plt.show()
 
-def gettree(in_filename):
+def calculate_tree(in_filename):
     plotDir= in_filename.rsplit("/",1)[0]
     infile = ROOT.TFile.Open(in_filename)
     intree = infile.Get('Result_tree')
@@ -133,35 +137,38 @@ def gettree(in_filename):
     h_eff = ROOT.TH1F("h_eff","h_eff",2,0,2)
     h_diff = ROOT.TH1F("h_diff","h_diff",100,0,0.3)
 
-    # Draw
-    c1 = ROOT.TCanvas()
-    intree.Draw("pulse_rise_range")
-    c1.SaveAs(f"{plotDir}/pulse_range.pdf")
-    intree.Draw("pulse_fall_range>>h_pulse_fall_range")
-    c1.SaveAs(f"{plotDir}/pulse_fall_range.pdf")
-    intree.Draw("pre_range>>h_pre_range")
-    c1.SaveAs(f"{plotDir}/pre_range.pdf")
-    # intree.Draw("pulse_fall_range>>h_diff","(pulse_fall_range-pre_range)/pre_range > 0.0")
-    intree.Draw("pulse_fall_range>>h_diff","pulse_fall_range > 0.1")
-    c1.SaveAs(f"{plotDir}/pulse_range_cut.pdf")
-    # Efficiency
-    intree.Draw("1>>h_eff","pulse_fall_range>0.1")
-    c1.SaveAs(f"{plotDir}/eff.pdf")
+    # Project variables to histos
+    project(intree,h_pulse_fall_range,"pulse_fall_range","")
+    project(intree,h_pre_range,"pre_range","")
+    project(intree,h_eff,"1","pulse_fall_range>0.1")
+
+    # Calculate
     eff = h_eff.Integral()/intree.GetEntries()
-    pulse_amplitude = h_pulse_fall_range.GetMean()
-    try:
-        pulse_amplitude_error = h_pulse_fall_range.GetRMS()/math.sqrt(h_pulse_fall_range.Integral())
-    except ZeroDivisionError:
-        pulse_amplitude_error = 0
     pre_range = h_pre_range.GetMean()
-    return eff, pulse_amplitude, pulse_amplitude_error, pre_range
+    pulse_range = h_pulse_fall_range.GetMean()
+    try:
+        pulse_range_error = h_pulse_fall_range.GetRMS()/math.sqrt(h_pulse_fall_range.Integral())
+    except ZeroDivisionError:
+        pulse_range_error = 0
+    return eff, pulse_range, pulse_range_error, pre_range
+
+def Compare_bias_var(bias, var, title="graph", xtit="Bias Current (#muA)",ytit=""):
+    c1 = ROOT.TCanvas()
+    graph = ROOT.TGraph()
+    for i, (b,v) in enumerate(zip(bias,var)): graph.SetPoint(i,b,v)
+    graph.Draw("AP")
+    graph.SetName(title)
+    graph.SetTitle(title)
+    graph.GetXaxis().SetTitle(xtit)
+    graph.GetYaxis().SetTitle(ytit)
+    graph.Write()
 
 def plots():
     biases, effs, amps, amp_errs, pre_ranges=[],[],[],[],[]
     for in_filename in args.in_filenames:
         bias = float(in_filename.split("mV_")[1].split("nA")[0])/1000
         print(bias)
-        eff, amp, amp_err, pre_range= gettree(in_filename)
+        eff, amp, amp_err, pre_range = calculate_tree(in_filename)
         biases.append(bias)
         effs.append(eff)
         amps.append(amp)
@@ -179,32 +186,22 @@ def plots():
         g_amp.SetPointError(i, 0, amp_err)
         g_pre.SetPoint(i,bias,pre_range)
 
-
-    plot_Dir = args.in_filenames[0].rsplit("/",2)[0]
-    outfile = ROOT.TFile(f'{plot_Dir}/plots.root', 'RECREATE', f'plots' )
-    c2 = ROOT.TCanvas()
-    g_eff.Draw("AP")
-    g_eff.SetName(f"g_eff")
-    g_eff.GetXaxis().SetTitle("Bias Current (#muA)")
-    g_eff.GetYaxis().SetTitle("Pulse Detection Efficiency")
-    c2.SaveAs(f"{plot_Dir}/eff.png")
-    g_eff.Write()
-    g_amp.Draw("AP")
-    g_amp.SetName(f"g_amp")
-    g_amp.GetXaxis().SetTitle("Bias Current (#muA)")
-    g_amp.GetYaxis().SetTitle("Pulse amplitude")
-    c2.SaveAs(f"{plot_Dir}/amp.png")
-    g_pre.Write()
-    g_pre.Draw("AP")
-    g_pre.SetName(f"g_pre_range")
-    g_pre.GetXaxis().SetTitle("Bias Current (#muA)")
-    g_pre.GetYaxis().SetTitle("Pre pulse range")
-    c2.SaveAs(f"{plot_Dir}/pre_range.png")
-    g_pre.Write()
-    outfile.Write()
-    outfile.Close()
+    Compare_bias_var(biases,effs)
 
 if __name__ == "__main__":
+
+    param = float(in_filename.split('uW')[0].split('/')[-1])
+
+    basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
+    baseDir = in_filename.split('Laser/')[1].rsplit('/',1)[0]
+    outDir = args.outputDir + '/' + baseDir + '/' + basename
+    createDir(outDir)
+    outfile = ROOT.TFile(f'{outDir}/{basename}.root', 'RECREATE', f'analysis histograms of {basename} measurements' )
+
+    # Compare plots
+    plots()
     # plot_multiHistograms()
     # plot_DE_polar()
-    plots()
+
+    outfile.Write()
+    outfile.Close()

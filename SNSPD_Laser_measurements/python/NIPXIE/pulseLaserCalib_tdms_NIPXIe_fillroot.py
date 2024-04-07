@@ -19,14 +19,15 @@ import math
 from ..utils.Timing_Analyzer import *
 from ..utils.tdmsUtils import *
 from ..utils.plotUtils import *
-from ..config import config
+from ..utils.fitfunctions import *
+from ..config import config as cf
 
 import argparse
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('in_filenames',nargs="+",help='input filenames')
 parser.add_argument('--outputDir','-d',default="./plots/test",type=str,help='output directory')
-parser.add_argument('--avgCount','-a',default=100,type=int,help='average pulse counts')
 parser.add_argument('--report','-r',default=1000,type=int,help='report every x events')
+parser.add_argument('--checkSingleEvent','-c',default=-1,type=int,help='Check Single Event')
 parser.add_argument('--debug_report','-b',action="store_true",help='report every x events')
 parser.add_argument('--display_report','-p',action="store_true",help='report every x events')
 parser.add_argument('--doAdvanced',action="store_true",help='do single pulse analysis')
@@ -37,16 +38,16 @@ args = parser.parse_args()
 
 
 def debugPrint(string):
-    if (config.DEBUG): print(string)
+    if (cf.DEBUG): print(string)
 
 def Sideband_selection():
-    if pre_range[0] < config.cut_preRange and pos_range[0] < config.cut_posRange and pre_std[0] < config.cut_preStd and pos_std[0] < config.cut_posStd:
+    if pre_range[0] < cf.cut_preRange and pos_range[0] < cf.cut_posRange and pre_std[0] < cf.cut_preStd and pos_std[0] < cf.cut_posStd:
         return True
     else:
         return False
 
 def Pulse_selection():
-     if pulse_fall_range[0] > config.cut_pulseRange:
+     if pulse_fall_range[0] > cf.cut_pulseRange:
         return True
      else:
         return True
@@ -56,7 +57,7 @@ def Advanced_pulse_analysis(data, trigT, event):
     # Cubic Spline Fit
     data_spline = CubicSpline(data_xIndex, data)
     # Find turning point
-    data_turning_pedestals, data_turning_peaks, data_turning_ranges = Get_turning_times(data_spline, config.threshold, 0, len(data), 'Rise', config.DEBUG)
+    data_turning_pedestals, data_turning_peaks, data_turning_ranges = Get_turning_times(data_spline, cf.threshold, 0, len(data), 'Rise', cf.DEBUG)
     if (len(data_turning_peaks)<1):
         # print(f'Abnormal Event{event}. Pass Event Selection, but can\'t find turning points')
         return
@@ -69,7 +70,7 @@ def Advanced_pulse_analysis(data, trigT, event):
     data_50 = data_turning_peaks[imax].y*0.5 + data_turning_pedestals[imax].y*0.5
     data_90 = data_turning_peaks[imax].y*0.9 + data_turning_pedestals[imax].y*0.1
     # Get Arrival time
-    pulse_arrivalT[0] = Get_Function_Arrival(data_spline, data_50, data_turning_pedestals[imax].x, data_turning_peaks[imax].x) + config.Pulse_startT + trigT  #int(chTrig_arrivalT) + 205
+    pulse_arrivalT[0] = Get_Function_Arrival(data_spline, data_50, data_turning_pedestals[imax].x, data_turning_peaks[imax].x) + cf.Pulse_startT + trigT  #int(chTrig_arrivalT) + 205
     # Get Rise time
     pulse_riseT[0] = Get_Function_RiseFall_Range(data_spline, data_10, data_90, data_turning_pedestals[imax].x, data_turning_peaks[imax].x)
     # display_spline_fit(data_spline, data_xIndex)
@@ -77,17 +78,24 @@ def Advanced_pulse_analysis(data, trigT, event):
 
 def Simple_pulse_analysis(data, event, ipulse):
     # event_display(data, f'Waveform#{event}_{ipulse}')
-    pre_std[0] = (np.std(data[config.prePulse_startT:config.prePulse_endT]))
-    pos_mean[0] = (np.mean(data[config.prePulse_startT:config.prePulse_endT]))
-    pre_range[0] = (np.ptp(data[config.prePulse_startT:config.prePulse_endT]))
-    pos_std[0] = (np.std(data[config.postPulse_startT:config.postPulse_endT]))
-    pre_mean[0] = (np.mean(data[config.postPulse_startT:config.postPulse_endT]))
-    pos_range[0] = (np.ptp(data[config.postPulse_startT:config.postPulse_endT]))
+    pre_std[0] = (np.std(data[cf.prePulse_startT:cf.prePulse_endT]))
+    pos_mean[0] = (np.mean(data[cf.prePulse_startT:cf.prePulse_endT]))
+    pre_range[0] = (np.ptp(data[cf.prePulse_startT:cf.prePulse_endT]))
+    pos_std[0] = (np.std(data[cf.postPulse_startT:cf.postPulse_endT]))
+    pre_mean[0] = (np.mean(data[cf.postPulse_startT:cf.postPulse_endT]))
+    pos_range[0] = (np.ptp(data[cf.postPulse_startT:cf.postPulse_endT]))
+    pre_max[0] = np.max(data[cf.prePulse_startT:cf.prePulse_endT])
+    pos_max[0] = np.max(data[cf.prePulse_startT:cf.prePulse_endT])
     # Pulse region
-    pulse_rise_range[0] = data[config.Pulse_rise_endT] - data[config.Pulse_startT]
-    pulse_fall_range[0] = np.ptp(data[config.Pulse_rise_endT:config.Pulse_endT])
+    pulse_max[0] = np.max(data[cf.Pulse_startT:cf.Pulse_endT])
+    pulse_min[0] = np.min(data[cf.Pulse_startT:cf.Pulse_endT])
+    pulse_max_T[0] = cf.Pulse_startT + np.argmax(data[cf.Pulse_startT:cf.Pulse_endT])
+    pulse_min_T[0] = cf.Pulse_rise_endT + np.argmin(data[cf.Pulse_rise_endT:cf.Pulse_endT])
+    pulse_rise_range[0] = data[cf.Pulse_rise_endT] - data[cf.Pulse_startT]
+    pulse_fall_range[0] = np.ptp(data[cf.Pulse_rise_endT:cf.Pulse_endT])
     pulse_pre_range = (pulse_fall_range[0]-pre_range[0])/pre_range[0]
     debugPrint(f'Rise Range = {pulse_rise_range[0]:.5f}, Fall Range = {pulse_fall_range[0]:.5f}, Pre-range = {pre_range[0]:.5f}, (pulse-pre)/pre = {pulse_pre_range:.5f}')
+    debugPrint(f'maxT = {pulse_max_T[0]:.0f}, max = {pulse_max[0]:.2f}')
 
 def Common_mode_analysis(chSig_average, data):
     chSig_average = np.add(chSig_average,data)
@@ -104,7 +112,7 @@ def Find_Trigger_time_splineFit(chTrig):
     # Get chTrig (trigger) arrival times
     x_index = np.arange(len(chTrig))
     chTrig_spline = CubicSpline(x_index, chTrig)
-    chTrig_turning_pedestals, chTrig_turning_peaks, chTrig_turning_ranges = Get_turning_times(chTrig_spline, 0.1, 0, len(chTrig), 'Fall', config.DEBUG)
+    chTrig_turning_pedestals, chTrig_turning_peaks, chTrig_turning_ranges = Get_turning_times(chTrig_spline, 0.1, 0, len(chTrig), 'Fall', cf.DEBUG)
     # Loop over laser pulse
     for ipulse, (chTrig_turning_pedestal, chTrig_turning_peak) in enumerate(zip(chTrig_turning_pedestals, chTrig_turning_peaks)):
         # Skip unreasonable turning points
@@ -115,35 +123,87 @@ def Find_Trigger_time_splineFit(chTrig):
         chTrig_arrivalTs.append(chTrig_arrivalT)
     return chTrig_arrivalTs
 
-def average_plots(chSig_average,title):
-    c1 = ROOT.TCanvas()
-    Pulse_avg_display = ROOT.TGraph()
-    Pulse_avg_display.SetName(f"Pulse_avg_display")
-    Pulse_avg_display.SetTitle(title)
-    Pulse_avg_display.GetXaxis().SetTitle(f"index(0.4ns)")
-    Pulse_avg_display.GetYaxis().SetTitle(f"Voltage(V)")
-    for i in range(len(chSig_average)): Pulse_avg_display.SetPoint(i,i,chSig_average[i]/args.avgCount)
-    Pulse_avg_display.SetMarkerStyle(4)
-    Pulse_avg_display.SetMarkerSize(0.5)
-    Pulse_avg_display.Draw("ALP")
-    leg = ROOT.TLegend(0.6,0.6,0.8,0.8)
-    leg.AddEntry(Pulse_avg_display,f"{args.avgCount}-event-average signal spectrum","lp")
-    # c1.SaveAs(f"{outDir}/{Pulse_avg_display.GetName()}.png")
-    Pulse_avg_display.Write()
-
 def single_pulse_spectrum(chSig,Pulse_spectrums,event):
-    Pulse_spectrums[event] = ROOT.TGraph()
-    Pulse_spectrums[event].SetName(f"Pulse_spectrum_Event_{event}")
-    Pulse_spectrums[event].SetTitle("Pulse_spectrum")
-    Pulse_spectrums[event].GetXaxis().SetTitle(f"index(0.4ns)")
-    Pulse_spectrums[event].GetYaxis().SetTitle(f"Voltage(V)")
-    Pulse_spectrums[event].SetMarkerStyle(4)
-    Pulse_spectrums[event].SetMarkerSize(0.5)
-    for i in range(len(chSig)): Pulse_spectrums[event].SetPoint(i,i,chSig[i])
+    graph = ROOT.TGraph()
+    graph.SetName(f"Pulse_spectrum_Evt{event}")
+    graph.SetTitle(f"Pulse_spectrum_Evt{event}")
+    graph.GetXaxis().SetTitle(f"index(0.4ns)")
+    graph.GetYaxis().SetTitle(f"Voltage(V)")
+    graph.SetMarkerStyle(4)
+    graph.SetMarkerSize(0.5)
+    for i in range(len(chSig)): graph.SetPoint(i,i,chSig[i])
+    if(event<cf.avgCount): Pulse_spectrums.append(graph)
+    if(pulse_max[0] > pre_max[0]):
+        Fit_pulse_fall(graph,event)
+
+def Fit_pulse_fall(graph,event):
+    fitFunc_fall, fitResult_fall = Fit_time_constant_fall(graph,pulse_max_T[0],pulse_max_T[0]+30,"SQR","sames",ROOT.kRed)
+    pulse_fall_tau[0] = fitFunc_fall.GetParameter(1) if fitResult_fall.Status()<2 else -1
+    pulse_fall_A[0] = fitFunc_fall.GetParameter(0) if fitResult_fall.Status()<2 else -1
+    pulse_fall_t0[0] = fitFunc_fall.GetParameter(2) if fitResult_fall.Status()<2 else -1
+    pulse_fall_C[0] = fitFunc_fall.GetParameter(3) if fitResult_fall.Status()<2 else -1
+    pulse_fall_status[0] = fitResult_fall.Status()
+    debugPrint(f"fall:{pulse_fall_tau[0]:.2f}, fall_fit_status: {fitResult_fall.Status()}")
+    if (cf.DISPLAY==True):
+        c_pulse = ROOT.TCanvas()
+        graph.Draw()
+        graph.GetXaxis().SetRangeUser(280,400)
+        c_pulse.Update()
+        stat = graph.FindObject("stats")
+        stat.SetTextColor(ROOT.kRed);
+        statText=ROOT.TLatex();
+        statText.SetTextColor(ROOT.kRed)
+        statText.SetTextSize(0.04)
+        statText.DrawLatexNDC(stat.GetX1NDC(),stat.GetY1NDC()-0.05,"Fall: Ae^{-(t-t0)/#tau}+C")
+        c_pulse.Update()
+        ROOT.gPad.WaitPrimitive()
+
+def Fit_pulse_rise_fall(graph,event):
+    fitFunc_rise, fitResult_rise = Fit_time_constant_rise(graph,pulse_max_T[0]-100,pulse_max_T[0]+1,"SQR")
+    graph1 = graph.Clone()
+    fitFunc_fall, fitResult_fall = Fit_time_constant_fall(graph1,pulse_max_T[0],pulse_max_T[0]+30,"SQR","sames",ROOT.kAzure)
+    pulse_rise_tau[0] = fitFunc_rise.GetParameter(1) if fitFunc_rise.GetParameter(1)>0 else -1
+    pulse_fall_tau[0] = fitFunc_fall.GetParameter(1) if fitFunc_fall.GetParameter(1)>0 else -1
+    debugPrint(f"fall:{pulse_fall_tau[0]:.2f}, fall_fit_status: {fitResult_fall.Status()}, rise:{pulse_rise_tau[0]:.2f}, rise_fit_status: {fitResult_rise.Status()}")
+    if (cf.DISPLAY==True):
+        c_pulse = ROOT.TCanvas()
+        graph.Draw()
+        graph1.Draw("sames")
+        graph.GetXaxis().SetRangeUser(280,400)
+        c_pulse.Update()
+        stat = graph.FindObject("stats")
+        stat1 = graph1.FindObject("stats")
+        stat.SetTextColor(ROOT.kRed);
+        stat1.SetTextColor(ROOT.kAzure);
+        height = stat1.GetY2NDC() - stat1.GetY1NDC();
+        stat1.SetY1NDC(stat.GetY1NDC() - height - 0.1);
+        stat1.SetY2NDC(stat.GetY1NDC() - 0.1);
+        stat1.Draw("sames");
+        statText=ROOT.TLatex();
+        statText.SetTextColor(ROOT.kRed)
+        statText.SetTextSize(0.04)
+        statText.DrawLatexNDC(stat.GetX1NDC(),stat.GetY1NDC()-0.05,"Rise: Ae^{(t-t0)/#tau}+C")
+        stat1Text=ROOT.TLatex();
+        stat1Text.SetTextColor(ROOT.kAzure)
+        stat1Text.SetTextSize(0.04)
+        stat1Text.DrawLatexNDC(stat1.GetX1NDC(),stat1.GetY1NDC()-0.05,"Fall: Ae^{-(t-t0)/#tau}+C")
+        c_pulse.Update()
+        ROOT.gPad.WaitPrimitive()
+
+def FFT(data,dt):
+    # Perform FFT
+    mag = np.fft.fft(data, cf.freq_steps)
+    freqs = np.fft.fftfreq(cf.freq_steps, dt)
+    mag /= cf.freq_steps
+    positive_indices = np.where(freqs > 0)
+    positive_freqs = freqs[positive_indices]
+    positive_mags = mag[positive_indices]
+    if (cf.DISPLAY): event_display_fft(data,positive_freqs,positive_mags,0,500e6)
+    return positive_freqs, positive_mags
 
 def Stack_spectrums(Pulse_spectrums):
     c_stack_spectrum = ROOT.TCanvas("c_stack_spectrum","Stack_spectrums",1500,900)
-    for i, (key, graph) in enumerate(Pulse_spectrums.items()):
+    for i, graph in enumerate(Pulse_spectrums):
         if (i==0):
             graph.GetYaxis().SetRangeUser(-0.5,1.5);
             graph.GetXaxis().SetRangeUser(300,400);
@@ -151,6 +211,35 @@ def Stack_spectrums(Pulse_spectrums):
         else:
             graph.Draw("LPSame PLC PMC")
     c_stack_spectrum.Write()
+
+def average_plots(chSig_average,title):
+    c1 = ROOT.TCanvas()
+    Pulse_avg_display = ROOT.TGraph()
+    Pulse_avg_display.SetName(f"Pulse_avg_display")
+    Pulse_avg_display.SetTitle(title)
+    Pulse_avg_display.GetXaxis().SetTitle(f"index(0.4ns)")
+    Pulse_avg_display.GetYaxis().SetTitle(f"Voltage(V)")
+    for i, sig in enumerate(chSig_average): Pulse_avg_display.SetPoint(i,i,sig)
+    Pulse_avg_display.SetMarkerStyle(4)
+    Pulse_avg_display.SetMarkerSize(0.5)
+    Pulse_avg_display.Draw("ALP")
+    leg = ROOT.TLegend(0.6,0.6,0.8,0.8)
+    leg.AddEntry(Pulse_avg_display,f"{cf.avgCount}-event-average signal spectrum","lp")
+    # c1.SaveAs(f"{outDir}/{Pulse_avg_display.GetName()}.png")
+    Pulse_avg_display.Write()
+
+def FFT_plot(freqs, mags, title=""):
+    c_fft = ROOT.TCanvas()
+    fft_display = ROOT.TGraph()
+    fft_display.SetName(title)
+    fft_display.SetTitle(title)
+    fft_display.GetXaxis().SetTitle(f"frequency(Hz)")
+    fft_display.GetYaxis().SetTitle(f"Normalized Magnitude")
+    for i, (freq,mag) in enumerate(zip(freqs,np.abs(mags))): fft_display.SetPoint(i,freq,mag)
+    fft_display.SetMarkerStyle(4)
+    fft_display.SetMarkerSize(0.5)
+    fft_display.Draw("ALP")
+    fft_display.Write()
 
 ###############################################
 #################### Main  ####################
@@ -164,67 +253,73 @@ def SingleTDMS_analysis():
         totalEvents = int(metadata_df.loc[metadata_df['metaKey'] == 'Total Events', 'metaValue'].iloc[0])
         recordlength = int(metadata_df.loc[metadata_df['metaKey'] == 'record length', 'metaValue'].iloc[0])
         vertical_range = float(metadata_df.loc[metadata_df['metaKey'] == 'vertical range Sig', 'metaValue'].iloc[0])
-        # Write metadata to json file
-        metadata_df.to_json(metaFileName,orient="records",lines=True)
+        SampleRate = float(metadata_df.loc[metadata_df['metaKey'] == 'actual sample rate', 'metaValue'].iloc[0])
+        dt = 1/SampleRate
+        # metadata_df.to_json(metaFileName,orient="records",lines=True) # Write metadata to json file
         # Read Groups and Channels
         Read_Groups_and_Channels(tdms_file)
         chSig_total = tdms_file['ADC Readout Channels']['chSig']
         chTrig_total = tdms_file['ADC Readout Channels']['chTrig']
+        # Initialize histos
+        h_fft_2d = ROOT.TH2D("h_fft_2d","h_fft_2d",int(cf.freq_steps/2),0,SampleRate/2,1000,0,0.01)
+
         # Initialize variables
         chSig_average = np.zeros(recordlength)
         pulseCount = 0
-        Pulse_spectrums = {}
+        Pulse_spectrums = []
         # Start Loop
         print (f"==========Start Looping==========")
         for event in range(totalEvents):
+            # Initialize variables
+            pulse_fall_tau[0], pulse_fall_A[0], pulse_fall_t0[0], pulse_fall_C[0], pulse_fall_status[0] = -1,-1,-1,-1,-1
             # if (args.dryRun): break
-            # Choose a subset of the whole data to do the analysis. -1 = run All
-            if (event == args.subset): break
-            if (outtree.GetEntries() == config.totalTreeEvents): break
-            # Loop progress
-            if ((event)%args.report==0): print (f"==========Processing {event}/{totalEvents} event==========")
-            # Read chSig into np array
-            chSig = chSig_total[event * recordlength:(event+1) * recordlength]
-            chTrig = chTrig_total[event * recordlength:(event+1) * recordlength]
+            if (event == args.subset): break # Choose a subset of the whole data to do the analysis. -1 = run All
+            if (outtree.GetEntries() == cf.totalTreeEvents): break
+            if (args.checkSingleEvent!=-1 and event!=args.checkSingleEvent): continue
+            if ((event)%args.report==0): print (f"==========Processing {event}/{totalEvents} event==========") # Loop progress
+            chSig = chSig_total[event * recordlength:(event+1) * recordlength]  # Read chSig into np array
+            chTrig = chTrig_total[event * recordlength:(event+1) * recordlength] # Read chTrig into np array
             # event_display_2ch(chSig,chTrig,f'Waveform', 0.02)
             # chSig_diff = np.diff(chSig)
             # event_display_2ch(chSig,chSig_diff,f'Waveform', 0.04)
-            #
-            # Find Trigger timeing
-            chTrig_arrivalTs = Find_Trigger_time_splineFit(chTrig) if args.doAdvanced else Find_Trigger_time_predefined()
+            chTrig_arrivalTs = Find_Trigger_time_splineFit(chTrig) if args.doAdvanced else Find_Trigger_time_predefined() # Find Trigger timeing
             for ipulse, chTrig_arrivalT in enumerate(chTrig_arrivalTs):
                 debugPrint(f'==========Event{event}_Pulse{ipulse}==========')
                 pulseCount = pulseCount + 1
-                # Record simple signal and sideband ranges into histogram
-                Simple_pulse_analysis(chSig, event, ipulse)
-                # Do advanced analysis (Rising time, timing jitter, sophisticated amplitude)
-                if (args.doAdvanced): Advanced_pulse_analysis(chSig, chTrig_arrivalT, event)
-                # Record an example pulse waveform
-                # if (event==2 and ipulse == 4):
-                #     for i in range(avg_buffer): Pulse_display.SetPoint(i,i,chSig[int(chTrig_arrivalT) + i])
-                if Sideband_selection():
+                Simple_pulse_analysis(chSig, event, ipulse) # Record simple signal and sideband ranges into histogram
+                if Sideband_selection(): # Record extra information if Sideband selection passed
                     debugPrint("pass sideband selection")
-                    if (config.DISPLAY): event_display_2ch(chSig,chTrig,f'Waveform{event}', 0.02)
-                    outtree.Fill()
-                    # Create average signal spectrum
-                    if (event<args.avgCount):
-                        chSig_average = Common_mode_analysis(chSig_average, chSig)
-                        if Pulse_selection(): single_pulse_spectrum(chSig, Pulse_spectrums, event)
+                    single_pulse_spectrum(chSig, Pulse_spectrums, event) # Draw pulse spectrum to a graph and Fit falling time constant
+                    if (args.doAdvanced): Advanced_pulse_analysis(chSig, chTrig_arrivalT, event) # Do advanced analysis (Rising time, timing jitter, sophisticated amplitude)
+                    if (cf.DISPLAY): event_display_2ch(chSig,chTrig,f'Waveform{event}', 0.02)
+                    if (event<cf.avgCount):
+                        chSig_average = Common_mode_analysis(chSig_average, chSig) # Create average signal spectrum
+                        freqs, mags = FFT(chSig,dt)
+                        for freq, mag in zip(freqs,np.abs(mags)): h_fft_2d.Fill(freq,mag)
+                    outtree.Fill() # Fill tree
                 else:
                     debugPrint(f"fail sideband selection: {pre_std[0]}, {pos_std[0]}, {pre_range[0]}, {pos_range[0]}")
-        ########## End Reading TDMS file ##########
         print (f"==========End Looping==========")
     # Output some numbers
     print(f"TotalEvents:{totalEvents}, TriggerPulse_Count:{pulseCount}, PassSideband_Count: {outtree.GetEntries()}")
     # Plots
+    chSig_average = chSig_average/cf.avgCount
+    freqs, mags = FFT(chSig_average,dt)
+    FFT_plot(freqs,mags,"fft_average")
+    freqs, mags = FFT(chSig_average[cf.Pulse_startT:cf.Pulse_endT],dt)
+    FFT_plot(freqs,mags,"fft_average_pulse_peak")
+    freqs, mags = FFT(chSig_average[cf.Pulse_startT:500],dt)
+    FFT_plot(freqs,mags,"fft_average_pulse_full")
+    freqs, mags = FFT(chSig_average[0:250],dt)
+    FFT_plot(freqs,mags,"fft_average_prepulse")
     average_plots(chSig_average,basename)
     Stack_spectrums(Pulse_spectrums)
-
+    h_fft_2d.Write()
 
 if __name__ == "__main__":
 
-    if (args.debug_report==True): config.DEBUG = True
-    if (args.display_report==True): config.DISPLAY = True
+    if (args.debug_report==True): cf.DEBUG = True
+    if (args.display_report==True): cf.DISPLAY = True
     ROOT.gStyle.SetPalette(ROOT.kBird)
 
     ########## Init ##########
@@ -233,15 +328,18 @@ if __name__ == "__main__":
         basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
         baseDir = in_filename.split('Laser/')[1].rsplit('/',1)[0]
         outDir = args.outputDir + '/' + baseDir + '/' + basename
-        metaFileName = outDir + '/' + in_filename.rsplit('/',1)[1].split('.tdms')[0] + ".json"
+        # metaFileName = outDir + '/' + in_filename.rsplit('/',1)[1].split('.tdms')[0] + ".json"
         createDir(outDir)
         # Create root filen
         outfile = ROOT.TFile(f'{outDir}/{basename}.root', 'RECREATE', f'analysis histograms of {basename} measurements' )
         outtree = ROOT.TTree("Result_tree","Pulse laser analysis results")
-        outname = ROOT.TNamed("metaFileName",metaFileName)
+        outname = ROOT.TNamed("inputDataName",in_filename)
         # Define variables for branch
-        pre_std, pos_std, pre_mean, pos_mean, pre_range, pos_range = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
+        pre_std, pos_std, pre_mean, pos_mean, pre_range, pos_range, pre_max, pos_max = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
         pulse_rise_range, pulse_fall_range, pulse_amplitude, pulse_arrivalT, pulse_riseT, pulse_pre_range = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
+        pulse_fall_tau, pulse_fall_A, pulse_fall_t0, pulse_fall_C, pulse_fall_status = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
+        pulse_rise_tau = array('f',[0])
+        pulse_max, pulse_min, pulse_max_T, pulse_min_T = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
         # init branches
         outtree.Branch('pre_std', pre_std, 'pre_std/F')
         outtree.Branch('pos_std', pos_std, 'pos_std/F')
@@ -249,8 +347,20 @@ if __name__ == "__main__":
         outtree.Branch('pos_mean', pos_mean, 'pos_mean/F')
         outtree.Branch('pre_range', pre_range, 'pre_range/F')
         outtree.Branch('pos_range', pos_range, 'pos_range/F')
+        outtree.Branch('pre_max', pre_max, 'pre_max/F')
+        outtree.Branch('pos_max', pos_max, 'pos_max/F')
         outtree.Branch('pulse_rise_range', pulse_rise_range, 'pulse_rise_range/F')
         outtree.Branch('pulse_fall_range', pulse_fall_range, 'pulse_fall_range/F')
+        outtree.Branch('pulse_max', pulse_max, 'pulse_max/F')
+        outtree.Branch('pulse_min', pulse_min, 'pulse_min/F')
+        outtree.Branch('pulse_max_T', pulse_max_T, 'pulse_max_T/F')
+        outtree.Branch('pulse_min_T', pulse_min_T, 'pulse_min_T/F')
+        outtree.Branch('pulse_rise_tau', pulse_rise_tau, 'pulse_rise_tau/F')
+        outtree.Branch('pulse_fall_tau', pulse_fall_tau, 'pulse_fall_tau/F')
+        outtree.Branch('pulse_fall_A', pulse_fall_A, 'pulse_fall_A/F')
+        outtree.Branch('pulse_fall_t0', pulse_fall_t0, 'pulse_fall_t0/F')
+        outtree.Branch('pulse_fall_C', pulse_fall_C, 'pulse_fall_C/F')
+        outtree.Branch('pulse_fall_status', pulse_fall_status, 'pulse_fall_status/F')
         # outtree.Branch('pulse_pre_range', pulse_pre_range, 'pulse_pre_range/F')
         if (args.doAdvanced):
             outtree.Branch('pulse_amplitude', pulse_amplitude, 'pulse_amplitude/F')
