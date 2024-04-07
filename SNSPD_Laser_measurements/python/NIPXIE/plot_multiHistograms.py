@@ -164,44 +164,33 @@ def Compare_bias_var(bias, var, title="graph", xtit="Bias Current (#muA)",ytit="
     graph.Write()
 
 def plots():
-    biases, effs, amps, amp_errs, pre_ranges=[],[],[],[],[]
+    biases, effs, pulse_ranges, pulse_range_errs, pre_ranges=[],[],[],[],[]
     for in_filename in args.in_filenames:
         bias = float(in_filename.split("mV_")[1].split("nA")[0])/1000
         print(bias)
-        eff, amp, amp_err, pre_range = calculate_tree(in_filename)
+        eff, pulse_range, pulse_range_err, pre_range = calculate_tree(in_filename)
         biases.append(bias)
         effs.append(eff)
-        amps.append(amp)
-        amp_errs.append(amp_err)
+        pulse_ranges.append(pulse_range)
+        pulse_range_errs.append(pulse_range_err)
         pre_ranges.append(pre_range)
-        print(f"{bias}uA: {eff*100:.1f}%, {amp*1000:.1f}mV+-{amp_err*1000:.2f}mV")
-    # maxEff = max(effs)
-    maxEff = 1
-    g_eff = ROOT.TGraph()
-    g_amp = ROOT.TGraphErrors()
-    g_pre = ROOT.TGraph()
-    for i, (bias,eff,amp,amp_err,pre_range) in enumerate(zip(biases,effs,amps,amp_errs,pre_ranges)):
-        g_eff.SetPoint(i,bias,eff/maxEff)
-        g_amp.SetPoint(i,bias,amp)
-        g_amp.SetPointError(i, 0, amp_err)
-        g_pre.SetPoint(i,bias,pre_range)
+        print(f"{bias}uA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_err*1000:.2f}mV")
 
-    Compare_bias_var(biases,effs)
+    # Plots
+    Compare_bias_var(biases,effs,title="g_eff",ytit="Pulse Count Efficiency (%)")
+    Compare_bias_var(biases,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)")
+    Compare_bias_var(biases,pre_ranges="g_pre_range",ytit="Pre range mean (V)")
+
 
 if __name__ == "__main__":
-
-    param = float(in_filename.split('uW')[0].split('/')[-1])
-
-    basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
-    baseDir = in_filename.split('Laser/')[1].rsplit('/',1)[0]
-    outDir = args.outputDir + '/' + baseDir + '/' + basename
+    laser_power = float(in_filename[0].split('uW')[0].split('/')[-1])
+    baseDir = in_filename.split('uW/')[0]
+    outDir = baseDir + "uW/"
     createDir(outDir)
-    outfile = ROOT.TFile(f'{outDir}/{basename}.root', 'RECREATE', f'analysis histograms of {basename} measurements' )
-
+    outfile = ROOT.TFile(f'{outDir}/plot_{laser_power}uW.root', 'RECREATE', f'plots for laser_power {laser_power}uW' )
     # Compare plots
     plots()
     # plot_multiHistograms()
     # plot_DE_polar()
-
     outfile.Write()
     outfile.Close()
