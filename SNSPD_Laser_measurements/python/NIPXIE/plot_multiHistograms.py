@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
+from ..utils.plotUtils import *
+
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('in_filenames',nargs="+",help='input filenames')
 parser.add_argument('--outputDir','-o',default="./output",type=str,help='output directory')
@@ -154,6 +156,7 @@ def calculate_tree(in_filename):
 
 def Compare_bias_var(bias, var, title="graph", xtit="Bias Current (#muA)",ytit=""):
     c1 = ROOT.TCanvas()
+    outfile.cd()
     graph = ROOT.TGraph()
     for i, (b,v) in enumerate(zip(bias,var)): graph.SetPoint(i,b,v)
     graph.Draw("AP")
@@ -179,12 +182,12 @@ def plots():
     # Plots
     Compare_bias_var(biases,effs,title="g_eff",ytit="Pulse Count Efficiency (%)")
     Compare_bias_var(biases,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)")
-    Compare_bias_var(biases,pre_ranges="g_pre_range",ytit="Pre range mean (V)")
+    Compare_bias_var(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
 
 
 if __name__ == "__main__":
-    laser_power = float(in_filename[0].split('uW')[0].split('/')[-1])
-    baseDir = in_filename.split('uW/')[0]
+    laser_power = float(args.in_filenames[0].split('uW')[0].split('/')[-1])
+    baseDir = args.in_filenames[0].split('uW/')[0]
     outDir = baseDir + "uW/"
     createDir(outDir)
     outfile = ROOT.TFile(f'{outDir}/plot_{laser_power}uW.root', 'RECREATE', f'plots for laser_power {laser_power}uW' )
