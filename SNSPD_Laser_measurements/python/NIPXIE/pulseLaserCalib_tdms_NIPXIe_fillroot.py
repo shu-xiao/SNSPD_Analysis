@@ -236,7 +236,7 @@ def FFT_plot(freqs, mags, title=""):
     fft_display.SetTitle(title)
     fft_display.GetXaxis().SetTitle(f"frequency(Hz)")
     fft_display.GetYaxis().SetTitle(f"Normalized Magnitude")
-    for i, (freq,mag) in enumerate(zip(freqs,mags)): fft_display.SetPoint(i,freq,mag)
+    for i, (freq,mag) in enumerate(zip(freqs,np.abs(mags))): fft_display.SetPoint(i,freq,mag)
     fft_display.SetMarkerStyle(4)
     fft_display.SetMarkerSize(0.5)
     fft_display.Draw("ALP")
@@ -296,7 +296,7 @@ def SingleTDMS_analysis():
                     if (event<cf.avgCount):
                         chSig_average = Common_mode_analysis(chSig_average, chSig) # Create average signal spectrum
                         freqs, mags = FFT(chSig,dt)
-                        for freq, mag in zip(freqs,mags): h_fft_2d.Fill(freq,mag)
+                        for freq, mag in zip(freqs,np.abs(mags)): h_fft_2d.Fill(freq,mag)
                     outtree.Fill() # Fill tree
                 else:
                     debugPrint(f"fail sideband selection: {pre_std[0]}, {pos_std[0]}, {pre_range[0]}, {pos_range[0]}")
