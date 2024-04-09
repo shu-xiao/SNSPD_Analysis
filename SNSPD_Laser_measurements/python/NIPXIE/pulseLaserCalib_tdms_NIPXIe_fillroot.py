@@ -197,10 +197,10 @@ def FFT(data,dt):
     positive_indices = np.where(freqs > 0)
     positive_freqs = freqs[positive_indices]
     positive_mags = mag[positive_indices]
-    positive_mags_abs =  np.abs(positive_mags)
-    positive_mags_abs /= np.sum(positive_mags_abs)
+    # positive_mags_abs =  np.abs(positive_mags)
+    # positive_mags_abs /= np.sum(positive_mags_abs)
     if (cf.DISPLAY): event_display_fft(data,positive_freqs,positive_mags,0,500e6)
-    return positive_freqs, positive_mags_abs
+    return positive_freqs, positive_mags
 
 def Stack_spectrums(Pulse_spectrums):
     c_stack_spectrum = ROOT.TCanvas("c_stack_spectrum","Stack_spectrums",1500,900)
