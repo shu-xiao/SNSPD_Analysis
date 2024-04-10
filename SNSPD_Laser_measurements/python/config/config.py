@@ -20,9 +20,9 @@ postPulse_endT   =  199 #250
 
 # Sideband pre-selection
 cut_preRange = 0.11
-cut_posRange = 0.11
+cut_posRange = 10
 cut_preStd = 0.021
-cut_posStd = 0.025
+cut_posStd = 10
 
 # Pulse selection
 cut_pulseRange = 0.05
