@@ -7,9 +7,6 @@ import numpy as np
 import pandas as pd
 import ROOT
 # import root_numpy
-import warnings
-import os
-import errno
 
 def event_display(np,title='Waveform'):
     # Create a line plot of the data
@@ -147,12 +144,3 @@ def fit_histo_gaus(hist, rangemin, rangemax, name, xTitle, title, saveTitle):
     std = fit.GetParameter(2)
     std_error = fit.GetParError(2)
     return mean, mean_error, std, std_error
-
-def createDir(Dir):
-    try:
-        os.makedirs(Dir)
-    except OSError as e:
-        if e.errno == errno.EEXIST:
-            print(f'{Dir} exists.')
-        else:
-            raise

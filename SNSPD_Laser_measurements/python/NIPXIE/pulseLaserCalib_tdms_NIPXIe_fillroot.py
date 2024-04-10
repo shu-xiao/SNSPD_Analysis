@@ -19,6 +19,7 @@ import math
 from ..utils.Timing_Analyzer import *
 from ..utils.tdmsUtils import *
 from ..utils.plotUtils import *
+from ..utils.osUtils import *
 from ..utils.fitfunctions import *
 from ..config import config as cf
 
@@ -39,6 +40,14 @@ args = parser.parse_args()
 
 def debugPrint(string):
     if (cf.DEBUG): print(string)
+
+def init_loop_variables():
+    pre_std[0], pos_std[0], pre_mean[0], pos_mean[0], pre_range[0], pos_range[0], pre_max[0], pos_max[0] = -1,-1,-1,-1,-1,-1,-1,-1
+    pulse_rise_range[0], pulse_fall_range[0], pulse_fall_range_ptp[0] = -1,-1,-1
+    pulse_amplitude[0], pulse_arrivalT[0], pulse_riseT[0], pulse_pre_range[0] = -1,-1,-1,-1
+    pulse_fall_tau[0], pulse_fall_A[0], pulse_fall_t0[0], pulse_fall_C[0], pulse_fall_status[0] = -1,-1,-1,-1,-1
+    pulse_rise_tau[0] = -1
+    pulse_max[0], pulse_min[0], pulse_max_T[0], pulse_min_T[0] = -1,-1,-1,-1
 
 def Sideband_selection():
     if pre_range[0] < cf.cut_preRange and pos_range[0] < cf.cut_posRange and pre_std[0] < cf.cut_preStd and pos_std[0] < cf.cut_posStd:
@@ -92,7 +101,8 @@ def Simple_pulse_analysis(data, event, ipulse):
     pulse_max_T[0] = cf.Pulse_startT + np.argmax(data[cf.Pulse_startT:cf.Pulse_endT])
     pulse_min_T[0] = cf.Pulse_rise_endT + np.argmin(data[cf.Pulse_rise_endT:cf.Pulse_endT])
     pulse_rise_range[0] = data[cf.Pulse_rise_endT] - data[cf.Pulse_startT]
-    pulse_fall_range[0] = np.ptp(data[cf.Pulse_rise_endT:cf.Pulse_endT])
+    pulse_fall_range[0] = data[cf.Pulse_rise_endT] - data[cf.Pulse_endT]
+    pulse_fall_range_ptp[0] = np.ptp(data[cf.Pulse_rise_endT:cf.Pulse_endT])
     pulse_pre_range = (pulse_fall_range[0]-pre_range[0])/pre_range[0]
     debugPrint(f'Rise Range = {pulse_rise_range[0]:.5f}, Fall Range = {pulse_fall_range[0]:.5f}, Pre-range = {pre_range[0]:.5f}, (pulse-pre)/pre = {pulse_pre_range:.5f}')
     debugPrint(f'maxT = {pulse_max_T[0]:.0f}, max = {pulse_max[0]:.2f}')
@@ -271,8 +281,6 @@ def SingleTDMS_analysis():
         # Start Loop
         print (f"==========Start Looping==========")
         for event in range(totalEvents):
-            # Initialize variables
-            pulse_fall_tau[0], pulse_fall_A[0], pulse_fall_t0[0], pulse_fall_C[0], pulse_fall_status[0] = -1,-1,-1,-1,-1
             # if (args.dryRun): break
             if (event == args.subset): break # Choose a subset of the whole data to do the analysis. -1 = run All
             if (outtree.GetEntries() == cf.totalTreeEvents): break
@@ -286,6 +294,7 @@ def SingleTDMS_analysis():
             chTrig_arrivalTs = Find_Trigger_time_splineFit(chTrig) if args.doAdvanced else Find_Trigger_time_predefined() # Find Trigger timeing
             for ipulse, chTrig_arrivalT in enumerate(chTrig_arrivalTs):
                 debugPrint(f'==========Event{event}_Pulse{ipulse}==========')
+                init_loop_variables()
                 pulseCount = pulseCount + 1
                 Simple_pulse_analysis(chSig, event, ipulse) # Record simple signal and sideband ranges into histogram
                 if Sideband_selection(): # Record extra information if Sideband selection passed
@@ -337,21 +346,23 @@ if __name__ == "__main__":
         outname = ROOT.TNamed("inputDataName",in_filename)
         # Define variables for branch
         pre_std, pos_std, pre_mean, pos_mean, pre_range, pos_range, pre_max, pos_max = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
-        pulse_rise_range, pulse_fall_range, pulse_amplitude, pulse_arrivalT, pulse_riseT, pulse_pre_range = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
+        pulse_rise_range, pulse_fall_range, pulse_fall_range_ptp = array('f',[0]),array('f',[0]),array('f',[0])
+        pulse_amplitude, pulse_arrivalT, pulse_riseT, pulse_pre_range = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
         pulse_fall_tau, pulse_fall_A, pulse_fall_t0, pulse_fall_C, pulse_fall_status = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
         pulse_rise_tau = array('f',[0])
         pulse_max, pulse_min, pulse_max_T, pulse_min_T = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
         # init branches
         outtree.Branch('pre_std', pre_std, 'pre_std/F')
-        outtree.Branch('pos_std', pos_std, 'pos_std/F')
         outtree.Branch('pre_mean', pre_mean, 'pre_mean/F')
-        outtree.Branch('pos_mean', pos_mean, 'pos_mean/F')
         outtree.Branch('pre_range', pre_range, 'pre_range/F')
-        outtree.Branch('pos_range', pos_range, 'pos_range/F')
         outtree.Branch('pre_max', pre_max, 'pre_max/F')
+        outtree.Branch('pos_std', pos_std, 'pos_std/F')
+        outtree.Branch('pos_mean', pos_mean, 'pos_mean/F')
+        outtree.Branch('pos_range', pos_range, 'pos_range/F')
         outtree.Branch('pos_max', pos_max, 'pos_max/F')
         outtree.Branch('pulse_rise_range', pulse_rise_range, 'pulse_rise_range/F')
         outtree.Branch('pulse_fall_range', pulse_fall_range, 'pulse_fall_range/F')
+        outtree.Branch('pulse_fall_range_ptp', pulse_fall_range_ptp, 'pulse_fall_range_ptp/F')
         outtree.Branch('pulse_max', pulse_max, 'pulse_max/F')
         outtree.Branch('pulse_min', pulse_min, 'pulse_min/F')
         outtree.Branch('pulse_max_T', pulse_max_T, 'pulse_max_T/F')
