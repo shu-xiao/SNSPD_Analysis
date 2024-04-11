@@ -42,7 +42,7 @@ def plot_compare():
     for i, (g_count,power) in enumerate(zip(g_counts,powers)):
         if(i==0):
             g_count.Draw("AP PMC")
-            g_count.GetYaxis().SetRangeUser(0,1.2)
+            g_count.GetYaxis().SetRangeUser(0,20)
         else: g_count.Draw("PSame PMC")
         leg_count.AddEntry(g_count,f'{power}nW','p')
         # g_count.SetMarkerColor(color(i))
