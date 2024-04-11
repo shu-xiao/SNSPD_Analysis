@@ -27,7 +27,7 @@ def project(tree, h, var, cut, title="", xtit="", ytit="", outDir="plots/test/",
         h.GetYaxis().SetTitle(ytit)
         h.SetTitle(title)
         h.Draw()
-        c_hist.SaveAs(f"{outDir}/{h.GetName}.png")
+        c_hist.SaveAs(f"{outDir}/{saveTitle}.png")
 
 def get_info(in_filename):
     laser_power = int(in_filename.split('uW/')[0].split('/')[-1])
