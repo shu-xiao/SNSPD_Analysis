@@ -87,7 +87,7 @@ def plots():
     # Plots
     Compare_bias_var(biases,counts,title="g_count",ytit="Pulse Count Efficiency (%)")
     Compare_bias_var(biases,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)")
-    Compare_bias_var(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
+    # Compare_bias_var(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
 
 if __name__ == "__main__":
     laser_power = args.in_filenames[0].split('uW/')[0].split('/')[-1]
