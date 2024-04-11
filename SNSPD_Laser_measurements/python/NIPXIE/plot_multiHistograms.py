@@ -185,15 +185,15 @@ def plots():
     biases, effs, pulse_ranges, pulse_range_errs, pre_ranges=[],[],[],[],[]
     for in_filename in args.in_filenames:
         # bias = float(in_filename.split("mV_")[1].split("nA")[0])/1000
-        bias = get_info(in_filename)
-        print(bias)
+        laser_power, bias_voltage, bias_current = get_info(in_filename)
+        print(bias_current)
         eff, pulse_range, pulse_range_err, pre_range = calculate_tree(in_filename)
-        biases.append(bias)
+        biases.append(bias_current)
         effs.append(eff)
         pulse_ranges.append(pulse_range)
         pulse_range_errs.append(pulse_range_err)
         pre_ranges.append(pre_range)
-        print(f"{bias}uA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_err*1000:.2f}mV")
+        print(f"{bias_current}uA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_err*1000:.2f}mV")
 
     # Plots
     Compare_bias_var(biases,effs,title="g_eff",ytit="Pulse Count Efficiency (%)")
