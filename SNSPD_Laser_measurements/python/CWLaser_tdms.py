@@ -114,7 +114,7 @@ def SingleTDMS_CW_analysis(in_filename):
                 # plt.title('Waveform with Peaks')
                 plt.show()
         print("========== End Loop ==========")
-        outTree.Write()
+        outtree.Write()
         outfile.Close()
         if ( len(pulseRanges) == 0 or len(counts) == 0 ):
             print("No Signal Pulses")
