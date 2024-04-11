@@ -139,7 +139,9 @@ def get_info(in_filename):
         metadata_df = pd.DataFrame(metadata.items(), columns=['metaKey', 'metaValue'])
         print(metadata_df)
         laser_power = float(metadata_df.loc[metadata_df['metaKey'] == 'Laser Power (uW)', 'metaValue'].iloc[0])
-    return laser_power
+        bias_voltage = float(metadata_df.loc[metadata_df['metaKey'] == 'Bias Voltage (mV)', 'metaValue'].iloc[0])
+        bias_current = float(metadata_df.loc[metadata_df['metaKey'] == 'Bias Current (uA)', 'metaValue'].iloc[0])
+    return laser_power, bias_voltage, bias_current
 
 def calculate_tree(in_filename):
     plotDir= in_filename.rsplit("/",1)[0]
@@ -182,7 +184,8 @@ def Compare_bias_var(bias, var, title="graph", xtit="Bias Current (#muA)",ytit="
 def plots():
     biases, effs, pulse_ranges, pulse_range_errs, pre_ranges=[],[],[],[],[]
     for in_filename in args.in_filenames:
-        bias = float(in_filename.split("mV_")[1].split("nA")[0])/1000
+        # bias = float(in_filename.split("mV_")[1].split("nA")[0])/1000
+        bias = get_info(in_filename)
         print(bias)
         eff, pulse_range, pulse_range_err, pre_range = calculate_tree(in_filename)
         biases.append(bias)
@@ -199,7 +202,7 @@ def plots():
 
 
 if __name__ == "__main__":
-    laser_power = get_info(args.in_filenames[0])
+    laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
     baseDir = args.in_filenames[0].split('nW/')[0]
     outDir = baseDir + "nW/"
     createDir(outDir)
