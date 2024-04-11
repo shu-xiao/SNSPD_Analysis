@@ -16,7 +16,7 @@ from scipy.signal import find_peaks
 from .utils.Timing_Analyzer import *
 from .utils.tdmsUtils import *
 from .utils.plotUtils import *
-import config.CW_config as config
+from .config import CW_config as config
 
 import argparse
 parser = argparse.ArgumentParser(description='')
