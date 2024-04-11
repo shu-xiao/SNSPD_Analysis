@@ -38,7 +38,7 @@ def get_info(in_filename):
 def calculate_tree(in_filename,laser_power, bias_voltage, bias_current):
     plotDir= in_filename.rsplit("/",1)[0]
     infile = ROOT.TFile.Open(in_filename)
-    intree = infile.Get('Result_tree')
+    intree = infile.Get('SNSPD_data')
 
     # initialize histo
     h_count = ROOT.TH1F("h_count","h_count",20,0,20)
