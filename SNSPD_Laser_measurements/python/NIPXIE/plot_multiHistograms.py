@@ -8,6 +8,8 @@ import numpy as np
 import math
 
 from ..utils.plotUtils import *
+from ..utils.tdmsUtils import *
+from ..utils.osUtils import *
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('in_filenames',nargs="+",help='input filenames')
@@ -128,6 +130,17 @@ def plot_DE_polar():
     plt.savefig('Pulse_range.png', format='png')
     plt.show()
 
+def get_info(in_filename):
+    infile = ROOT.TFile.Open(in_filename)
+    inputDataName = infile.Get('inputDataName').GetTitle()
+    with TdmsFile.open(inputDataName) as tdms_file:
+        # Read Meta Data (Basic information)
+        metadata = tdms_file.properties
+        metadata_df = pd.DataFrame(metadata.items(), columns=['metaKey', 'metaValue'])
+        print(metadata_df)
+        laser_power = float(metadata_df.loc[metadata_df['metaKey'] == 'Laser Power (uW)', 'metaValue'].iloc[0])
+    return laser_power
+
 def calculate_tree(in_filename):
     plotDir= in_filename.rsplit("/",1)[0]
     infile = ROOT.TFile.Open(in_filename)
@@ -186,14 +199,15 @@ def plots():
 
 
 if __name__ == "__main__":
-    laser_power = args.in_filenames[0].split('uW')[0].split('/')[-1]
-    baseDir = args.in_filenames[0].split('uW/')[0]
-    outDir = baseDir + "uW/"
+    laser_power = get_info(args.in_filenames[0])
+    baseDir = args.in_filenames[0].split('nW/')[0]
+    outDir = baseDir + "nW/"
     createDir(outDir)
-    outfile = ROOT.TFile(f'{outDir}/plot_{laser_power}uW.root', 'RECREATE', f'plots for laser_power {laser_power}uW' )
+    outfile = ROOT.TFile(f'{outDir}/plot_{laser_power:.1f}uW.root', 'RECREATE', f'plots for laser_power {laser_power}uW' )
     # Compare plots
     plots()
     # plot_multiHistograms()
     # plot_DE_polar()
+    print(f'Outfile: {outDir}/plot_{laser_power}uW.root')
     outfile.Write()
     outfile.Close()
