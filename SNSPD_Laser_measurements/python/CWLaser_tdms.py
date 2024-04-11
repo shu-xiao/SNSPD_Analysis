@@ -13,9 +13,9 @@ import math
 from scipy.signal import find_peaks
 
 # User defined functions
-from utils.Timing_Analyzer import *
-from utils.tdmsUtils import *
-from utils.plotUtils import *
+from .utils.Timing_Analyzer import *
+from .utils.tdmsUtils import *
+from .utils.plotUtils import *
 import config.CW_config as config
 
 import argparse
