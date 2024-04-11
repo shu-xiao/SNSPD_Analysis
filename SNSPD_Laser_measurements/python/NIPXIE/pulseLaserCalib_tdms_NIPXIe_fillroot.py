@@ -266,7 +266,7 @@ def SingleTDMS_analysis():
         vertical_range = float(metadata_df.loc[metadata_df['metaKey'] == 'vertical range Sig', 'metaValue'].iloc[0])
         SampleRate = float(metadata_df.loc[metadata_df['metaKey'] == 'actual sample rate', 'metaValue'].iloc[0])
         dt = 1/SampleRate
-        # metadata_df.to_json(metaFileName,orient="records",lines=True) # Write metadata to json file
+        metadata_df.to_json(metaFileName,orient="records",lines=True) # Write metadata to json file
         # Read Groups and Channels
         Read_Groups_and_Channels(tdms_file)
         chSig_total = tdms_file['ADC Readout Channels']['chSig']
@@ -338,12 +338,13 @@ if __name__ == "__main__":
         basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
         baseDir = in_filename.split('Laser/')[1].rsplit('/',1)[0]
         outDir = args.outputDir + '/' + baseDir + '/' + basename
-        # metaFileName = outDir + '/' + in_filename.rsplit('/',1)[1].split('.tdms')[0] + ".json"
+        metaFileName = outDir + '/' + in_filename.rsplit('/',1)[1].split('.tdms')[0] + ".json"
         createDir(outDir)
         # Create root filen
         outfile = ROOT.TFile(f'{outDir}/{basename}.root', 'RECREATE', f'analysis histograms of {basename} measurements' )
         outtree = ROOT.TTree("Result_tree","Pulse laser analysis results")
-        outname = ROOT.TNamed("inputDataName",in_filename)
+        out_inputname = ROOT.TNamed("inputDataName",in_filename)
+        out_metaname = ROOT.TNamed("metaDataName",metaFileName)
         # Define variables for branch
         pre_std, pos_std, pre_mean, pos_mean, pre_range, pos_range, pre_max, pos_max = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
         pulse_rise_range, pulse_fall_range, pulse_fall_range_ptp = array('f',[0]),array('f',[0]),array('f',[0])
@@ -385,6 +386,7 @@ if __name__ == "__main__":
         # plots()
         # End Analysis
         print (f'Output: {outDir}/{basename}.root')
-        outname.Write()
+        out_inputname.Write()
+        out_metaname.Write()
         outtree.Write()
         outfile.Close()

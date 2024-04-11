@@ -199,7 +199,6 @@ def plots():
     Compare_bias_var(biases,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)")
     Compare_bias_var(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
 
-
 if __name__ == "__main__":
     laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
     baseDir = args.in_filenames[0].split('nW/')[0]
