@@ -37,7 +37,7 @@ def SingleTDMS_CW_analysis(in_filename):
         # Directories
         basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
         baseDir= in_filename.split('Laser/')[1].rsplit('/',1)[0]
-        plotDir = args.outputDir + '/' + baseDir + '/' + baseName
+        plotDir = args.outputDir + '/' + baseDir + '/' + basename
         print(f"output plot Directory: {plotDir}")
         # make outputDir
         try:
