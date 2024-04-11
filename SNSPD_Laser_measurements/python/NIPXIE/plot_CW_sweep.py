@@ -57,7 +57,7 @@ def sort_bias(bias, var):
     bias_array = np.array(bias)
     var_array = np.array(var)
     sorted_bias_array = np.sort(bias_array)
-    sorted_var_array= var[bias_array.argsort()]
+    sorted_var_array= var_array[bias_array.argsort()]
     return sorted_bias_array, sorted_var_array
 
 def Compare_bias_var(bias, var, title="graph", xtit="Bias Current (#muA)",ytit=""):
