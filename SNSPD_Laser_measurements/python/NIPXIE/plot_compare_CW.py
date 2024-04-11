@@ -61,5 +61,5 @@ def plot_compare():
     c1.SaveAs("CW_amp_compare.png")
 
 if __name__ == "__main__":
-    ROOT.gStyle.SetPalette(ROOT.kRainBow)
+    ROOT.gStyle.SetPalette(ROOT.kBird)
     plot_compare()
