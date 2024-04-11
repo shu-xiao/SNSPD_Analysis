@@ -82,7 +82,7 @@ def plots():
         biases.append(bias_current)
         counts.append(count)
         pulse_ranges.append(pulse_range)
-        print(f"{bias_current}uA: Counts: {count}, {pulse_range*1000:.1f}mV+-{pulse_range_err*1000:.2f}mV")
+        print(f"{bias_current}uA: Counts: {count}, {pulse_range*1000:.1f}mV")
 
     # Plots
     Compare_bias_var(biases,counts,title="g_count",ytit="Pulse Count Efficiency (%)")
