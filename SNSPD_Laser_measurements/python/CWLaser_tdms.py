@@ -90,13 +90,13 @@ def SingleTDMS_CW_analysis(in_filename):
             # Find peaks
             peaks, _ = find_peaks(chSig, height=threshold, distance=100)
             # Count peaks
-            pulseCount = len(peaks)
+            pulseCount[0] = len(peaks)
             # print(f"Event {event} Number of peaks above threshold:", num_peaks)
-            counts = np.append(counts, pulseCount)
+            counts = np.append(counts, pulseCount[0])
             # peak ranges
             for peak in peaks:
-                pulseRange = np.ptp(chSig[peak:peak+250])
-                pulseRanges = np.append(pulseRanges, pulseRange)
+                pulseRange[0] = np.ptp(chSig[peak:peak+300])
+                pulseRanges = np.append(pulseRanges, pulseRange[0])
 
             # Write Tree
             outtree.Fill()
