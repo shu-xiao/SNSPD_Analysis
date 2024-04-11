@@ -48,7 +48,7 @@ def SingleTDMS_CW_analysis(in_filename):
             else:
                 raise
         # Create root filen
-        plotfile = ROOT.TFile(f'{plotDir}/{basename}.root', 'RECREATE', f'analysis histograms of {basename} measurements' )
+        outfile = ROOT.TFile(f'{plotDir}/{basename}.root', 'RECREATE', f'analysis histograms of {basename} measurements' )
         # Create output tree
         outtree = ROOT.TTree("SNSPD_data", "SNSPD_data")
         pulseCount = array( 'f', [ 0 ] )
