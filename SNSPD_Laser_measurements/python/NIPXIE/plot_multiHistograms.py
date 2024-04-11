@@ -19,7 +19,7 @@ parser.add_argument('--debug','-d',action="store_true",help='debug mode')
 args = parser.parse_args()
 
 def project(tree, h, var, cut):
-    print (f'projecting var: {var}, cut: {cut} from tree: {tree.GetName()} into hist: {h.GetName()}')
+    # print (f'projecting var: {var}, cut: {cut} from tree: {tree.GetName()} into hist: {h.GetName()}')
     tree.Project(h.GetName(),var,cut)
 
 def color(i):
@@ -137,7 +137,6 @@ def get_info(in_filename):
         # Read Meta Data (Basic information)
         metadata = tdms_file.properties
         metadata_df = pd.DataFrame(metadata.items(), columns=['metaKey', 'metaValue'])
-        print(metadata_df)
         laser_power = float(metadata_df.loc[metadata_df['metaKey'] == 'Laser Power (uW)', 'metaValue'].iloc[0])
         bias_voltage = float(metadata_df.loc[metadata_df['metaKey'] == 'Bias Voltage (mV)', 'metaValue'].iloc[0])
         bias_current = float(metadata_df.loc[metadata_df['metaKey'] == 'Bias Current (uA)', 'metaValue'].iloc[0])
