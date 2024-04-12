@@ -12,7 +12,7 @@ from ..utils.tdmsUtils import *
 from ..utils.osUtils import *
 
 parser = argparse.ArgumentParser(description='')
-parser.add_argument('inDirs',nargs="+",help='input power directory')
+parser.add_argument('in_filenames',nargs="+",help='input filenames')
 parser.add_argument('--outputDir','-o',default="./output",type=str,help='output directory')
 parser.add_argument('--report','-r',default=10000,type=int,help='report every x events')
 parser.add_argument('--debug','-d',action="store_true",help='debug mode')
@@ -211,16 +211,15 @@ def plots():
     Compare_bias_var(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
 
 if __name__ == "__main__":
-    for inDir in args.inDirs:
-        laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
-        baseDir = args.in_filenames[0].split('uW/')[0]
-        outDir = baseDir + "uW/"
-        createDir(outDir)
-        outfile = ROOT.TFile(f'{outDir}/plot_{laser_power}uW.root', 'RECREATE', f'plots for laser_power {laser_power}uW' )
-        # Compare plots
-        plots()
-        # plot_multiHistograms()
-        # plot_DE_polar()
-        print(f'Outfile: {outDir}/plot_{laser_power}uW.root')
-        outfile.Write()
-        outfile.Close()
+    laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
+    baseDir = args.in_filenames[0].split('uW/')[0]
+    outDir = baseDir + "uW/"
+    createDir(outDir)
+    outfile = ROOT.TFile(f'{outDir}/plot_{laser_power}uW.root', 'RECREATE', f'plots for laser_power {laser_power}uW' )
+    # Compare plots
+    plots()
+    # plot_multiHistograms()
+    # plot_DE_polar()
+    print(f'Outfile: {outDir}/plot_{laser_power}uW.root')
+    outfile.Write()
+    outfile.Close()
