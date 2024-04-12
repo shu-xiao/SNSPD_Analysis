@@ -154,9 +154,9 @@ def rebin(h, title="", xtit="", ytit="", outDir="plots/test/", saveTitle="", sav
     return h_new
 
 def get_info(in_filename):
-    laser_power = in_filename.split('nW/')[0].split('/')[-1]
-    bias_voltage = int(in_filename.split('mV')[0].split('_')[-1])
-    bias_current = int(in_filename.split('uA')[0].split('_')[-1])
+    laser_power = in_filename.split('uW/')[0].split('/')[-1]
+    bias_voltage = int(in_filename.split('mV')[0].split('/')[-1])
+    bias_current = int(in_filename.split('nA')[0].split('_')[-1])
     # infile = ROOT.TFile.Open(in_filename)
     # inputDataName = infile.Get('inputDataName').GetTitle()
     # with TdmsFile.open(inputDataName) as tdms_file:
@@ -165,7 +165,7 @@ def get_info(in_filename):
     #     metadata_df = pd.DataFrame(metadata.items(), columns=['metaKey', 'metaValue'])
     #     laser_power = float(metadata_df.loc[metadata_df['metaKey'] == 'Laser Power (uW)', 'metaValue'].iloc[0])
     #     bias_voltage = float(metadata_df.loc[metadata_df['metaKey'] == 'Bias Voltage (mV)', 'metaValue'].iloc[0])
-    #     bias_current = float(metadata_df.loc[metadata_df['metaKey'] == 'Bias Current (uA)', 'metaValue'].iloc[0])
+    #     bias_current = float(metadata_df.loc[metadata_df['metaKey'] == 'Bias Current (nA)', 'metaValue'].iloc[0])
     return laser_power, bias_voltage, bias_current
 
 def calculate_tree(in_filename):
@@ -202,7 +202,7 @@ def calculate_tree(in_filename):
         pulse_range_error = 0
     return eff, pulse_range, pulse_range_error, pre_range, pre_range_err
 
-def Compare_bias_var(bias, var, title="graph", xtit="Bias Current (#muA)",ytit=""):
+def Compare_bias_var(bias, var, title="graph", xtit="Bias Current (#mnA)",ytit=""):
     c1 = ROOT.TCanvas()
     outfile.cd()
     graph = ROOT.TGraph()
@@ -214,7 +214,7 @@ def Compare_bias_var(bias, var, title="graph", xtit="Bias Current (#muA)",ytit="
     graph.GetYaxis().SetTitle(ytit)
     graph.Write()
 
-def Compare_bias_var_err(bias, var, var_err, title="graph", xtit="Bias Current (#muA)",ytit=""):
+def Compare_bias_var_err(bias, var, var_err, title="graph", xtit="Bias Current (#mnA)",ytit=""):
     c1 = ROOT.TCanvas()
     outfile.cd()
     graph = ROOT.TGraphErrors()
@@ -241,7 +241,7 @@ def plots():
         pulse_range_errs.append(pulse_range_err)
         pre_ranges.append(pre_range)
         pre_range_errs.append(pre_range_err)
-        print(f"{bias_current}uA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_err*1000:.2f}mV")
+        print(f"{bias_current}nA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_err*1000:.2f}mV")
 
     # Plots
     Compare_bias_var(biases,effs,title="g_eff",ytit="Pulse Count Efficiency (%)")
@@ -250,14 +250,14 @@ def plots():
 
 if __name__ == "__main__":
     laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
-    baseDir = args.in_filenames[0].split('nW/')[0]
-    outDir = baseDir + "nW/"
+    baseDir = args.in_filenames[0].split('uW/')[0]
+    outDir = baseDir + "uW/"
     createDir(outDir)
-    outfile = ROOT.TFile(f'{outDir}/plot_{laser_power}nW.root', 'RECREATE', f'plots for laser_power {laser_power}nW' )
+    outfile = ROOT.TFile(f'{outDir}/plot_{laser_power}uW.root', 'RECREATE', f'plots for laser_power {laser_power}uW' )
     # Compare plots
     plots()
     # plot_multiHistograms()
     # plot_DE_polar()
-    print(f'Outfile: {outDir}/plot_{laser_power}nW.root')
+    print(f'Outfile: {outDir}/plot_{laser_power}uW.root')
     outfile.Write()
     outfile.Close()
