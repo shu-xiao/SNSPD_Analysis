@@ -212,8 +212,8 @@ def plots():
 
 if __name__ == "__main__":
     laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
-    baseDir = args.in_filenames[0].split('nW/')[0]
-    outDir = baseDir + "nW/"
+    baseDir = args.in_filenames[0].split('uW/')[0]
+    outDir = baseDir + "uW/"
     createDir(outDir)
     outfile = ROOT.TFile(f'{outDir}/plot_{laser_power}uW.root', 'RECREATE', f'plots for laser_power {laser_power}uW' )
     # Compare plots
