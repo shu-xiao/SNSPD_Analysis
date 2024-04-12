@@ -53,7 +53,7 @@ def plot_compare():
     for i, g_pulse_range in enumerate(g_pulse_ranges):
         if(i==0):
             g_pulse_range.Draw("AP PMC")
-            g_pulse_range.GetYaxis().SetRangeUser(0,25)
+            g_pulse_range.GetYaxis().SetRangeUser(0,3)
         else: g_pulse_range.Draw("PSame PMC")
         # g_pulse_range.SetMarkerColor(color(i))
         g_pulse_range.SetMarkerStyle(i+20)

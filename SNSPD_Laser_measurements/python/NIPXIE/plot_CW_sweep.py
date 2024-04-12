@@ -85,7 +85,7 @@ def plots():
         print(f"{bias_current}uA: Counts: {count}, {pulse_range*1000:.1f}mV")
 
     # Plots
-    Compare_bias_var(biases,counts,title="g_count",ytit="Pulse Count Efficiency (%)")
+    Compare_bias_var(biases,counts,title="g_count",ytit="Pulse Counts per time window(%)")
     Compare_bias_var(biases,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)")
     # Compare_bias_var(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
 
