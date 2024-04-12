@@ -226,25 +226,25 @@ def Compare_bias_var_err(bias, var, var_err, title="graph", xtit="Bias Current (
     graph.GetYaxis().SetTitle(ytit)
     graph.Write()
 
-
 def plots():
-    biases, effs, pulse_ranges, pulse_range_errs, pre_ranges=[],[],[],[],[]
+    biases, effs, pulse_ranges, pulse_range_errs, pre_ranges, pre_range_errs=[],[],[],[],[],[]
     for in_filename in args.in_filenames:
         # bias = float(in_filename.split("mV_")[1].split("nA")[0])/1000
         laser_power, bias_voltage, bias_current = get_info(in_filename)
         print(bias_current)
-        eff, pulse_range, pulse_range_err, pre_range = calculate_tree(in_filename)
+        eff, pulse_range, pulse_range_err, pre_range, pre_range_err = calculate_tree(in_filename)
         biases.append(bias_current)
         effs.append(eff)
         pulse_ranges.append(pulse_range)
         pulse_range_errs.append(pulse_range_err)
         pre_ranges.append(pre_range)
+        pre_range_errs.append(pre_range_err)
         print(f"{bias_current}uA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_err*1000:.2f}mV")
 
     # Plots
     Compare_bias_var(biases,effs,title="g_eff",ytit="Pulse Count Efficiency (%)")
-    Compare_bias_var(biases,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)")
-    Compare_bias_var_err(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
+    Compare_bias_var_err(biases,pulse_ranges,pulse_range_errs,title="g_pulse_range",ytit="Pulse range mean (V)")
+    Compare_bias_var_err(biases,pre_ranges,pre_range_errs,title="g_pre_range",ytit="Pre range mean (V)")
 
 if __name__ == "__main__":
     laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
