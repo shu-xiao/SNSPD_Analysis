@@ -43,6 +43,7 @@ def plot_compare():
         if(i==0):
             g_count.Draw("AP PMC")
             g_count.GetYaxis().SetRangeUser(0,20)
+            g_count.GetYaxis().SetTitle(r"Pulse Count / 40$\mu\s")
         else: g_count.Draw("PSame PMC")
         leg_count.AddEntry(g_count,f'{power}nW','p')
         # g_count.SetMarkerColor(color(i))
@@ -53,7 +54,7 @@ def plot_compare():
     for i, g_pulse_range in enumerate(g_pulse_ranges):
         if(i==0):
             g_pulse_range.Draw("AP PMC")
-            g_pulse_range.GetYaxis().SetRangeUser(0,3)
+            g_pulse_range.GetYaxis().SetRangeUser(0,3.2)
         else: g_pulse_range.Draw("PSame PMC")
         # g_pulse_range.SetMarkerColor(color(i))
         g_pulse_range.SetMarkerStyle(i+20)
