@@ -43,7 +43,7 @@ def plot_compare():
         if(i==0):
             g_count.Draw("AP PMC")
             g_count.GetYaxis().SetRangeUser(0,20)
-            g_count.GetYaxis().SetTitle("Pulse Count / 40#mu s")
+            g_count.GetYaxis().SetTitle("Pulse Count / 40#mus")
         else: g_count.Draw("PSame PMC")
         leg_count.AddEntry(g_count,f'{power}nW','p')
         # g_count.SetMarkerColor(color(i))
