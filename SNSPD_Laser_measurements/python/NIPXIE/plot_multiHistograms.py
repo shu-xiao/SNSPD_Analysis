@@ -195,7 +195,7 @@ def calculate_tree(in_filename):
     eff = h_eff.Integral()/intree.GetEntries()
     pre_range = h_pre_range.GetMean()
     pulse_range = h_pulse_fall_range.GetMean()
-    pulse_range_err = h_pulse_fall_range.GetRMS()
+    pre_range_err = h_pulse_fall_range.GetRMS()
     try:
         pulse_range_error = h_pulse_fall_range.GetRMS()/math.sqrt(h_pulse_fall_range.Integral())
     except ZeroDivisionError:
