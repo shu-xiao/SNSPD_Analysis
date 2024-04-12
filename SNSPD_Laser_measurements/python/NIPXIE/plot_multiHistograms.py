@@ -184,7 +184,7 @@ def calculate_tree(in_filename):
 
     # Project variables to histos
     project(intree,h_pulse_fall_range,"pulse_fall_range","",basename,"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range",True)
-    project(intree,h_pulse_fall_time,"pulse_fall_time","",basename,"pulse fall time constant (0.4ns)",f"Event",plotDir,"h_pulse_fall_time",True)
+    project(intree,h_pulse_fall_tau,"pulse_fall_time","",basename,"pulse fall time constant (0.4ns)",f"Event",plotDir,"h_pulse_fall_time",True)
     project(intree,h_pre_range,"pre_range","",basename,"pre_range (V)","Event",plotDir,"h_pre_range",True)
     project(intree,h_eff,"1","pulse_fall_range>0.1",basename,"Pulse detected","Event",plotDir,"h_eff",True)
 
