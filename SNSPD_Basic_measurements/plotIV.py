@@ -61,6 +61,8 @@ def main():
         l = ROOT.TLegend(0.6, 0.55, 0.8, 0.7)
         g_IV[baseName] = ROOT.TGraph(len(Lines), Currents, Volts)
 
+        c1.SetLogy(False)
+        c1.SetLogx(False)
         g_IV[baseName].SetTitle("%s" % baseName)
         g_IV[baseName].GetXaxis().SetTitle("Current (A)")
         g_IV[baseName].GetYaxis().SetTitle("Voltage (V)")
