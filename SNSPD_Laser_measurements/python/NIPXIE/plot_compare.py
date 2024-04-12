@@ -42,6 +42,7 @@ def plot_compare():
     leg_eff = ROOT.TLegend(0.2,0.8,0.8,0.9)
     leg_eff.SetNColumns(3)
     for i, (g_eff,power) in enumerate(zip(g_effs,powers)):
+        print(power)
         if(i==0):
             g_eff.Draw("AP PMC")
             g_eff.GetYaxis().SetRangeUser(0,1.2)
