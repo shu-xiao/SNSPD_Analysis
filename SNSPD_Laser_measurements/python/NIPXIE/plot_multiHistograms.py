@@ -246,7 +246,7 @@ def plots():
     # Plots
     Compare_bias_var(biases,effs,title="g_eff",ytit="Pulse Count Efficiency (%)")
     Compare_bias_var_err(biases,pulse_ranges,pulse_range_errs,title="g_pulse_range",ytit="Pulse range mean (V)")
-    Compare_bias_var_err(biases,pre_ranges,pre_range_errs,title="g_pre_range",ytit="Pre range mean (V)")
+    Compare_bias_var(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
 
 if __name__ == "__main__":
     laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
