@@ -177,7 +177,7 @@ def calculate_tree(in_filename):
     # initialize histo
     nbin, range_min, range_max= 80, -0.5, 1.5
     h_pulse_fall_range = ROOT.TH1F("h_pulse_fall_range","h_pulse_fall_range",nbin,range_min,range_max)
-    h_pulse_fall_time = ROOT.TH1F("h_pulse_fall_time","h_pulse_fall_time",20,0,5)
+    h_pulse_fall_time = ROOT.TH1F("h_pulse_fall_time","h_pulse_fall_time",20,0,10)
     h_pre_range = ROOT.TH1F("h_pre_range","h_pre_range",100,0.,0.3)
     h_eff = ROOT.TH1F("h_eff","h_eff",2,0,2)
     h_diff = ROOT.TH1F("h_diff","h_diff",100,0,0.3)
