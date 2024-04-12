@@ -138,15 +138,18 @@ def plot_DE_polar():
     plt.show()
 
 def get_info(in_filename):
-    infile = ROOT.TFile.Open(in_filename)
-    inputDataName = infile.Get('inputDataName').GetTitle()
-    with TdmsFile.open(inputDataName) as tdms_file:
-        # Read Meta Data (Basic information)
-        metadata = tdms_file.properties
-        metadata_df = pd.DataFrame(metadata.items(), columns=['metaKey', 'metaValue'])
-        laser_power = float(metadata_df.loc[metadata_df['metaKey'] == 'Laser Power (uW)', 'metaValue'].iloc[0])
-        bias_voltage = float(metadata_df.loc[metadata_df['metaKey'] == 'Bias Voltage (mV)', 'metaValue'].iloc[0])
-        bias_current = float(metadata_df.loc[metadata_df['metaKey'] == 'Bias Current (uA)', 'metaValue'].iloc[0])
+    laser_power = in_filename.split('uW/')[0].split('/')[-1]
+    bias_voltage = int(in_filename.split('mV')[0].split('/')[-1])
+    bias_current = int(in_filename.split('nA')[0].split('_')[-1])
+    # infile = ROOT.TFile.Open(in_filename)
+    # inputDataName = infile.Get('inputDataName').GetTitle()
+    # with TdmsFile.open(inputDataName) as tdms_file:
+    #     # Read Meta Data (Basic information)
+    #     metadata = tdms_file.properties
+    #     metadata_df = pd.DataFrame(metadata.items(), columns=['metaKey', 'metaValue'])
+    #     laser_power = float(metadata_df.loc[metadata_df['metaKey'] == 'Laser Power (uW)', 'metaValue'].iloc[0])
+    #     bias_voltage = float(metadata_df.loc[metadata_df['metaKey'] == 'Bias Voltage (mV)', 'metaValue'].iloc[0])
+    #     bias_current = float(metadata_df.loc[metadata_df['metaKey'] == 'Bias Current (uA)', 'metaValue'].iloc[0])
     return laser_power, bias_voltage, bias_current
 
 def calculate_tree(in_filename):
