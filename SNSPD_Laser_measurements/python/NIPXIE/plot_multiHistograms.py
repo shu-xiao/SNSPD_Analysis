@@ -175,7 +175,7 @@ def calculate_tree(in_filename):
     intree = infile.Get('Result_tree')
 
     # initialize histo
-    nbin, range_min, range_max= 205, -0.5, 1.5
+    nbin, range_min, range_max= 410, -0.5, 1.5
     h_pulse_fall_range = ROOT.TH1F("h_pulse_fall_range","h_pulse_fall_range",nbin,range_min,range_max)
     h_pre_range = ROOT.TH1F("h_pre_range","h_pre_range",100,0.,0.3)
     h_eff = ROOT.TH1F("h_eff","h_eff",2,0,2)
@@ -186,7 +186,8 @@ def calculate_tree(in_filename):
     project(intree,h_pre_range,"pre_range","",basename,"pre_range (V)","Event",plotDir,"h_pre_range",True)
     project(intree,h_eff,"1","pulse_fall_range>0.1",basename,"Pulse detected","Event",plotDir,"h_eff",True)
 
-    h_pulse_fall_range = rebin(h_pulse_fall_range,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin",True)
+    h_pulse_fall_range_rebin1 = rebin(h_pulse_fall_range,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin1",True)
+    h_pulse_fall_range_rebin2 = rebin(h_pulse_fall_range_rebin,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin2",True)
     # Calculate
     eff = h_eff.Integral()/intree.GetEntries()
     pre_range = h_pre_range.GetMean()
