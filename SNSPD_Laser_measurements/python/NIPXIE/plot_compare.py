@@ -29,7 +29,7 @@ def getgraph(in_filename):
 def plot_compare():
     g_effs, g_pulse_ranges, g_pres, powers=[],[],[],[]
     for in_filename in args.in_filenames:
-        power = in_filename.split('nW/')[0].split('/')[-1]
+        power = in_filename.split('uW/')[0].split('/')[-1]
         print(power)
         g_eff, g_pulse_range, g_pre = getgraph(in_filename)
         g_effs.append(g_eff)
@@ -46,7 +46,7 @@ def plot_compare():
             g_eff.Draw("AP PMC")
             g_eff.GetYaxis().SetRangeUser(0,1.2)
         else: g_eff.Draw("PSame PMC")
-        leg_eff.AddEntry(g_eff,f'{power}nW','p')
+        leg_eff.AddEntry(g_eff,f'{power}uW','p')
         # g_eff.SetMarkerColor(color(i))
         g_eff.SetMarkerStyle(i+20)
     leg_eff.Draw()
@@ -69,7 +69,7 @@ def plot_compare():
             g_pre.Draw("AP PMC")
             g_pre.GetYaxis().SetRangeUser(0.08,0.1)
         else: g_pre.Draw("PSame PMC")
-        leg_pre.AddEntry(g_pre,f'{power}nW','p')
+        leg_pre.AddEntry(g_pre,f'{power}uW','p')
         # g_pre.SetMarkerColor(color(i))
         g_pre.SetMarkerStyle(i+20)
     leg_pre.Draw()
