@@ -165,9 +165,9 @@ def calculate_tree(in_filename):
     h_diff = ROOT.TH1F("h_diff","h_diff",100,0,0.3)
 
     # Project variables to histos
-    project(intree,h_pulse_fall_range,"pulse_fall_range","",basename,"pulse_range (V)","Event","h_pulse_fall_range",True)
-    project(intree,h_pre_range,"pre_range","",basename,"pre_range (V)","Event","h_pre_range",True)
-    project(intree,h_eff,"1","pulse_fall_range>0.1",basename,"Pulse detected","Event","h_eff",True)
+    project(intree,h_pulse_fall_range,"pulse_fall_range","",basename,"pulse_range (V)","Event",plotDir,"h_pulse_fall_range",True)
+    project(intree,h_pre_range,"pre_range","",basename,"pre_range (V)","Event",plotDir,"h_pre_range",True)
+    project(intree,h_eff,"1","pulse_fall_range>0.1",basename,"Pulse detected","Event",plotDir,"h_eff",True)
 
     # Calculate
     eff = h_eff.Integral()/intree.GetEntries()
