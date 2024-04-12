@@ -69,7 +69,7 @@ def main():
         g_IV[baseName].SetMarkerColor(1)
         g_IV[baseName].SetMarkerSize(0.5)
         g_IV[baseName].Draw("APE")
-        g_IV[baseName].GetXaxis().SetRangeUser(0., 0.00015)
+        g_IV[baseName].GetXaxis().SetRangeUser(0., 0.00018)
         c1.Print("plots/IV_%s.png" % infile.split("/")[-1].split(".txt")[0])
         c1.SetLogy()
         c1.SetLogx()
