@@ -139,7 +139,7 @@ def plot_DE_polar():
 
 def rebin(h, title="", xtit="", ytit="", outDir="plots/test/", saveTitle="", save=False):
     h_new = h.Clone()
-    for i in range(h.GetNbins()):
+    for i in range(h.GetNbinsX()):
         thisbin = h.GetBinContent(i)/2
         nextbin = h.GetBinContent(i+1)/2
         newbin = thisbin + nextbin
