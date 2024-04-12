@@ -39,7 +39,7 @@ def plot_compare():
 
     c1 = ROOT.TCanvas()
     plot_Dir = args.in_filenames[0].rsplit("/",2)[0]
-    leg_eff = ROOT.TLegend(0.2,0.8,0.8,0.9)
+    leg_eff = ROOT.TLegend(0.2,0.8,0.8,0.95)
     leg_eff.SetNColumns(3)
     for i, (g_eff,power) in enumerate(zip(g_effs,powers)):
         if(i==0):
