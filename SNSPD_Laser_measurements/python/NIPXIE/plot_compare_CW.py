@@ -37,7 +37,7 @@ def plot_compare():
 
     c1 = ROOT.TCanvas()
     plot_Dir = args.in_filenames[0].rsplit("/",2)[0]
-    leg_count = ROOT.TLegend(0.4,0.9,0.9,0.98)
+    leg_count = ROOT.TLegend(0.2,0.8,0.8,0.9)
     leg_count.SetNColumns(3)
     for i, (g_count,power) in enumerate(zip(g_counts,powers)):
         if(i==0):
@@ -53,7 +53,7 @@ def plot_compare():
     for i, g_pulse_range in enumerate(g_pulse_ranges):
         if(i==0):
             g_pulse_range.Draw("AP PMC")
-            # g_pulse_range.GetYaxis().SetRangeUser(0,0.35)
+            g_pulse_range.GetYaxis().SetRangeUser(0,25)
         else: g_pulse_range.Draw("PSame PMC")
         # g_pulse_range.SetMarkerColor(color(i))
         g_pulse_range.SetMarkerStyle(i+20)
