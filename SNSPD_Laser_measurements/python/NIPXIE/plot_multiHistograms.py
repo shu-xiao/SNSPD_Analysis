@@ -195,11 +195,12 @@ def calculate_tree(in_filename):
     eff = h_eff.Integral()/intree.GetEntries()
     pre_range = h_pre_range.GetMean()
     pulse_range = h_pulse_fall_range.GetMean()
+    pulse_range_err = h_pulse_fall_range.GetRMS()
     try:
         pulse_range_error = h_pulse_fall_range.GetRMS()/math.sqrt(h_pulse_fall_range.Integral())
     except ZeroDivisionError:
         pulse_range_error = 0
-    return eff, pulse_range, pulse_range_error, pre_range
+    return eff, pulse_range, pulse_range_error, pre_range, pre_range_err
 
 def Compare_bias_var(bias, var, title="graph", xtit="Bias Current (#muA)",ytit=""):
     c1 = ROOT.TCanvas()
@@ -212,6 +213,19 @@ def Compare_bias_var(bias, var, title="graph", xtit="Bias Current (#muA)",ytit="
     graph.GetXaxis().SetTitle(xtit)
     graph.GetYaxis().SetTitle(ytit)
     graph.Write()
+
+def Compare_bias_var_err(bias, var, var_err, title="graph", xtit="Bias Current (#muA)",ytit=""):
+    c1 = ROOT.TCanvas()
+    outfile.cd()
+    graph = ROOT.TGraphErrors()
+    for i, (b,v,e) in enumerate(zip(bias,var,var_err)): graph.SetPoint(i,b,v,0,e)
+    graph.Draw("AP")
+    graph.SetName(title)
+    graph.SetTitle(title)
+    graph.GetXaxis().SetTitle(xtit)
+    graph.GetYaxis().SetTitle(ytit)
+    graph.Write()
+
 
 def plots():
     biases, effs, pulse_ranges, pulse_range_errs, pre_ranges=[],[],[],[],[]
@@ -230,7 +244,7 @@ def plots():
     # Plots
     Compare_bias_var(biases,effs,title="g_eff",ytit="Pulse Count Efficiency (%)")
     Compare_bias_var(biases,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)")
-    Compare_bias_var(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
+    Compare_bias_var_err(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
 
 if __name__ == "__main__":
     laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
