@@ -18,9 +18,16 @@ parser.add_argument('--report','-r',default=10000,type=int,help='report every x 
 parser.add_argument('--debug','-d',action="store_true",help='debug mode')
 args = parser.parse_args()
 
-def project(tree, h, var, cut):
+def project(tree, h, var, cut, title="", xtit="", ytit="", outDir="plots/test/", saveTitle="", save=False):
     # print (f'projecting var: {var}, cut: {cut} from tree: {tree.GetName()} into hist: {h.GetName()}')
     tree.Project(h.GetName(),var,cut)
+    if (save):
+        c_hist = ROOT.TCanvas()
+        h.GetXaxis().SetTitle(xtit)
+        h.GetYaxis().SetTitle(ytit)
+        h.SetTitle(title)
+        h.Draw()
+        c_hist.SaveAs(f"{outDir}/{saveTitle}.png")
 
 def color(i):
     colorwheel = [416, 600, 800, 632, 880, 432, 616, 860, 820, 900, 420, 620, 820, 652, 1000, 452, 636, 842, 863, 823]
@@ -144,6 +151,7 @@ def get_info(in_filename):
 
 def calculate_tree(in_filename):
     plotDir= in_filename.rsplit("/",1)[0]
+    basename = in_filename.rsplit('/',1)[1].split('.root')[0]
     infile = ROOT.TFile.Open(in_filename)
     intree = infile.Get('Result_tree')
 
@@ -154,9 +162,9 @@ def calculate_tree(in_filename):
     h_diff = ROOT.TH1F("h_diff","h_diff",100,0,0.3)
 
     # Project variables to histos
-    project(intree,h_pulse_fall_range,"pulse_fall_range","")
-    project(intree,h_pre_range,"pre_range","")
-    project(intree,h_eff,"1","pulse_fall_range>0.1")
+    project(intree,h_pulse_fall_range,"pulse_fall_range","",basename,"pulse_range (V)","Event","h_pulse_fall_range",True)
+    project(intree,h_pre_range,"pre_range","",basename,"pre_range (V)","Event","h_pre_range",True)
+    project(intree,h_eff,"1","pulse_fall_range>0.1",basename,"Pulse detected","Event","h_eff",True)
 
     # Calculate
     eff = h_eff.Integral()/intree.GetEntries()
