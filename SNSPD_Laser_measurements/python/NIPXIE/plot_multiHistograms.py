@@ -218,7 +218,9 @@ def Compare_bias_var_err(bias, var, var_err, title="graph", xtit="Bias Current (
     c1 = ROOT.TCanvas()
     outfile.cd()
     graph = ROOT.TGraphErrors()
-    for i, (b,v,e) in enumerate(zip(bias,var,var_err)): graph.SetPoint(i,b,v,0,e)
+    for i, (b,v,e) in enumerate(zip(bias,var,var_err)):
+        graph.SetPoint(i,b,v)
+        graph.SetPointError(i,0,e)
     graph.Draw("AP")
     graph.SetName(title)
     graph.SetTitle(title)
