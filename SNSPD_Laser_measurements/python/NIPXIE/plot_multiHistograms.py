@@ -137,6 +137,22 @@ def plot_DE_polar():
     plt.savefig('Pulse_range.png', format='png')
     plt.show()
 
+def rebin(h, title="", xtit="", ytit="", outDir="plots/test/", saveTitle="", save=False):
+    h_new = h.Clone()
+    for i in range(h.GetNbins()):
+        thisbin = h.GetBinContent(i)/2
+        nextbin = h.GetBinContent(i+1)/2
+        newbin = thisbin + nextbin
+        h_new.SetBinContent(i,newbin)
+    if (save):
+        c_hist = ROOT.TCanvas()
+        h_new.GetXaxis().SetTitle(xtit)
+        h_new.GetYaxis().SetTitle(ytit)
+        h_new.SetTitle(title)
+        h_new.Draw()
+        c_hist.SaveAs(f"{outDir}/{saveTitle}.png")
+    return h_new
+
 def get_info(in_filename):
     laser_power = in_filename.split('uW/')[0].split('/')[-1]
     bias_voltage = int(in_filename.split('mV')[0].split('/')[-1])
@@ -170,6 +186,7 @@ def calculate_tree(in_filename):
     project(intree,h_pre_range,"pre_range","",basename,"pre_range (V)","Event",plotDir,"h_pre_range",True)
     project(intree,h_eff,"1","pulse_fall_range>0.1",basename,"Pulse detected","Event",plotDir,"h_eff",True)
 
+    h_pulse_fall_range = rebin(h_pulse_fall_range,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin",True)
     # Calculate
     eff = h_eff.Integral()/intree.GetEntries()
     pre_range = h_pre_range.GetMean()
