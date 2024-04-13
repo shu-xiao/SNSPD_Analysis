@@ -225,11 +225,9 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
             key = str(power) + 'uW_' + str(bv) + 'mV'
             try:
                 value = stat[key]
-                graphs_sweep_power[bv].SetPoint(ibv,bv,value)
-                print(key, value)
+                graphs_sweep_bv[power].SetPoint(ibv,bv,value)
             except KeyError:
                 pass
-        graphs_sweep_bv[power].GetN()
         if (ipow==0):
             graphs_sweep_bv[power].Draw("ALP PMC PLC")
             graphs_sweep_bv[power].GetYaxis().SetRangeUser(ymin,ymax)
