@@ -202,7 +202,11 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit=""):
         graphs_sweep_power[bv].GetYaxis().SetTitle(ytit)
         for ipow, power in enumerate(powers):
             key = str(power) + 'uW_' + str(bv) + 'mV'
-            graphs_sweep_power[bv].SetPoint(ipow,power,stat[key])
+            try:
+                value = stat[key]
+                graphs_sweep_power[bv].SetPoint(ipow,power,value)
+            except KeyError:
+                continue
         if (ibv==0):
             graphs_sweep_power[bv].Draw("AP PMC")
         else: graphs_sweep_power[bv].Draw("PSame PMC")
@@ -222,8 +226,11 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit=""):
         graphs_sweep_bv[power].GetYaxis().SetTitle(ytit)
         for ibv, bv in enumerate(bvs):
             key = str(power) + 'uW_' + str(bv) + 'mV'
-            graphs_sweep_bv[power].SetPoint(ibv,bv,stat[key])
-            print(bv, stat[key])
+            try:
+                value = stat[key]
+                graphs_sweep_power[bv].SetPoint(ibv,bcs[ibv],value)
+            except KeyError:
+                continue
         if (ipow==0):
             graphs_sweep_bv[power].Draw("AP PMC")
         else: graphs_sweep_bv[power].Draw("PSame PMC")
