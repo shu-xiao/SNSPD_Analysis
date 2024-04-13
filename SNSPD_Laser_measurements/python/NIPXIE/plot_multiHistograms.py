@@ -168,6 +168,14 @@ def get_info(in_filename):
     #     bias_current = float(metadata_df.loc[metadata_df['metaKey'] == 'Bias Current (nA)', 'metaValue'].iloc[0])
     return laser_power, bias_voltage, bias_current
 
+def sort_bias(bias, var):
+    bias_array = np.array(bias)
+    var_array = np.array(var)
+    sorted_bias_array = np.sort(bias_array)
+    sorted_var_array= var_array[bias_array.argsort()]
+    return sorted_bias_array, sorted_var_array
+
+
 def Compare_bias_var(bias, var, title="graph", xtit="Bias Current (#mnA)",ytit=""):
     c1 = ROOT.TCanvas()
     outfile.cd()
