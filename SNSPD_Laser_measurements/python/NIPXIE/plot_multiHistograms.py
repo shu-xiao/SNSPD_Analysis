@@ -186,7 +186,7 @@ def sort_bias(bias, var):
     sorted_var_array= var_array[bias_array.argsort()]
     return sorted_bias_array, sorted_var_array
 
-def Graph_sweep(powers, bvs, stat, title="graph", ytit=""):
+def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit=""):
     outfile.cd()
     graphs_sweep_power, graphs_sweep_bv = {}, {}
 
@@ -221,7 +221,7 @@ def Graph_sweep(powers, bvs, stat, title="graph", ytit=""):
         graphs_sweep_bv[power].GetYaxis().SetTitle(ytit)
         for ibv, bv in enumerate(bvs):
             key = power + 'uW_' + bv + 'mV'
-            graphs_sweep_bv[power].SetPoint(ibv,bv,stat[key])
+            graphs_sweep_bv[power].SetPoint(ibv,bcs[ibv],stat[key])
         if (ipow==0):
             graphs_sweep_bv[power].Draw("AP PMC")
         else: graphs_sweep_bv[power].Draw("PSame PMC")
@@ -292,7 +292,7 @@ def calculate_tree():
         project(intree,h_pre_range,"pre_range","",basename,"pre_range (V)","Event",plotDir,"h_pre_range",True)
         project(intree,h_eff,"1","pulse_fall_range>0.1",basename,"Pulse detected","Event",plotDir,"h_eff",True)
         # Rebin
-        h_pulse_fall_range_rebin1 = rebin(h_pulse_fall_range,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin1",True)
+        # h_pulse_fall_range_rebin1 = rebin(h_pulse_fall_range,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin1",True)
         # h_pulse_fall_range_rebin2 = rebin(h_pulse_fall_range_rebin1,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin2",True)
         # h_pulse_fall_range_rebin3 = rebin(h_pulse_fall_range_rebin2,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin3",True)
         # Calculate
@@ -319,12 +319,11 @@ def calculate_tree():
         h_pulse_fall_ranges[basename].SetDirectory(0)
         print(f"{bias_current}nA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV")
 
-# def plots():
-    # Plots
-    # Graph_sweep_var(biases,effs,title="g_eff",ytit="Pulse Count Efficiency (%)")
-    # Graph_sweep_var_err(biases,pulse_ranges,pulse_range_errs,title="g_pulse_range",ytit="Pulse range mean (V)")
-    # Graph_sweep_var(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
-    # multi_histo_canvas(biases,h_pulse_fall_ranges)
+def plots():
+    Graph_sweep(biases,effs,title="g_eff",ytit="Pulse Count Efficiency (%)")
+    Graph_sweep_err(biases,pulse_ranges,pulse_range_errs,title="g_pulse_range",ytit="Pulse range mean (V)")
+    Graph_sweep(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
+    multi_histo_canvas(biases,h_pulse_fall_ranges)
 
 if __name__ == "__main__":
     # laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
@@ -336,7 +335,7 @@ if __name__ == "__main__":
     effs, pulse_ranges, pulse_range_errs, pre_ranges, pre_range_errs={},{},{},{},{} # List for stats
     h_pulse_fall_ranges={} # List of histos
     calculate_tree() # loop over the input files
-    # plots() # Plot them together
+    plots() # Plot them together
     print(f'Outfile: {outDir}/plot_{laser_power}nW.root')
     outfile.Write()
     outfile.Close()
