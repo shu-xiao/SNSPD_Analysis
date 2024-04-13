@@ -201,7 +201,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit=""):
         graphs_sweep_power[bv].GetXaxis().SetTitle("Laser Power (#muW)")
         graphs_sweep_power[bv].GetYaxis().SetTitle(ytit)
         for ipow, power in enumerate(powers):
-            key = power + 'uW_' + bv + 'mV'
+            key = str(power) + 'uW_' + str(bv) + 'mV'
             graphs_sweep_power[bv].SetPoint(ipow,power,stat[key])
         if (ibv==0):
             graphs_sweep_power[bv].Draw("AP PMC")
@@ -221,7 +221,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit=""):
         graphs_sweep_bv[power].GetXaxis().SetTitle("Bias Current (#muA)")
         graphs_sweep_bv[power].GetYaxis().SetTitle(ytit)
         for ibv, bv in enumerate(bvs):
-            key = power + 'uW_' + bv + 'mV'
+            key = str(power) + 'uW_' + str(bv) + 'mV'
             graphs_sweep_bv[power].SetPoint(ibv,bcs[ibv],stat[key])
         if (ipow==0):
             graphs_sweep_bv[power].Draw("AP PMC")
@@ -281,14 +281,14 @@ def calculate_tree():
         infile = ROOT.TFile.Open(in_filename)
         intree = infile.Get('Result_tree')
         # initialize histo
-        nbin, range_min, range_max= 128, -2.5, 2.5
+        nbin, range_min, range_max= 64, -0.5, 2
         h_pulse_fall_range = ROOT.TH1F(f"h_pulse_fall_range_{bias_current}",f"h_pulse_fall_range_{bias_current}",nbin,range_min,range_max)
         h_pulse_fall_time = ROOT.TH1F("h_pulse_fall_time","h_pulse_fall_time",20,0,12)
         h_pre_range = ROOT.TH1F("h_pre_range","h_pre_range",100,0.,0.3)
         h_eff = ROOT.TH1F("h_eff","h_eff",2,0,2)
         h_diff = ROOT.TH1F("h_diff","h_diff",100,0,0.3)
         # Project variables to histos
-        project(intree,h_pulse_fall_range,"pulse_fall_range","",basename,"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range",True,xmin=-0.1,xmax=2.5)
+        project(intree,h_pulse_fall_range,"pulse_fall_range","",basename,"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range",True)
         project(intree,h_pulse_fall_time,"pulse_fall_tau","",basename,"pulse fall time constant (0.4ns)",f"Event",plotDir,"h_pulse_fall_time",True)
         project(intree,h_pre_range,"pre_range","",basename,"pre_range (V)","Event",plotDir,"h_pre_range",True)
         project(intree,h_eff,"1","pulse_fall_range>0.1",basename,"Pulse detected","Event",plotDir,"h_eff",True)
