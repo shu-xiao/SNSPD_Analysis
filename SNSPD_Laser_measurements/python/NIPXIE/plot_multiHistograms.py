@@ -286,7 +286,7 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
                 stat.SetX2NDC(0.99)
                 stat.SetStatFormat("6.2g")
                 index+=1
-            except KeyError:
+            except (KeyError, AttributeError):
                 pass
             histos[key].Draw()
     c_multi.SaveAs(f"test.png")
