@@ -209,6 +209,8 @@ def multi_histo_canvas(bias,histos):
     cx = 6
     cy = int(len(bias)/6) if int(len(bias)%6==0) else int(len(bias)/6)+1
     c_multi.Divide(cx,cy,0,0)
+    bias_array = np.array(bias)
+    sorted_bias_array = np.sort(bias_array)
     for i, b in enumerate(bias):
         pad = c_multi.cd(i+1)
         pad.SetLogy()
