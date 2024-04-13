@@ -208,10 +208,10 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
             except KeyError:
                 continue
         if (ibv==0):
-            graphs_sweep_power[bv].Draw("AP PMC")
+            graphs_sweep_power[bv].Draw("AP PMC PLC")
             graphs_sweep_power[bv].GetYaxis().SetRangeUser(ymin,ymax)
-        else: graphs_sweep_power[bv].Draw("PSame PMC")
-        leg_power.AddEntry(graphs_sweep_power[bv],f'{bv}mV','p')
+        else: graphs_sweep_power[bv].Draw("PSame PMC PLC")
+        leg_power.AddEntry(graphs_sweep_power[bv],f'{bv}mV','lp')
         graphs_sweep_power[bv].SetMarkerStyle(ibv+20)
     leg_power.Draw()
     c1_power.SaveAs(f"{title}_sweep_power.png")
@@ -233,10 +233,10 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
             except KeyError:
                 continue
         if (ipow==0):
-            graphs_sweep_bv[power].Draw("AP PMC")
+            graphs_sweep_bv[power].Draw("AP PMC PLC")
             graphs_sweep_bv[power].GetYaxis().SetRangeUser(ymin,ymax)
-        else: graphs_sweep_bv[power].Draw("PSame PMC")
-        leg_bv.AddEntry(graphs_sweep_bv[power],f'{power}#muW','p')
+        else: graphs_sweep_bv[power].Draw("PSame PMC PLC")
+        leg_bv.AddEntry(graphs_sweep_bv[power],f'{power}#muW','lp')
         graphs_sweep_bv[power].SetMarkerStyle(ipow+20)
     leg_bv.Draw()
     c1_bv.SaveAs(f"{title}_sweep_bias_current.png")
