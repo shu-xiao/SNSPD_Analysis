@@ -280,7 +280,7 @@ def calculate_tree():
         infile = ROOT.TFile.Open(in_filename)
         intree = infile.Get('Result_tree')
         # initialize histo
-        nbin, range_min, range_max= 256, -2.5, 2.5
+        nbin, range_min, range_max= 1024, -2.5, 2.5
         h_pulse_fall_range = ROOT.TH1F(f"h_pulse_fall_range_{bias_current}",f"h_pulse_fall_range_{bias_current}",nbin,range_min,range_max)
         h_pulse_fall_time = ROOT.TH1F("h_pulse_fall_time","h_pulse_fall_time",20,0,12)
         h_pre_range = ROOT.TH1F("h_pre_range","h_pre_range",100,0.,0.3)
