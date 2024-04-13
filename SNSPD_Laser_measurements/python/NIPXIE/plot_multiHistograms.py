@@ -264,35 +264,29 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
     # cy = int(len(bvs)/6) if int(len(bvs)%6==0) else int(len(bvs)/6)+1
     cy = 4
     c_multi.Divide(cx,cy,0,0)
-    c_multi.cd(1)
-    histos["1600uW_700mV"].Draw()
-    # for ibv, bv in enumerate(bvs):
-    #     for ipow, power in enumerate(powers):
-    #         key = str(power) + 'uW_' + str(bv) + 'mV'
-    #         print(key)
-    #         try:
-    #             histo = histos[key]
-    #         except KeyError:
-    #             continue
-    #         pad = c_multi.cd(ipow+1)
-    #         pad.SetLogy()
-    #         histos[key].GetXaxis().SetTitle("")
-    #         histos[key].GetYaxis().SetTitle("")
-    #         histos[key].GetXaxis().SetLabelSize(0.1)
-    #         histos[key].GetYaxis().SetLabelSize(0.1)
-    #         histos[key].SetTitle("")
-    #         histos[key].SetName(f"{bcs[ibv]}uA")
-    #         try:
-    #             stat = histos[key].FindObject("stats")
-    #             stat.SetOptStat(1101)
-    #             stat.SetY1NDC(0.6)
-    #             stat.SetY2NDC(0.99)
-    #             stat.SetX1NDC(0.65)
-    #             stat.SetX2NDC(0.99)
-    #             stat.SetStatFormat("6.2g")
-    #         except AttributeError:
-    #             print(f"no histo {key}")
-    #         histos[key].Draw()
+    for ibv, bv in enumerate(bvs):
+        for ipow, power in enumerate(powers):
+            key = str(power) + 'uW_' + str(bv) + 'mV'
+            print(key)
+            try:
+                pad = c_multi.cd(ipow+1)
+                pad.SetLogy()
+                histos[key].GetXaxis().SetTitle("")
+                histos[key].GetYaxis().SetTitle("")
+                histos[key].GetXaxis().SetLabelSize(0.1)
+                histos[key].GetYaxis().SetLabelSize(0.1)
+                histos[key].SetTitle("")
+                histos[key].SetName(f"{bcs[ibv]}uA")
+                stat = histos[key].FindObject("stats")
+                stat.SetOptStat(1101)
+                stat.SetY1NDC(0.6)
+                stat.SetY2NDC(0.99)
+                stat.SetX1NDC(0.65)
+                stat.SetX2NDC(0.99)
+                stat.SetStatFormat("6.2g")
+            except KeyError:
+                pass
+            histos[key].Draw()
     c_multi.SaveAs(f"test.png")
 
 def calculate_tree():
