@@ -234,7 +234,7 @@ def multi_histo_canvas(bias,histos):
         stat.SetOptStat(1101)
         stat.SetY1NDC(0.6)
         stat.SetX1NDC(0.65)
-        stat.SetX2NDC(0.95)
+        stat.SetX2NDC(1)
         stat.SetStatFormat("6.2g")
         histos[b].Draw()
     c_multi.SaveAs("test.png")
