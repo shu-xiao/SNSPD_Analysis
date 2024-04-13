@@ -364,8 +364,10 @@ if __name__ == "__main__":
     Pows,BVs,BCs = [],[],[] # List for sweep variables
     effs, pulse_ranges, pulse_range_errs, pre_ranges, pre_range_errs={},{},{},{},{} # List for stats
     h_pulse_fall_ranges={} # List of histos
-    h_pulse_fall_ranges["2400uW_1000mV"].Draw()
     calculate_tree() # loop over the input files
+    c1 = ROOT.TCanvas()
+    h_pulse_fall_ranges["1600uW_700mV"].Draw()
+    c1.SaveAs("test.png")
     plots() # Plot them together
     # print(f'Outfile: {outDir}/plot_{laser_power}nW.root')
     # outfile.Write()
