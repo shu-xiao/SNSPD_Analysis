@@ -269,7 +269,6 @@ def multi_histo_canvas(powers,bvs,bcs,histos,stats):
         index=0
         for ipow, power in enumerate(powers):
             key = str(power) + 'uW_' + str(bv) + 'mV'
-            print(key)
             try:
                 pad = c_multi[bv].cd(index+1)
                 pad.SetLogy()
@@ -282,8 +281,9 @@ def multi_histo_canvas(powers,bvs,bcs,histos,stats):
                 h_pulse_fall_ranges[key].Draw()
                 index+=1
             except KeyError:
-                continue
+                print(key)
             try:
+                stat = h_pulse_fall_ranges[key].FindObject("stats")
                 stats[key].SetOptStat(1101)
                 stats[key].SetY1NDC(0.6)
                 stats[key].SetY2NDC(0.99)
