@@ -188,7 +188,7 @@ def sort_bias(bias, var):
     return sorted_bias_array, sorted_var_array
 
 def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit=""):
-    outfile.cd()
+    # outfile.cd()
     graphs_sweep_power, graphs_sweep_bv = {}, {}
 
     c1_power = ROOT.TCanvas()
@@ -338,6 +338,5 @@ if __name__ == "__main__":
     calculate_tree() # loop over the input files
     plots() # Plot them together
     print(f'Outfile: {outDir}/plot_{laser_power}nW.root')
-    outfile.Write()
-    outfile.Close()
-
+    # outfile.Write()
+    # outfile.Close()
