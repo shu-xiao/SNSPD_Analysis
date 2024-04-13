@@ -191,25 +191,25 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit=""):
     # outfile.cd()
     graphs_sweep_power, graphs_sweep_bv = {}, {}
 
-    c1_power = ROOT.TCanvas()
-    leg_power = ROOT.TLegend(0.2,0.8,0.8,0.9)
-    leg_power.SetNColumns(3)
-    for ibv, bv in enumerate(bvs):
-        graphs_sweep_power[bv] = ROOT.TGraph()
-        graphs_sweep_power[bv].SetName(f'{title}_{bv}mV')
-        graphs_sweep_power[bv].SetTitle(f'{title}_{bv}mV')
-        graphs_sweep_power[bv].GetXaxis().SetTitle("Laser Power (#muW)")
-        graphs_sweep_power[bv].GetYaxis().SetTitle(ytit)
-        for ipow, power in enumerate(powers):
-            key = str(power) + 'uW_' + str(bv) + 'mV'
-            graphs_sweep_power[bv].SetPoint(ipow,power,stat[key])
-        if (ibv==0):
-            graphs_sweep_power[bv].Draw("AP PMC")
-        else: graphs_sweep_power[bv].Draw("PSame PMC")
-        leg_power.AddEntry(graphs_sweep_power[bv],f'{bv}mV','p')
-        graphs_sweep_power[bv].SetMarkerStyle(ibv+20)
-    leg_power.Draw()
-    c1_power.SaveAs(f"{title}_sweep_power.png")
+    # c1_power = ROOT.TCanvas()
+    # leg_power = ROOT.TLegend(0.2,0.8,0.8,0.9)
+    # leg_power.SetNColumns(3)
+    # for ibv, bv in enumerate(bvs):
+    #     graphs_sweep_power[bv] = ROOT.TGraph()
+    #     graphs_sweep_power[bv].SetName(f'{title}_{bv}mV')
+    #     graphs_sweep_power[bv].SetTitle(f'{title}_{bv}mV')
+    #     graphs_sweep_power[bv].GetXaxis().SetTitle("Laser Power (#muW)")
+    #     graphs_sweep_power[bv].GetYaxis().SetTitle(ytit)
+    #     for ipow, power in enumerate(powers):
+    #         key = str(power) + 'uW_' + str(bv) + 'mV'
+    #         graphs_sweep_power[bv].SetPoint(ipow,power,stat[key])
+    #     if (ibv==0):
+    #         graphs_sweep_power[bv].Draw("AP PMC")
+    #     else: graphs_sweep_power[bv].Draw("PSame PMC")
+    #     leg_power.AddEntry(graphs_sweep_power[bv],f'{bv}mV','p')
+    #     graphs_sweep_power[bv].SetMarkerStyle(ibv+20)
+    # leg_power.Draw()
+    # c1_power.SaveAs(f"{title}_sweep_power.png")
 
     c1_bv = ROOT.TCanvas()
     leg_bv = ROOT.TLegend(0.2,0.8,0.8,0.9)
