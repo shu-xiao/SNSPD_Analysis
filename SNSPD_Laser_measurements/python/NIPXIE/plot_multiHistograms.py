@@ -321,10 +321,10 @@ def calculate_tree():
         print(f"{bias_current}nA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV")
 
 def plots():
-    Graph_sweep(biases,effs,title="g_eff",ytit="Pulse Count Efficiency (%)")
-    Graph_sweep_err(biases,pulse_ranges,pulse_range_errs,title="g_pulse_range",ytit="Pulse range mean (V)")
-    Graph_sweep(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
-    multi_histo_canvas(biases,h_pulse_fall_ranges)
+    Graph_sweep(Pows,BVs,BCs,effs,title="g_eff",ytit="Pulse Count Efficiency (%)")
+    # Graph_sweep_err(biases,pulse_ranges,pulse_range_errs,title="g_pulse_range",ytit="Pulse range mean (V)")
+    # Graph_sweep(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
+    # multi_histo_canvas(BCs,h_pulse_fall_ranges)
 
 if __name__ == "__main__":
     # laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
