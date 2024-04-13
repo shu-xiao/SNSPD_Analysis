@@ -211,6 +211,7 @@ def multi_histo_canvas(bias,histos):
     c_multi.Divide(cx,cy,0,0)
     for i, b in enumerate(bias):
         c_multi.cd(i+1)
+        c_multi.SetLogy()
         histos[b].GetXaxis().SetTitle("")
         histos[b].GetYaxis().SetTitle("")
         histos[b].GetXaxis().SetLabelSize(0.1)
