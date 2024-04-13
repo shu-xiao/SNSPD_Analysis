@@ -329,6 +329,9 @@ def calculate_tree():
         print(f"{bias_current}nA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV")
 
 def plots():
+    Pows.sort()
+    BVs.sort()
+    BCs.sort()
     Graph_sweep(Pows,BVs,BCs,effs,title="g_eff",ytit="Pulse Detection Efficiency (%)",ymin=0,ymax=1.2)
     # Graph_sweep(Pows,BVs,BCs,pulse_ranges,pulse_range_errs,title="g_pulse_range",ytit="Pulse range mean (V)")
     # Graph_sweep(Pows,BVs,BCs,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
