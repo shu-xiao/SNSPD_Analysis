@@ -224,11 +224,13 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
         graphs_sweep_bv[power] = ROOT.TGraph()
         graphs_sweep_bv[power].GetXaxis().SetTitle("Bias Current (#muA)")
         graphs_sweep_bv[power].GetYaxis().SetTitle(ytit)
+        index=0
         for ibv, bv in enumerate(bvs):
             key = str(power) + 'uW_' + str(bv) + 'mV'
             try:
                 value = stat[key]
-                graphs_sweep_bv[power].SetPoint(ibv,bcs[ibv],value)
+                graphs_sweep_bv[power].SetPoint(index,bcs[ibv],value)
+                index+=1
             except KeyError:
                 pass
         if (ipow==0):
