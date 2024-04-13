@@ -226,6 +226,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
             try:
                 value = stat[key]
                 graphs_sweep_power[bv].SetPoint(ibv,bv,value)
+                print(key, value)
             except KeyError:
                 pass
         if (ipow==0):
