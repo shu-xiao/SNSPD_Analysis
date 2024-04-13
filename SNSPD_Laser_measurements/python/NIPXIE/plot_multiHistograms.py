@@ -192,12 +192,10 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
     graphs_sweep_power, graphs_sweep_bv = {}, {}
 
     c1_power = ROOT.TCanvas()
-    leg_power = ROOT.TLegend(0.2,0.8,0.8,0.9)
+    leg_power = ROOT.TLegend(0.2,0.8,0.8,0.95)
     leg_power.SetNColumns(3)
     for ibv, bv in enumerate(bvs):
         graphs_sweep_power[bv] = ROOT.TGraph()
-        graphs_sweep_power[bv].SetName(f'{title}_{bv}mV')
-        graphs_sweep_power[bv].SetTitle(f'{title}_{bv}mV')
         graphs_sweep_power[bv].GetXaxis().SetTitle("Laser Power (#muW)")
         graphs_sweep_power[bv].GetYaxis().SetTitle(ytit)
         for ipow, power in enumerate(powers):
@@ -208,35 +206,33 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
             except KeyError:
                 continue
         if (ibv==0):
-            graphs_sweep_power[bv].Draw("AP PMC PLC")
+            graphs_sweep_power[bv].Draw("ALP PMC PLC")
             graphs_sweep_power[bv].GetYaxis().SetRangeUser(ymin,ymax)
-        else: graphs_sweep_power[bv].Draw("PSame PMC PLC")
+        else: graphs_sweep_power[bv].Draw("LPSame PMC PLC")
         leg_power.AddEntry(graphs_sweep_power[bv],f'{bv}mV','lp')
         graphs_sweep_power[bv].SetMarkerStyle(ibv+20)
     leg_power.Draw()
     c1_power.SaveAs(f"{title}_sweep_power.png")
 
     c1_bv = ROOT.TCanvas()
-    leg_bv = ROOT.TLegend(0.2,0.8,0.8,0.9)
+    leg_bv = ROOT.TLegend(0.2,0.8,0.8,0.95)
     leg_bv.SetNColumns(3)
     for ipow, power in enumerate(powers):
         graphs_sweep_bv[power] = ROOT.TGraph()
-        graphs_sweep_bv[power].SetName(f'{title}_{power}uW')
-        graphs_sweep_bv[power].SetTitle(f'{title}_{power}uW')
         graphs_sweep_bv[power].GetXaxis().SetTitle("Bias Current (#muA)")
         graphs_sweep_bv[power].GetYaxis().SetTitle(ytit)
         for ibv, bv in enumerate(bvs):
             key = str(power) + 'uW_' + str(bv) + 'mV'
             try:
                 value = stat[key]
-                graphs_sweep_power[bv].SetPoint(ibv,bcs[ibv],value)
+                graphs_sweep_power[bv].SetPoint(ibv,bv,value)
             except KeyError:
                 continue
         if (ipow==0):
-            graphs_sweep_bv[power].Draw("AP PMC PLC")
+            graphs_sweep_bv[power].Draw("ALP PMC PLC")
             graphs_sweep_bv[power].GetYaxis().SetRangeUser(ymin,ymax)
-        else: graphs_sweep_bv[power].Draw("PSame PMC PLC")
-        leg_bv.AddEntry(graphs_sweep_bv[power],f'{power}#muW','lp')
+        else: graphs_sweep_bv[power].Draw("LPSame PMC PLC")
+        leg_bv.AddEntry(graphs_sweep_bv[power],f'{power}nW','lp')
         graphs_sweep_bv[power].SetMarkerStyle(ipow+20)
     leg_bv.Draw()
     c1_bv.SaveAs(f"{title}_sweep_bias_current.png")
