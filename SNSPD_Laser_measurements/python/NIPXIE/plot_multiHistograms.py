@@ -279,13 +279,16 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
             histos[key].GetYaxis().SetLabelSize(0.1)
             histos[key].SetTitle("")
             histos[key].SetName(f"{bcs[ibv]}uA")
-            # stat = histos[key].FindObject("stats")
-            # stat.SetOptStat(1101)
-            # stat.SetY1NDC(0.6)
-            # stat.SetY2NDC(0.99)
-            # stat.SetX1NDC(0.65)
-            # stat.SetX2NDC(0.99)
-            # stat.SetStatFormat("6.2g")
+            try:
+                stat = histos[key].FindObject("stats")
+                stat.SetOptStat(1101)
+                stat.SetY1NDC(0.6)
+                stat.SetY2NDC(0.99)
+                stat.SetX1NDC(0.65)
+                stat.SetX2NDC(0.99)
+                stat.SetStatFormat("6.2g")
+            except:
+                pass
             histos[key].Draw()
         c_multi.SaveAs(f"test{bv}mV.png")
 
