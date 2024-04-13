@@ -366,7 +366,7 @@ if __name__ == "__main__":
     h_pulse_fall_ranges={} # List of histos
     calculate_tree() # loop over the input files
     c1 = ROOT.TCanvas()
-    h_pulse_fall_ranges["1600uW_700mV"].Draw()
+    h_pulse_fall_ranges["1400uW_700mV"].Draw()
     c1.SaveAs("test.png")
     plots() # Plot them together
     # print(f'Outfile: {outDir}/plot_{laser_power}nW.root')
