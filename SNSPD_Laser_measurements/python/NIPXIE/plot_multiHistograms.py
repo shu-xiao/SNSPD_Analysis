@@ -334,8 +334,8 @@ def plots():
     BVs.sort()
     BCs.sort()
     Graph_sweep(Pows,BVs,BCs,effs,title="g_eff",ytit="Pulse Detection Efficiency (%)",ymin=0,ymax=1.2)
-    Graph_sweep(Pows,BVs,BCs,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)")
-    Graph_sweep(Pows,BVs,BCs,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
+    Graph_sweep(Pows,BVs,BCs,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)",ymin=0,ymax=0.8)
+    Graph_sweep(Pows,BVs,BCs,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)",ymin=0.06,ymax=0.1)
     # multi_histo_canvas(BCs,h_pulse_fall_ranges)
 
 if __name__ == "__main__":
@@ -349,6 +349,6 @@ if __name__ == "__main__":
     h_pulse_fall_ranges={} # List of histos
     calculate_tree() # loop over the input files
     plots() # Plot them together
-    print(f'Outfile: {outDir}/plot_{laser_power}nW.root')
+    # print(f'Outfile: {outDir}/plot_{laser_power}nW.root')
     # outfile.Write()
     # outfile.Close()
