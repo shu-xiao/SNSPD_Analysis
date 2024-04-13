@@ -232,7 +232,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
             graphs_sweep_bv[power].Draw("ALP PMC PLC")
             graphs_sweep_bv[power].GetYaxis().SetRangeUser(ymin,ymax)
         else: graphs_sweep_bv[power].Draw("LPSame PMC PLC")
-        leg_bv.AddEntry(graphs_sweep_bv[power],f'{power}nW','lp')
+        leg_bv.AddEntry(graphs_sweep_bv[power],f'{float(power/1000):.1f}nW','lp')
         graphs_sweep_bv[power].SetMarkerStyle(ipow+20)
     leg_bv.Draw()
     c1_bv.SaveAs(f"{title}_sweep_bias_current.png")
