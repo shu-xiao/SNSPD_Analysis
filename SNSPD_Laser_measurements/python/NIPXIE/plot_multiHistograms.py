@@ -223,6 +223,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit=""):
         for ibv, bv in enumerate(bvs):
             key = str(power) + 'uW_' + str(bv) + 'mV'
             graphs_sweep_bv[power].SetPoint(ibv,bv,stat[key])
+            print(bv, stat[key])
         if (ipow==0):
             graphs_sweep_bv[power].Draw("AP PMC")
         else: graphs_sweep_bv[power].Draw("PSame PMC")
