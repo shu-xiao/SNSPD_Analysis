@@ -344,7 +344,7 @@ def calculate_tree():
         h_pulse_fall_ranges[basename].SetDirectory(0)
         print(f"{bias_current}nA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV")
 
-def plots():
+def plots(h_pulse_fall_ranges):
     Pows.sort()
     BVs.sort()
     BCs.sort()
@@ -366,9 +366,8 @@ if __name__ == "__main__":
     h_pulse_fall_ranges={} # List of histos
     calculate_tree() # loop over the input files
     c1 = ROOT.TCanvas()
-    h_pulse_fall_ranges["1400uW_700mV"].Draw()
     c1.SaveAs("test.png")
-    plots() # Plot them together
+    plots(h_pulse_fall_ranges) # Plot them together
     # print(f'Outfile: {outDir}/plot_{laser_power}nW.root')
     # outfile.Write()
     # outfile.Close()
