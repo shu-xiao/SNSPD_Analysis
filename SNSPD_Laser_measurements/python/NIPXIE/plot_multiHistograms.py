@@ -193,7 +193,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
     graphs_sweep_power, graphs_sweep_bv = {}, {}
 
     c1_power = ROOT.TCanvas()
-    leg_power = ROOT.TLegend(0.1,0.8,0.9,0.98)
+    leg_power = ROOT.TLegend(0.15,0.8,0.8,0.98)
     leg_power.SetNColumns(4)
     for ibv, bv in enumerate(bvs):
         graphs_sweep_power[bv] = ROOT.TGraph()
@@ -336,6 +336,7 @@ def plots():
     Pows.sort()
     BVs.sort()
     BCs.sort()
+    print(Pows,BVs,BCs)
     Graph_sweep(Pows,BVs,BCs,effs,title="g_eff",ytit="Pulse Detection Efficiency (%)",ymin=0,ymax=1.2)
     Graph_sweep(Pows,BVs,BCs,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)",ymin=0,ymax=0.8)
     Graph_sweep(Pows,BVs,BCs,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)",ymin=0.06,ymax=0.1)
