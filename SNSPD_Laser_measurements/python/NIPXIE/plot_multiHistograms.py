@@ -266,6 +266,7 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
     for ibv, bv in enumerate(bvs):
         for ipow, power in enumerate(powers):
             key = str(power) + 'uW_' + str(bv) + 'mV'
+            print(key)
             try:
                 histo = histos[key]
             except KeyError:
