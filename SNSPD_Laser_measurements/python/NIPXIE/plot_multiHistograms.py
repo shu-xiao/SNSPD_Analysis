@@ -29,7 +29,7 @@ def project(tree, hist, var, cut, title="", xtit="", ytit="", outDir="plots/test
     underflow = hist.GetBinContent(0);
     hist.SetBinContent(nbins,lastBin+overflow);
     hist.SetBinContent(nbins+1, 0.0);
-    hist.SetBinContent(1,fistBin+underflow);
+    hist.SetBinContent(1,firstBin+underflow);
     hist.SetBinContent(0, 0.0);
     if (save):
         c_hist = ROOT.TCanvas()
