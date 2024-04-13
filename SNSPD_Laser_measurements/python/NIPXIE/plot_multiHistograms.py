@@ -347,7 +347,7 @@ if __name__ == "__main__":
     # outDir = baseDir + "nW/"
     # createDir(outDir)
     # outfile = ROOT.TFile(f'{outDir}/plot_{laser_power}nW.root', 'RECREATE', f'plots for laser_power {laser_power}nW' )
-    ROOT.gStyle.SetPalette(ROOT.kRainBow)
+    ROOT.gStyle.SetPalette(ROOT.kVisibleSpectrum)
     Pows,BVs,BCs = [],[],[] # List for sweep variables
     effs, pulse_ranges, pulse_range_errs, pre_ranges, pre_range_errs={},{},{},{},{} # List for stats
     h_pulse_fall_ranges={} # List of histos
