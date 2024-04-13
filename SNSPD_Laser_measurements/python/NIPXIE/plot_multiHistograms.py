@@ -289,7 +289,7 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
                 index+=1
             except (KeyError, AttributeError):
                 pass
-    c_multi.SaveAs(f"test.png")
+    c_multi.SaveAs(f"test{bv}mV.png")
 
 def calculate_tree():
     for in_filename in args.in_filenames:
