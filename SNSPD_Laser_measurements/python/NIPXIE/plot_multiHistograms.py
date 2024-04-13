@@ -211,7 +211,7 @@ def multi_histo_canvas(bias,histos):
     c_multi.Divide(cx,cy,0,0)
     bias_array = np.array(bias)
     sorted_bias_array = np.sort(bias_array)
-    for i, b in enumerate(bias):
+    for i, b in enumerate(sorted_bias_array):
         pad = c_multi.cd(i+1)
         pad.SetLogy()
         histos[b].GetXaxis().SetTitle("")
