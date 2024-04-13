@@ -166,7 +166,7 @@ def rebin(h, title="", xtit="", ytit="", outDir="plots/test/", saveTitle="", sav
     return h_new
 
 def get_info(in_filename):
-    laser_power = in_filename.split('nW/')[0].split('/')[-1]
+    laser_power = int(in_filename.split('nW/')[0].split('/')[-1])
     bias_voltage = int(in_filename.split('mV')[0].split('_')[-1])
     bias_current = int(in_filename.split('uA')[0].split('_')[-1])
     # infile = ROOT.TFile.Open(in_filename)
