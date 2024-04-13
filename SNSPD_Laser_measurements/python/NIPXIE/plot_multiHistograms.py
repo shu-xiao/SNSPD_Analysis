@@ -263,8 +263,7 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
         c_multi[bv].SetFixedAspectRatio(True)
         ROOT.gStyle.SetPadBorderMode(0)
         cx = 6
-        # cy = int(len(bvs)/6) if int(len(bvs)%6==0) else int(len(bvs)/6)+1
-        cy = 2
+        cy = int(len(powers)/6) if int(len(powers)%6==0) else int(len(powers)/6)+1
         c_multi[bv].Divide(cx,cy,0,0)
         index=0
         for ipow, power in enumerate(powers):
