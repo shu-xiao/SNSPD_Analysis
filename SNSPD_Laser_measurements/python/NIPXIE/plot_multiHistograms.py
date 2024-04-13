@@ -193,7 +193,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
     graphs_sweep_power, graphs_sweep_bv = {}, {}
 
     c1_power = ROOT.TCanvas()
-    leg_power = ROOT.TLegend(0.2,0.8,0.8,0.95)
+    leg_power = ROOT.TLegend(0.2,0.8,0.8,0.98)
     leg_power.SetNColumns(3)
     for ibv, bv in enumerate(bvs):
         graphs_sweep_power[bv] = ROOT.TGraph()
@@ -216,7 +216,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
     c1_power.SaveAs(f"{title}_sweep_power.png")
 
     c1_bv = ROOT.TCanvas()
-    leg_bv = ROOT.TLegend(0.2,0.8,0.8,0.95)
+    leg_bv = ROOT.TLegend(0.2,0.8,0.8,0.98)
     leg_bv.SetNColumns(3)
     for ipow, power in enumerate(powers):
         graphs_sweep_bv[power] = ROOT.TGraph()
@@ -334,8 +334,8 @@ def plots():
     BVs.sort()
     BCs.sort()
     Graph_sweep(Pows,BVs,BCs,effs,title="g_eff",ytit="Pulse Detection Efficiency (%)",ymin=0,ymax=1.2)
-    # Graph_sweep(Pows,BVs,BCs,pulse_ranges,pulse_range_errs,title="g_pulse_range",ytit="Pulse range mean (V)")
-    # Graph_sweep(Pows,BVs,BCs,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
+    Graph_sweep(Pows,BVs,BCs,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)")
+    Graph_sweep(Pows,BVs,BCs,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
     # multi_histo_canvas(BCs,h_pulse_fall_ranges)
 
 if __name__ == "__main__":
