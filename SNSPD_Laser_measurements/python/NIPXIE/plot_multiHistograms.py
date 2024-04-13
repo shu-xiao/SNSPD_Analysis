@@ -282,7 +282,7 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
                 histos[key].Draw()
                 index+=1
             except KeyError:
-                pass
+                continue
             try:
                 stat = histos[key].FindObject("stats")
                 stat.SetOptStat(1101)
