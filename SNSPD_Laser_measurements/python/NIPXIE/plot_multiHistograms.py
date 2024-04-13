@@ -286,7 +286,7 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
             stat.SetX2NDC(0.99)
             stat.SetStatFormat("6.2g")
             histo.Draw()
-        c_multi.SaveAs("test.png")
+        c_multi.SaveAs(f"test{bv}mV.png")
 
 def calculate_tree():
     for in_filename in args.in_filenames:
