@@ -264,7 +264,7 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
         ROOT.gStyle.SetPadBorderMode(0)
         cx = 6
         # cy = int(len(bvs)/6) if int(len(bvs)%6==0) else int(len(bvs)/6)+1
-        cy = 4
+        cy = 2
         c_multi[bv].Divide(cx,cy,0,0)
         index=0
         for ipow, power in enumerate(powers):
