@@ -270,7 +270,7 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
             key = str(power) + 'uW_' + str(bv) + 'mV'
             try:
                 pad = c_multi[bv].cd(index+1)
-                pad.SetLogy()
+                # pad.SetLogy()
                 histos[key].GetXaxis().SetTitle("")
                 histos[key].GetYaxis().SetTitle("")
                 histos[key].GetXaxis().SetLabelSize(0.1)
