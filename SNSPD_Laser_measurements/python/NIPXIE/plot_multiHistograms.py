@@ -347,7 +347,7 @@ def calculate_tree():
         h_pulse_fall_ranges[basename].SetDirectory(0)
         print(f"{bias_current}nA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV")
 
-def plots(h_pulse_fall_ranges):
+def plots():
     Pows.sort()
     BVs.sort()
     BCs.sort()
