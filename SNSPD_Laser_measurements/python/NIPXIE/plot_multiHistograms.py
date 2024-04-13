@@ -277,7 +277,7 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
                 histos[key].GetXaxis().SetLabelSize(0.1)
                 histos[key].GetYaxis().SetLabelSize(0.1)
                 histos[key].SetTitle("")
-                histos[key].SetName(f"{bcs[ibv]}uA")
+                histos[key].SetName(f"{float(power/1000):.1f}#muW_{bcs[ibv]}#muA")
                 histos[key].Draw()
                 ROOT.gPad.Update()
                 stat = histos[key].FindObject("stats")
