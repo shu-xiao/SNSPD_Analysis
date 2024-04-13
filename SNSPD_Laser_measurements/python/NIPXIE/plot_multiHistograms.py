@@ -267,7 +267,7 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
         for ipow, power in enumerate(powers):
             key = str(power) + 'uW_' + str(bv) + 'mV'
             try:
-                histo = histos[key].Clone()
+                histo = histos[key]
             except KeyError:
                 continue
             pad = c_multi.cd(ipow+1)
