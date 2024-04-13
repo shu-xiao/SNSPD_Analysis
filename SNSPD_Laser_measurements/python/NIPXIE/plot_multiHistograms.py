@@ -207,7 +207,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit=""):
             graphs_sweep_power[bv].Draw("AP PMC")
         else: graphs_sweep_power[bv].Draw("PSame PMC")
         leg_power.AddEntry(graphs_sweep_power[bv],f'{bv}mV','p')
-        graphs_sweep_power[bv].SetMarkerStyle(i+20)
+        graphs_sweep_power[bv].SetMarkerStyle(ibv+20)
     leg_power.Draw()
     c1_power.SaveAs(f"{title}_sweep_power.png")
 
@@ -227,7 +227,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit=""):
             graphs_sweep_bv[power].Draw("AP PMC")
         else: graphs_sweep_bv[power].Draw("PSame PMC")
         leg_bv.AddEntry(graphs_sweep_bv[power],f'{power}#muW','p')
-        graphs_sweep_bv[power].SetMarkerStyle(i+20)
+        graphs_sweep_bv[power].SetMarkerStyle(ipow+20)
     leg_bv.Draw()
     c1_bv.SaveAs(f"{title}_sweep_bias_current.png")
 
