@@ -307,9 +307,11 @@ def calculate_tree():
         except ZeroDivisionError:
             pulse_range_error = 0
         # Append sweep variables
-        Pows.append(laser_power)
-        BVs.append(bias_voltage)
-        BCs.append(bias_current)
+        if laser_power not in Pows:
+            Pows.append(laser_power)
+        if bias_voltage not in BVs:
+            BVs.append(bias_voltage)
+            BCs.append(bias_current)
         # Fill stats dict
         effs[basename] = eff
         pulse_ranges[basename] = pulse_range
