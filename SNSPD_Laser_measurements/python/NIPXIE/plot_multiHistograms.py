@@ -256,33 +256,37 @@ def Graph_sweep_var_err(bias, var, var_err, title="graph", xtit="Bias Current (#
     graph.GetYaxis().SetTitle(ytit)
     graph.Write()
 
-def multi_histo_canvas(bias,histos):
+def multi_histo_canvas(powers,bvs,bcs,histos):
     c_multi = ROOT.TCanvas("c_multi","c_multi",1800,900)
     c_multi.SetFixedAspectRatio(True)
     ROOT.gStyle.SetPadBorderMode(0)
     cx = 6
     cy = int(len(bias)/6) if int(len(bias)%6==0) else int(len(bias)/6)+1
     c_multi.Divide(cx,cy,0,0)
-    bias_array = np.array(bias)
-    sorted_bias_array = np.sort(bias_array)
-    for i, b in enumerate(sorted_bias_array):
-        pad = c_multi.cd(i+1)
-        pad.SetLogy()
-        histos[b].GetXaxis().SetTitle("")
-        histos[b].GetYaxis().SetTitle("")
-        histos[b].GetXaxis().SetLabelSize(0.1)
-        histos[b].GetYaxis().SetLabelSize(0.1)
-        histos[b].SetTitle("")
-        histos[b].SetName(f"{b}uA")
-        stat = histos[b].FindObject("stats")
-        stat.SetOptStat(1101)
-        stat.SetY1NDC(0.6)
-        stat.SetY2NDC(0.99)
-        stat.SetX1NDC(0.65)
-        stat.SetX2NDC(0.99)
-        stat.SetStatFormat("6.2g")
-        histos[b].Draw()
-    c_multi.SaveAs("test.png")
+    for ibv, bv in enumerate(bvs):
+        for power in enumerate(powers):
+            key = str(power) + 'uW_' + str(bv) + 'mV'
+            try:
+                histo = histos[key]
+            except KeyError:
+                continue
+            pad = c_multi.cd(i+1)
+            pad.SetLogy()
+            histo.GetXaxis().SetTitle("")
+            histo.GetYaxis().SetTitle("")
+            histo.GetXaxis().SetLabelSize(0.1)
+            histo.GetYaxis().SetLabelSize(0.1)
+            histo.SetTitle("")
+            histo.SetName(f"{bcs[ibv]}uA")
+            stat = histo.FindObject("stats")
+            stat.SetOptStat(1101)
+            stat.SetY1NDC(0.6)
+            stat.SetY2NDC(0.99)
+            stat.SetX1NDC(0.65)
+            stat.SetX2NDC(0.99)
+            stat.SetStatFormat("6.2g")
+            histo.Draw()
+        c_multi.SaveAs("test.png")
 
 def calculate_tree():
     for in_filename in args.in_filenames:
@@ -344,7 +348,7 @@ def plots():
     Graph_sweep(Pows,BVs,BCs,effs,title="g_eff",ytit="Pulse Detection Efficiency (%)",ymin=0,ymax=1.2)
     Graph_sweep(Pows,BVs,BCs,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)",ymin=0,ymax=max(pulse_ranges.values())*1.2)
     Graph_sweep(Pows,BVs,BCs,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)",ymin=min(pre_ranges.values())*0.8,ymax=max(pre_ranges.values())*1.2)
-    # multi_histo_canvas(BCs,h_pulse_fall_ranges)
+    multi_histo_canvas(Pows,BVs,BCs,h_pulse_fall_ranges)
 
 if __name__ == "__main__":
     # laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
