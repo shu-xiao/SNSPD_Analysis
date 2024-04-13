@@ -257,7 +257,7 @@ def Graph_sweep_var_err(bias, var, var_err, title="graph", xtit="Bias Current (#
     graph.Write()
 
 def multi_histo_canvas(powers,bvs,bcs,histos):
-    c_multi = {}
+    c_multi,stat = {}
     for ibv, bv in enumerate(bvs):
         c_multi[bv] = ROOT.TCanvas(f"c_multi_{bv}",f"c_multi_{bv}",1800,900)
         c_multi[bv].SetFixedAspectRatio(True)
@@ -267,13 +267,14 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
         cy = 4
         c_multi[bv].Divide(cx,cy,0,0)
         c_multi[bv].cd(1)
-        stat = histos["1600uW_700mV"].FindObject("stats")
-        stat.SetOptStat(1101)
-        stat.SetY1NDC(0.6)
-        stat.SetY2NDC(0.99)
-        stat.SetX1NDC(0.65)
-        stat.SetX2NDC(0.99)
-        stat.SetStatFormat("6.2g")
+        print(bv)
+        stat[bv] = histos["1600uW_{bv}mV"].FindObject("stats")
+        stat[bv].SetOptStat(1101)
+        stat[bv].SetY1NDC(0.6)
+        stat[bv].SetY2NDC(0.99)
+        stat[bv].SetX1NDC(0.65)
+        stat[bv].SetX2NDC(0.99)
+        stat[bv].SetStatFormat("6.2g")
         histos[f"1600uW_{bv}mV"].Draw()
         # index=0
         # for ipow, power in enumerate(powers):
