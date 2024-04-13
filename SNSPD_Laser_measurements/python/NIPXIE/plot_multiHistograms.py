@@ -266,33 +266,42 @@ def multi_histo_canvas(powers,bvs,bcs,histos,stats):
         # cy = int(len(bvs)/6) if int(len(bvs)%6==0) else int(len(bvs)/6)+1
         cy = 4
         c_multi[bv].Divide(cx,cy,0,0)
-        index=0
-        for ipow, power in enumerate(powers):
-            key = str(power) + 'uW_' + str(bv) + 'mV'
-            try:
-                pad = c_multi[bv].cd(index+1)
-                pad.SetLogy()
-                histos[key].GetXaxis().SetTitle("")
-                histos[key].GetYaxis().SetTitle("")
-                histos[key].GetXaxis().SetLabelSize(0.1)
-                histos[key].GetYaxis().SetLabelSize(0.1)
-                histos[key].SetTitle("")
-                histos[key].SetName(f"{bcs[ibv]}uA")
-                histos[key].Draw()
-                index+=1
-            except KeyError:
-                print(key)
-                continue
-            try:
-                stat = histos[key].FindObject("stats")
-                stat.SetOptStat(1101)
-                stat.SetY1NDC(0.6)
-                stat.SetY2NDC(0.99)
-                stat.SetX1NDC(0.65)
-                stat.SetX2NDC(0.99)
-                stat.SetStatFormat("6.2g")
-            except AttributeError:
-                pass
+        c_multi[bv].cd(1)
+        stat = histos["1600uW_700mV"].FindObject("stats")
+        stat.SetOptStat(1101)
+        stat.SetY1NDC(0.6)
+        stat.SetY2NDC(0.99)
+        stat.SetX1NDC(0.65)
+        stat.SetX2NDC(0.99)
+        stat.SetStatFormat("6.2g")
+        histos[f"1600uW_{bv}mV"].Draw()
+        # index=0
+        # for ipow, power in enumerate(powers):
+        #     key = str(power) + 'uW_' + str(bv) + 'mV'
+        #     try:
+        #         pad = c_multi[bv].cd(index+1)
+        #         pad.SetLogy()
+        #         histos[key].GetXaxis().SetTitle("")
+        #         histos[key].GetYaxis().SetTitle("")
+        #         histos[key].GetXaxis().SetLabelSize(0.1)
+        #         histos[key].GetYaxis().SetLabelSize(0.1)
+        #         histos[key].SetTitle("")
+        #         histos[key].SetName(f"{bcs[ibv]}uA")
+        #         histos[key].Draw()
+        #         index+=1
+        #     except KeyError:
+        #         print(key)
+        #         continue
+        #     try:
+        #         stat = histos[key].FindObject("stats")
+        #         stat.SetOptStat(1101)
+        #         stat.SetY1NDC(0.6)
+        #         stat.SetY2NDC(0.99)
+        #         stat.SetX1NDC(0.65)
+        #         stat.SetX2NDC(0.99)
+        #         stat.SetStatFormat("6.2g")
+        #     except AttributeError:
+        #         pass
         c_multi[bv].SaveAs(f"test{bv}mV.png")
 
 def calculate_tree():
@@ -344,7 +353,6 @@ def calculate_tree():
         pre_range_errs[basename] = pre_range_err
         # Histograms
         h_pulse_fall_ranges[basename] = h_pulse_fall_range.Clone()
-        h_stats[basename] = h_pulse_fall_range.FindObject("stat")
         h_pulse_fall_range.SetDirectory(0)
         h_pulse_fall_ranges[basename].SetDirectory(0)
         print(f"{bias_current}nA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV")
@@ -368,7 +376,7 @@ if __name__ == "__main__":
     ROOT.gStyle.SetPalette(ROOT.kVisibleSpectrum)
     Pows,BVs,BCs = [],[],[] # List for sweep variables
     effs, pulse_ranges, pulse_range_errs, pre_ranges, pre_range_errs={},{},{},{},{} # List for stats
-    h_pulse_fall_ranges, h_stats={},{} # List of histos
+    h_pulse_fall_ranges={} # List of histos
     calculate_tree() # loop over the input files
     plots() # Plot them together
     # print(f'Outfile: {outDir}/plot_{laser_power}nW.root')
