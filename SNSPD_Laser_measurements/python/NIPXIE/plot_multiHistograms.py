@@ -153,7 +153,7 @@ def rebin(h, title="", xtit="", ytit="", outDir="plots/test/", saveTitle="", sav
         previousbin = h.GetBinContent(i)/2
         thisbin = h.GetBinContent(i+1)/2
         nextbin = h.GetBinContent(i+2)/2
-        newbin = thisbin + nextbin
+        newbin = previousbin + nextbin
         h_new.SetBinContent(i,newbin)
     if (save):
         c_hist = ROOT.TCanvas()
