@@ -267,6 +267,8 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
         cy = 4
         c_multi[bv].Divide(cx,cy,0,0)
         c_multi[bv].cd(1)
+        histos[f"1600uW_{bv}mV"].Draw()
+        ROOT.gPad.Update();
         print(bv,type(histos[f"1600uW_{bv}mV"]))
         stat[bv] = histos[f"1600uW_{bv}mV"].FindObject("stats")
         stat[bv].SetOptStat(1101)
@@ -275,7 +277,6 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
         stat[bv].SetX1NDC(0.65)
         stat[bv].SetX2NDC(0.99)
         stat[bv].SetStatFormat("6.2g")
-        histos[f"1600uW_{bv}mV"].Draw()
         # index=0
         # for ipow, power in enumerate(powers):
         #     key = str(power) + 'uW_' + str(bv) + 'mV'
