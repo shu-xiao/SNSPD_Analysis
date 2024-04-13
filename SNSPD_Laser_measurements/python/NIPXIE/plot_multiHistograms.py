@@ -268,7 +268,7 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
         c_multi[bv].Divide(cx,cy,0,0)
         c_multi[bv].cd(1)
         print(bv)
-        stat[bv] = histos[f"1600uW_{bv}mV"].FindObject("stats")
+        stat[bv] = ROOT.TH1F(histos[f"1600uW_{bv}mV"]).FindObject("stats")
         stat[bv].SetOptStat(1101)
         stat[bv].SetY1NDC(0.6)
         stat[bv].SetY2NDC(0.99)
