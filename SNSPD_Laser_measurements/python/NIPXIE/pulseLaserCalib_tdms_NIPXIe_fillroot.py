@@ -144,7 +144,8 @@ def single_pulse_spectrum(chSig,Pulse_spectrums,event):
     for i in range(len(chSig)): graph.SetPoint(i,i,chSig[i])
     if(event<cf.avgCount): Pulse_spectrums.append(graph)
     if(pulse_max[0] > pre_max[0]):
-        Fit_pulse_fall(graph,event)
+        graph_clone = graph.Clone()
+        Fit_pulse_fall(graph_clone,event)
 
 def Fit_pulse_fall(graph,event):
     fitFunc_fall, fitResult_fall = Fit_time_constant_fall(graph,pulse_max_T[0],pulse_max_T[0]+30,"SQR","sames",ROOT.kRed)

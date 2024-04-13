@@ -106,7 +106,7 @@ def SingleTDMS_CW_analysis(in_filename):
                 plt.title(in_filename, fontsize = 13, loc='right')
                 plt.plot(chSig, label='data')
                 plt.plot(peaks, chSig[peaks], "x", label='Found peaks')
-                plt.xlabel('Index [0.4ns], Gate width 2ms',fontsize=15)
+                plt.xlabel(r'Index [0.4ns], Gate width 20$\mu$s',fontsize=15)
                 plt.ylabel('ADC [V]',fontsize=15)
                 # plt.ylim(-0.06,0.06)
                 plt.legend()
