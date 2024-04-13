@@ -168,39 +168,46 @@ def get_info(in_filename):
     #     bias_current = float(metadata_df.loc[metadata_df['metaKey'] == 'Bias Current (nA)', 'metaValue'].iloc[0])
     return laser_power, bias_voltage, bias_current
 
-def calculate_tree(in_filename):
-    plotDir= in_filename.rsplit("/",1)[0]
-    basename = in_filename.rsplit('/',1)[1].split('.root')[0]
-    infile = ROOT.TFile.Open(in_filename)
-    intree = infile.Get('Result_tree')
-
-    # initialize histo
-    nbin, range_min, range_max= 80, -0.5, 1.5
-    h_pulse_fall_range = ROOT.TH1F("h_pulse_fall_range","h_pulse_fall_range",nbin,range_min,range_max)
-    h_pulse_fall_time = ROOT.TH1F("h_pulse_fall_time","h_pulse_fall_time",20,0,12)
-    h_pre_range = ROOT.TH1F("h_pre_range","h_pre_range",100,0.,0.3)
-    h_eff = ROOT.TH1F("h_eff","h_eff",2,0,2)
-    h_diff = ROOT.TH1F("h_diff","h_diff",100,0,0.3)
-
-    # Project variables to histos
-    project(intree,h_pulse_fall_range,"pulse_fall_range","",basename,"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range",True)
-    project(intree,h_pulse_fall_time,"pulse_fall_tau","",basename,"pulse fall time constant (0.4ns)",f"Event",plotDir,"h_pulse_fall_time",True)
-    project(intree,h_pre_range,"pre_range","",basename,"pre_range (V)","Event",plotDir,"h_pre_range",True)
-    project(intree,h_eff,"1","pulse_fall_range>0.1",basename,"Pulse detected","Event",plotDir,"h_eff",True)
-
-    h_pulse_fall_range_rebin1 = rebin(h_pulse_fall_range,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin1",True)
-    h_pulse_fall_range_rebin2 = rebin(h_pulse_fall_range_rebin1,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin2",True)
-    h_pulse_fall_range_rebin3 = rebin(h_pulse_fall_range_rebin2,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin3",True)
-    # Calculate
-    eff = h_eff.Integral()/intree.GetEntries()
-    pre_range = h_pre_range.GetMean()
-    pulse_range = h_pulse_fall_range.GetMean()
-    pre_range_err = h_pulse_fall_range.GetRMS()
-    try:
-        pulse_range_error = h_pulse_fall_range.GetRMS()/math.sqrt(h_pulse_fall_range.Integral())
-    except ZeroDivisionError:
-        pulse_range_error = 0
-    return eff, pulse_range, pulse_range_error, pre_range, pre_range_err
+def calculate_tree():
+    for in_filename in args.in_filenames:
+        laser_power, bias_voltage, bias_current = get_info(in_filename)
+        plotDir= in_filename.rsplit("/",1)[0]
+        basename = in_filename.rsplit('/',1)[1].split('.root')[0]
+        infile = ROOT.TFile.Open(in_filename)
+        intree = infile.Get('Result_tree')
+        # initialize histo
+        nbin, range_min, range_max= 80, -0.5, 1.5
+        h_pulse_fall_range = ROOT.TH1F("h_pulse_fall_range","h_pulse_fall_range",nbin,range_min,range_max)
+        h_pulse_fall_time = ROOT.TH1F("h_pulse_fall_time","h_pulse_fall_time",20,0,12)
+        h_pre_range = ROOT.TH1F("h_pre_range","h_pre_range",100,0.,0.3)
+        h_eff = ROOT.TH1F("h_eff","h_eff",2,0,2)
+        h_diff = ROOT.TH1F("h_diff","h_diff",100,0,0.3)
+        # Project variables to histos
+        project(intree,h_pulse_fall_range,"pulse_fall_range","",basename,"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range",True)
+        project(intree,h_pulse_fall_time,"pulse_fall_tau","",basename,"pulse fall time constant (0.4ns)",f"Event",plotDir,"h_pulse_fall_time",True)
+        project(intree,h_pre_range,"pre_range","",basename,"pre_range (V)","Event",plotDir,"h_pre_range",True)
+        project(intree,h_eff,"1","pulse_fall_range>0.1",basename,"Pulse detected","Event",plotDir,"h_eff",True)
+        # Rebin
+        h_pulse_fall_range_rebin1 = rebin(h_pulse_fall_range,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin1",True)
+        h_pulse_fall_range_rebin2 = rebin(h_pulse_fall_range_rebin1,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin2",True)
+        h_pulse_fall_range_rebin3 = rebin(h_pulse_fall_range_rebin2,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin3",True)
+        # Calculate
+        eff = h_eff.Integral()/intree.GetEntries()
+        pre_range = h_pre_range.GetMean()
+        pulse_range = h_pulse_fall_range.GetMean()
+        pre_range_err = h_pulse_fall_range.GetRMS()
+        try:
+            pulse_range_error = h_pulse_fall_range.GetRMS()/math.sqrt(h_pulse_fall_range.Integral())
+        except ZeroDivisionError:
+            pulse_range_error = 0
+        # Append
+        biases.append(bias_current)
+        effs.append(eff)
+        pulse_ranges.append(pulse_range)
+        pulse_range_errs.append(pulse_range_error)
+        pre_ranges.append(pre_range)
+        pre_range_errs.append(pre_range_err)
+        print(f"{bias_current}nA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV")
 
 def Compare_bias_var(bias, var, title="graph", xtit="Bias Current (#mnA)",ytit=""):
     c1 = ROOT.TCanvas()
@@ -229,24 +236,11 @@ def Compare_bias_var_err(bias, var, var_err, title="graph", xtit="Bias Current (
     graph.Write()
 
 def plots():
-    biases, effs, pulse_ranges, pulse_range_errs, pre_ranges, pre_range_errs=[],[],[],[],[],[]
-    for in_filename in args.in_filenames:
-        # bias = float(in_filename.split("mV_")[1].split("nA")[0])/1000
-        laser_power, bias_voltage, bias_current = get_info(in_filename)
-        print(bias_current)
-        eff, pulse_range, pulse_range_err, pre_range, pre_range_err = calculate_tree(in_filename)
-        biases.append(bias_current)
-        effs.append(eff)
-        pulse_ranges.append(pulse_range)
-        pulse_range_errs.append(pulse_range_err)
-        pre_ranges.append(pre_range)
-        pre_range_errs.append(pre_range_err)
-        print(f"{bias_current}nA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_err*1000:.2f}mV")
-
     # Plots
     Compare_bias_var(biases,effs,title="g_eff",ytit="Pulse Count Efficiency (%)")
     Compare_bias_var_err(biases,pulse_ranges,pulse_range_errs,title="g_pulse_range",ytit="Pulse range mean (V)")
     Compare_bias_var(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
+    # multi_histo_canvas(pulse_ranges)
 
 if __name__ == "__main__":
     laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
@@ -254,10 +248,9 @@ if __name__ == "__main__":
     outDir = baseDir + "uW/"
     createDir(outDir)
     outfile = ROOT.TFile(f'{outDir}/plot_{laser_power}uW.root', 'RECREATE', f'plots for laser_power {laser_power}uW' )
-    # Compare plots
-    plots()
-    # plot_multiHistograms()
-    # plot_DE_polar()
+    biases, effs, pulse_ranges, pulse_range_errs, pre_ranges, pre_range_errs=[],[],[],[],[],[] # List for stats
+    calculate_tree() # loop over the input files
+    plots() # Plot them together
     print(f'Outfile: {outDir}/plot_{laser_power}uW.root')
     outfile.Write()
     outfile.Close()
