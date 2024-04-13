@@ -285,10 +285,10 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
                 stat.SetX1NDC(0.65)
                 stat.SetX2NDC(0.99)
                 stat.SetStatFormat("6.2g")
+                histos[key].Draw()
                 index+=1
             except (KeyError, AttributeError):
                 pass
-            histos[key].Draw()
     c_multi.SaveAs(f"test.png")
 
 def calculate_tree():
