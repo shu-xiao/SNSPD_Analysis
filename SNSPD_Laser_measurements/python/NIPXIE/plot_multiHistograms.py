@@ -344,6 +344,8 @@ def calculate_tree():
         pre_range_errs[basename] = pre_range_err
         # Histograms
         h_pulse_fall_ranges[basename] = h_pulse_fall_range.Clone()
+        h_stats[basename] = h_pulse_fall_range.FindObject("stat")
+        h_pulse_fall_range.SetDirectory(0)
         h_pulse_fall_ranges[basename].SetDirectory(0)
         print(f"{bias_current}nA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV")
 
@@ -366,7 +368,7 @@ if __name__ == "__main__":
     ROOT.gStyle.SetPalette(ROOT.kVisibleSpectrum)
     Pows,BVs,BCs = [],[],[] # List for sweep variables
     effs, pulse_ranges, pulse_range_errs, pre_ranges, pre_range_errs={},{},{},{},{} # List for stats
-    h_pulse_fall_ranges={} # List of histos
+    h_pulse_fall_ranges, h_stats={},{} # List of histos
     calculate_tree() # loop over the input files
     plots() # Plot them together
     # print(f'Outfile: {outDir}/plot_{laser_power}nW.root')
