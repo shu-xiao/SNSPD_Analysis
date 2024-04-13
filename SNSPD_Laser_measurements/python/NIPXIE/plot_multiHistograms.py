@@ -293,6 +293,7 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
         c_multi.SaveAs(f"test{bv}mV.png")
 
 def calculate_tree():
+    h_pulse_fall_ranges={}
     for in_filename in args.in_filenames:
         laser_power, bias_voltage, bias_current = get_info(in_filename)
         basename = str(laser_power) + 'uW_' + str(bias_voltage) + 'mV'
@@ -343,6 +344,7 @@ def calculate_tree():
         h_pulse_fall_ranges[basename] = h_pulse_fall_range.Clone()
         h_pulse_fall_ranges[basename].SetDirectory(0)
         print(f"{bias_current}nA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV")
+    return h_pulse_fall_ranges
 
 def plots(h_pulse_fall_ranges):
     Pows.sort()
@@ -363,10 +365,7 @@ if __name__ == "__main__":
     ROOT.gStyle.SetPalette(ROOT.kVisibleSpectrum)
     Pows,BVs,BCs = [],[],[] # List for sweep variables
     effs, pulse_ranges, pulse_range_errs, pre_ranges, pre_range_errs={},{},{},{},{} # List for stats
-    h_pulse_fall_ranges={} # List of histos
-    calculate_tree() # loop over the input files
-    c1 = ROOT.TCanvas()
-    c1.SaveAs("test.png")
+    h_pulse_fall_ranges = calculate_tree() # loop over the input files
     plots(h_pulse_fall_ranges) # Plot them together
     # print(f'Outfile: {outDir}/plot_{laser_power}nW.root')
     # outfile.Write()
