@@ -273,13 +273,13 @@ def multi_histo_canvas(powers,bvs,bcs,histos,stats):
             try:
                 pad = c_multi[bv].cd(index+1)
                 pad.SetLogy()
-                histos[key].GetXaxis().SetTitle("")
-                histos[key].GetYaxis().SetTitle("")
-                histos[key].GetXaxis().SetLabelSize(0.1)
-                histos[key].GetYaxis().SetLabelSize(0.1)
-                histos[key].SetTitle("")
-                histos[key].SetName(f"{bcs[ibv]}uA")
-                histos[key].Draw()
+                h_pulse_fall_ranges[key].GetXaxis().SetTitle("")
+                h_pulse_fall_ranges[key].GetYaxis().SetTitle("")
+                h_pulse_fall_ranges[key].GetXaxis().SetLabelSize(0.1)
+                h_pulse_fall_ranges[key].GetYaxis().SetLabelSize(0.1)
+                h_pulse_fall_ranges[key].SetTitle("")
+                h_pulse_fall_ranges[key].SetName(f"{bcs[ibv]}uA")
+                h_pulse_fall_ranges[key].Draw()
                 index+=1
             except KeyError:
                 continue
