@@ -194,7 +194,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit=""):
     c1_power = ROOT.TCanvas()
     leg_power = ROOT.TLegend(0.2,0.8,0.8,0.9)
     leg_power.SetNColumns(3)
-    for bv in bvs:
+    for ibv, bv in enumerate(bvs):
         graphs_sweep_power[bv] = ROOT.TGraph()
         graphs_sweep_power[bv].SetName(f'{title}_{bv}mV')
         graphs_sweep_power[bv].SetTitle(f'{title}_{bv}mV')
