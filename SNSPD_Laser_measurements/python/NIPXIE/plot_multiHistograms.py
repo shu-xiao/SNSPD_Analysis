@@ -257,20 +257,21 @@ def Graph_sweep_var_err(bias, var, var_err, title="graph", xtit="Bias Current (#
     graph.Write()
 
 def multi_histo_canvas(powers,bvs,bcs,histos):
-    c_multi = ROOT.TCanvas("c_multi","c_multi",1800,900)
-    c_multi.SetFixedAspectRatio(True)
-    ROOT.gStyle.SetPadBorderMode(0)
-    cx = 6
-    # cy = int(len(bvs)/6) if int(len(bvs)%6==0) else int(len(bvs)/6)+1
-    cy = 4
-    c_multi.Divide(cx,cy,0,0)
+    c_multi = {}
     for ibv, bv in enumerate(bvs):
+        c_multi[bv] = ROOT.TCanvas(f"c_multi_{bv}",f"c_multi_{bv}",1800,900)
+        c_multi[bv].SetFixedAspectRatio(True)
+        ROOT.gStyle.SetPadBorderMode(0)
+        cx = 6
+        # cy = int(len(bvs)/6) if int(len(bvs)%6==0) else int(len(bvs)/6)+1
+        cy = 4
+        c_multi[bv].Divide(cx,cy,0,0)
         index=0
         for ipow, power in enumerate(powers):
             key = str(power) + 'uW_' + str(bv) + 'mV'
             print(key)
             try:
-                pad = c_multi.cd(index+1)
+                pad = c_multi[bv].cd(index+1)
                 pad.SetLogy()
                 histos[key].GetXaxis().SetTitle("")
                 histos[key].GetYaxis().SetTitle("")
@@ -289,7 +290,7 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
                 index+=1
             except (KeyError, AttributeError):
                 pass
-    c_multi.SaveAs(f"test{bv}mV.png")
+        c_multi[bv].SaveAs(f"test{bv}mV.png")
 
 def calculate_tree():
     for in_filename in args.in_filenames:
