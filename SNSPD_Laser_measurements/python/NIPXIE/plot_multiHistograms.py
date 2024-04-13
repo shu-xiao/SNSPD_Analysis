@@ -202,7 +202,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
             key = str(power) + 'uW_' + str(bv) + 'mV'
             try:
                 value = stat[key]
-                graphs_sweep_power[bv].SetPoint(ipow,power,value)
+                graphs_sweep_power[bv].SetPoint(ipow,float(power/1000),value)
             except KeyError:
                 continue
         if (ibv==0):
@@ -225,7 +225,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
             key = str(power) + 'uW_' + str(bv) + 'mV'
             try:
                 value = stat[key]
-                graphs_sweep_bv[power].SetPoint(ibv,bv,value)
+                graphs_sweep_bv[power].SetPoint(ibv,bcs[ibv],value)
             except KeyError:
                 pass
         if (ipow==0):
