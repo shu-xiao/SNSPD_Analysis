@@ -264,13 +264,13 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
     cy = int(len(bvs)/6) if int(len(bvs)%6==0) else int(len(bvs)/6)+1
     c_multi.Divide(cx,cy,0,0)
     for ibv, bv in enumerate(bvs):
-        for power in enumerate(powers):
+        for ipow, power in enumerate(powers):
             key = str(power) + 'uW_' + str(bv) + 'mV'
             try:
                 histo = histos[key].Clone()
             except KeyError:
                 continue
-            pad = c_multi.cd(i+1)
+            pad = c_multi.cd(ipow+1)
             pad.SetLogy()
             histo.GetXaxis().SetTitle("")
             histo.GetYaxis().SetTitle("")
