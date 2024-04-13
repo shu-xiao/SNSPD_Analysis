@@ -256,7 +256,7 @@ def Graph_sweep_var_err(bias, var, var_err, title="graph", xtit="Bias Current (#
     graph.GetYaxis().SetTitle(ytit)
     graph.Write()
 
-def multi_histo_canvas(powers,bvs,bcs,histos):
+def multi_histo_canvas(powers,bvs,bcs,histos,stats):
     c_multi = {}
     for ibv, bv in enumerate(bvs):
         c_multi[bv] = ROOT.TCanvas(f"c_multi_{bv}",f"c_multi_{bv}",1800,900)
@@ -284,13 +284,12 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
             except KeyError:
                 continue
             try:
-                stat = histos[key].FindObject("stats")
-                stat.SetOptStat(1101)
-                stat.SetY1NDC(0.6)
-                stat.SetY2NDC(0.99)
-                stat.SetX1NDC(0.65)
-                stat.SetX2NDC(0.99)
-                stat.SetStatFormat("6.2g")
+                stats[key].SetOptStat(1101)
+                stats[key].SetY1NDC(0.6)
+                stats[key].SetY2NDC(0.99)
+                stats[key].SetX1NDC(0.65)
+                stats[key].SetX2NDC(0.99)
+                stats[key].SetStatFormat("6.2g")
             except AttributeError:
                 pass
         c_multi[bv].SaveAs(f"test{bv}mV.png")
@@ -357,7 +356,7 @@ def plots():
     Graph_sweep(Pows,BVs,BCs,effs,title="g_eff",ytit="Pulse Detection Efficiency (%)",ymin=0,ymax=1.2)
     Graph_sweep(Pows,BVs,BCs,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)",ymin=0,ymax=max(pulse_ranges.values())*1.2)
     Graph_sweep(Pows,BVs,BCs,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)",ymin=min(pre_ranges.values())*0.8,ymax=max(pre_ranges.values())*1.2)
-    multi_histo_canvas(Pows,BVs,BCs,h_pulse_fall_ranges)
+    multi_histo_canvas(Pows,BVs,BCs,h_pulse_fall_ranges,h_stats)
 
 if __name__ == "__main__":
     # laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
