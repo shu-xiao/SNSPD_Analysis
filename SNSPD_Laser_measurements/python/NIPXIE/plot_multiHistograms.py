@@ -272,24 +272,25 @@ def multi_histo_canvas(powers,bvs,bcs,histos,stats):
             try:
                 pad = c_multi[bv].cd(index+1)
                 pad.SetLogy()
-                h_pulse_fall_ranges[key].GetXaxis().SetTitle("")
-                h_pulse_fall_ranges[key].GetYaxis().SetTitle("")
-                h_pulse_fall_ranges[key].GetXaxis().SetLabelSize(0.1)
-                h_pulse_fall_ranges[key].GetYaxis().SetLabelSize(0.1)
-                h_pulse_fall_ranges[key].SetTitle("")
-                h_pulse_fall_ranges[key].SetName(f"{bcs[ibv]}uA")
-                h_pulse_fall_ranges[key].Draw()
+                histos[key].GetXaxis().SetTitle("")
+                histos[key].GetYaxis().SetTitle("")
+                histos[key].GetXaxis().SetLabelSize(0.1)
+                histos[key].GetYaxis().SetLabelSize(0.1)
+                histos[key].SetTitle("")
+                histos[key].SetName(f"{bcs[ibv]}uA")
+                histos[key].Draw()
                 index+=1
             except KeyError:
                 print(key)
+                continue
             try:
-                stat = h_pulse_fall_ranges[key].FindObject("stats")
-                stats[key].SetOptStat(1101)
-                stats[key].SetY1NDC(0.6)
-                stats[key].SetY2NDC(0.99)
-                stats[key].SetX1NDC(0.65)
-                stats[key].SetX2NDC(0.99)
-                stats[key].SetStatFormat("6.2g")
+                stat = histos[key].FindObject("stats")
+                stat.SetOptStat(1101)
+                stat.SetY1NDC(0.6)
+                stat.SetY2NDC(0.99)
+                stat.SetX1NDC(0.65)
+                stat.SetX2NDC(0.99)
+                stat.SetStatFormat("6.2g")
             except AttributeError:
                 pass
         c_multi[bv].SaveAs(f"test{bv}mV.png")
