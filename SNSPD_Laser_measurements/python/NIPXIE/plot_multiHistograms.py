@@ -187,7 +187,7 @@ def sort_bias(bias, var):
     sorted_var_array= var_array[bias_array.argsort()]
     return sorted_bias_array, sorted_var_array
 
-def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit=""):
+def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
     # outfile.cd()
     graphs_sweep_power, graphs_sweep_bv = {}, {}
 
@@ -209,6 +209,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit=""):
                 continue
         if (ibv==0):
             graphs_sweep_power[bv].Draw("AP PMC")
+            graphs_sweep_power[bv].GetYaxis().SetRangeUser(ymin,ymax)
         else: graphs_sweep_power[bv].Draw("PSame PMC")
         leg_power.AddEntry(graphs_sweep_power[bv],f'{bv}mV','p')
         graphs_sweep_power[bv].SetMarkerStyle(ibv+20)
@@ -233,6 +234,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit=""):
                 continue
         if (ipow==0):
             graphs_sweep_bv[power].Draw("AP PMC")
+            graphs_sweep_bv[power].GetYaxis().SetRangeUser(ymin,ymax)
         else: graphs_sweep_bv[power].Draw("PSame PMC")
         leg_bv.AddEntry(graphs_sweep_bv[power],f'{power}#muW','p')
         graphs_sweep_bv[power].SetMarkerStyle(ipow+20)
@@ -331,7 +333,7 @@ def calculate_tree():
         print(f"{bias_current}nA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV")
 
 def plots():
-    Graph_sweep(Pows,BVs,BCs,effs,title="g_eff",ytit="Pulse Count Efficiency (%)")
+    Graph_sweep(Pows,BVs,BCs,effs,title="g_eff",ytit="Pulse Detection Efficiency (%)",ymin=0,ymax=1.2)
     Graph_sweep(Pows,BVs,BCs,pulse_ranges,pulse_range_errs,title="g_pulse_range",ytit="Pulse range mean (V)")
     Graph_sweep(Pows,BVs,BCs,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
     # multi_histo_canvas(BCs,h_pulse_fall_ranges)
