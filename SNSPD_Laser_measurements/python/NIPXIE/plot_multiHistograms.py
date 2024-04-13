@@ -265,11 +265,12 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
     cy = 4
     c_multi.Divide(cx,cy,0,0)
     for ibv, bv in enumerate(bvs):
+        index=0
         for ipow, power in enumerate(powers):
             key = str(power) + 'uW_' + str(bv) + 'mV'
             print(key)
             try:
-                pad = c_multi.cd(ipow+1)
+                pad = c_multi.cd(index+1)
                 pad.SetLogy()
                 histos[key].GetXaxis().SetTitle("")
                 histos[key].GetYaxis().SetTitle("")
@@ -284,6 +285,7 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
                 stat.SetX1NDC(0.65)
                 stat.SetX2NDC(0.99)
                 stat.SetStatFormat("6.2g")
+                index+=1
             except KeyError:
                 pass
             histos[key].Draw()
