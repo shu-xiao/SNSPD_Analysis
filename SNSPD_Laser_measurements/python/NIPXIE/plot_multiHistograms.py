@@ -210,8 +210,8 @@ def multi_histo_canvas(bias,histos):
     cy = int(len(bias)/6) if int(len(bias)%6==0) else int(len(bias)/6)+1
     c_multi.Divide(cx,cy,0,0)
     for i, b in enumerate(bias):
-        c_multi.cd(i+1)
-        c_multi.SetLogy()
+        pad = c_multi.cd(i+1)
+        pad.SetLogy()
         histos[b].GetXaxis().SetTitle("")
         histos[b].GetYaxis().SetTitle("")
         histos[b].GetXaxis().SetLabelSize(0.1)
