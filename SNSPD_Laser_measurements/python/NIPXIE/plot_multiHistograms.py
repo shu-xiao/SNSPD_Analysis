@@ -199,12 +199,13 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
         graphs_sweep_power[bv] = ROOT.TGraph()
         graphs_sweep_power[bv].GetXaxis().SetTitle("Laser Power (#muW)")
         graphs_sweep_power[bv].GetYaxis().SetTitle(ytit)
+        index=0
         for ipow, power in enumerate(powers):
             key = str(power) + 'uW_' + str(bv) + 'mV'
             try:
                 value = stat[key]
-                print(key,value)
-                graphs_sweep_power[bv].SetPoint(ipow,float(power/1000),value)
+                graphs_sweep_power[bv].SetPoint(index,float(power/1000),value)
+                index+=1
             except KeyError:
                 continue
         if (ibv==0):
