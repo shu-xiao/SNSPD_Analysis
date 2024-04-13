@@ -211,6 +211,7 @@ def multi_histo_canvas(bias,histos):
         c_multi.cd(i)
         hist.Draw()
     c_multi.SaveAs("test.png")
+
 def calculate_tree():
     for in_filename in args.in_filenames:
         laser_power, bias_voltage, bias_current = get_info(in_filename)
@@ -258,7 +259,7 @@ def plots():
     Compare_bias_var(biases,effs,title="g_eff",ytit="Pulse Count Efficiency (%)")
     Compare_bias_var_err(biases,pulse_ranges,pulse_range_errs,title="g_pulse_range",ytit="Pulse range mean (V)")
     Compare_bias_var(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
-    multi_histo_canvas(pulse_ranges)
+    multi_histo_canvas(biases,h_pulse_ranges)
 
 if __name__ == "__main__":
     laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
