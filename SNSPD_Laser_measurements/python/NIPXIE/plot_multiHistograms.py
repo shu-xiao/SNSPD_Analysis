@@ -257,7 +257,7 @@ def Graph_sweep_var_err(bias, var, var_err, title="graph", xtit="Bias Current (#
     graph.Write()
 
 def multi_histo_canvas(powers,bvs,bcs,histos):
-    c_multi,stat = {},{}
+    c_multi = {}
     for ibv, bv in enumerate(bvs):
         c_multi[bv] = ROOT.TCanvas(f"c_multi_{bv}",f"c_multi_{bv}",1800,900)
         c_multi[bv].SetFixedAspectRatio(True)
@@ -266,44 +266,31 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
         # cy = int(len(bvs)/6) if int(len(bvs)%6==0) else int(len(bvs)/6)+1
         cy = 4
         c_multi[bv].Divide(cx,cy,0,0)
-        c_multi[bv].cd(1)
-        histos[f"1600uW_{bv}mV"].Draw()
-        ROOT.gPad.Update();
-        print(bv,type(histos[f"1600uW_{bv}mV"]))
-        stat[bv] = histos[f"1600uW_{bv}mV"].FindObject("stats")
-        stat[bv].SetOptStat(1101)
-        stat[bv].SetY1NDC(0.6)
-        stat[bv].SetY2NDC(0.99)
-        stat[bv].SetX1NDC(0.65)
-        stat[bv].SetX2NDC(0.99)
-        stat[bv].SetStatFormat("6.2g")
-        # index=0
-        # for ipow, power in enumerate(powers):
-        #     key = str(power) + 'uW_' + str(bv) + 'mV'
-        #     try:
-        #         pad = c_multi[bv].cd(index+1)
-        #         pad.SetLogy()
-        #         histos[key].GetXaxis().SetTitle("")
-        #         histos[key].GetYaxis().SetTitle("")
-        #         histos[key].GetXaxis().SetLabelSize(0.1)
-        #         histos[key].GetYaxis().SetLabelSize(0.1)
-        #         histos[key].SetTitle("")
-        #         histos[key].SetName(f"{bcs[ibv]}uA")
-        #         histos[key].Draw()
-        #         index+=1
-        #     except KeyError:
-        #         print(key)
-        #         continue
-        #     try:
-        #         stat = histos[key].FindObject("stats")
-        #         stat.SetOptStat(1101)
-        #         stat.SetY1NDC(0.6)
-        #         stat.SetY2NDC(0.99)
-        #         stat.SetX1NDC(0.65)
-        #         stat.SetX2NDC(0.99)
-        #         stat.SetStatFormat("6.2g")
-        #     except AttributeError:
-        #         pass
+        index=0
+        for ipow, power in enumerate(powers):
+            key = str(power) + 'uW_' + str(bv) + 'mV'
+            try:
+                pad = c_multi[bv].cd(index+1)
+                pad.SetLogy()
+                histos[key].GetXaxis().SetTitle("")
+                histos[key].GetYaxis().SetTitle("")
+                histos[key].GetXaxis().SetLabelSize(0.1)
+                histos[key].GetYaxis().SetLabelSize(0.1)
+                histos[key].SetTitle("")
+                histos[key].SetName(f"{bcs[ibv]}uA")
+                histos[key].Draw()
+                ROOT.gPad.Update()
+                stat = histos[key].FindObject("stats")
+                stat.SetOptStat(1101)
+                stat.SetY1NDC(0.6)
+                stat.SetY2NDC(0.99)
+                stat.SetX1NDC(0.65)
+                stat.SetX2NDC(0.99)
+                stat.SetStatFormat("6.2g")
+                index+=1
+            except KeyError:
+                print(key)
+                continue
         c_multi[bv].SaveAs(f"test{bv}mV.png")
 
 def calculate_tree():
@@ -367,7 +354,7 @@ def plots():
     Graph_sweep(Pows,BVs,BCs,effs,title="g_eff",ytit="Pulse Detection Efficiency (%)",ymin=0,ymax=1.2)
     Graph_sweep(Pows,BVs,BCs,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)",ymin=0,ymax=max(pulse_ranges.values())*1.2)
     Graph_sweep(Pows,BVs,BCs,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)",ymin=min(pre_ranges.values())*0.8,ymax=max(pre_ranges.values())*1.2)
-    multi_histo_canvas(Pows,BVs,BCs,h_pulse_fall_ranges)
+    multi_histo_canvas(Pows,BVs,BCs,h_pulse_fall_ranges,h_stats)
 
 if __name__ == "__main__":
     # laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
