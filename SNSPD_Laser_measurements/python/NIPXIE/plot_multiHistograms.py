@@ -257,7 +257,7 @@ def Graph_sweep_var_err(bias, var, var_err, title="graph", xtit="Bias Current (#
     graph.Write()
 
 def multi_histo_canvas(powers,bvs,bcs,histos):
-    c_multi,stat = {}
+    c_multi,stat = {},{}
     for ibv, bv in enumerate(bvs):
         c_multi[bv] = ROOT.TCanvas(f"c_multi_{bv}",f"c_multi_{bv}",1800,900)
         c_multi[bv].SetFixedAspectRatio(True)
