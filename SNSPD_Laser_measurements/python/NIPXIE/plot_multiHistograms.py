@@ -154,7 +154,7 @@ def rebin(h, title="", xtit="", ytit="", outDir="plots/test/", saveTitle="", sav
     return h_new
 
 def get_info(in_filename):
-    laser_power = in_filename.split('uW/')[0].split('/')[-1]
+    laser_power = in_filename.split('nW/')[0].split('/')[-1]
     bias_voltage = int(in_filename.split('mV')[0].split('_')[-1])
     bias_current = int(in_filename.split('uA')[0].split('_')[-1])
     # infile = ROOT.TFile.Open(in_filename)
@@ -274,14 +274,14 @@ def plots():
 
 if __name__ == "__main__":
     laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
-    baseDir = args.in_filenames[0].split('uW/')[0]
-    outDir = baseDir + "uW/"
+    baseDir = args.in_filenames[0].split('nW/')[0]
+    outDir = baseDir + "nW/"
     createDir(outDir)
-    outfile = ROOT.TFile(f'{outDir}/plot_{laser_power}uW.root', 'RECREATE', f'plots for laser_power {laser_power}uW' )
+    outfile = ROOT.TFile(f'{outDir}/plot_{laser_power}nW.root', 'RECREATE', f'plots for laser_power {laser_power}nW' )
     biases, effs, pulse_ranges, pulse_range_errs, pre_ranges, pre_range_errs=[],[],[],[],[],[] # List for stats
     h_pulse_fall_ranges={} # List of histos
     calculate_tree() # loop over the input files
     plots() # Plot them together
-    print(f'Outfile: {outDir}/plot_{laser_power}uW.root')
+    print(f'Outfile: {outDir}/plot_{laser_power}nW.root')
     outfile.Write()
     outfile.Close()
