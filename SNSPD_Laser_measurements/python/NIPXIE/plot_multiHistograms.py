@@ -18,15 +18,21 @@ parser.add_argument('--report','-r',default=10000,type=int,help='report every x 
 parser.add_argument('--debug','-d',action="store_true",help='debug mode')
 args = parser.parse_args()
 
-def project(tree, h, var, cut, title="", xtit="", ytit="", outDir="plots/test/", saveTitle="", save=False):
+def project(tree, hist, var, cut, title="", xtit="", ytit="", outDir="plots/test/", saveTitle="", save=False):
     # print (f'projecting var: {var}, cut: {cut} from tree: {tree.GetName()} into hist: {h.GetName()}')
-    tree.Project(h.GetName(),var,cut)
+    tree.Project(hist.GetName(),var,cut)
+    # move overflow to last bin
+    nbins = hist.GetNbinsX();
+    lastBin = hist.GetBinContent(nbins);
+    overflow = hist.GetBinContent(nbins+1);
+    hist.SetBinContent(nbins,lastBin+overflow);
+    hist.SetBinContent(nbins+1, 0.0);
     if (save):
         c_hist = ROOT.TCanvas()
-        h.GetXaxis().SetTitle(xtit)
-        h.GetYaxis().SetTitle(ytit)
-        h.SetTitle(title)
-        h.Draw()
+        hist.GetXaxis().SetTitle(xtit)
+        hist.GetYaxis().SetTitle(ytit)
+        hist.SetTitle(title)
+        hist.Draw()
         c_hist.SaveAs(f"{outDir}/{saveTitle}.png")
 
 def color(i):
@@ -243,9 +249,9 @@ def calculate_tree():
         h_diff = ROOT.TH1F("h_diff","h_diff",100,0,0.3)
         # Project variables to histos
         project(intree,h_pulse_fall_range,"pulse_fall_range","",basename,"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range",True)
-        # project(intree,h_pulse_fall_time,"pulse_fall_tau","",basename,"pulse fall time constant (0.4ns)",f"Event",plotDir,"h_pulse_fall_time",True)
-        # project(intree,h_pre_range,"pre_range","",basename,"pre_range (V)","Event",plotDir,"h_pre_range",True)
-        # project(intree,h_eff,"1","pulse_fall_range>0.1",basename,"Pulse detected","Event",plotDir,"h_eff",True)
+        project(intree,h_pulse_fall_time,"pulse_fall_tau","",basename,"pulse fall time constant (0.4ns)",f"Event",plotDir,"h_pulse_fall_time",True)
+        project(intree,h_pre_range,"pre_range","",basename,"pre_range (V)","Event",plotDir,"h_pre_range",True)
+        project(intree,h_eff,"1","pulse_fall_range>0.1",basename,"Pulse detected","Event",plotDir,"h_eff",True)
         # Rebin
         # h_pulse_fall_range_rebin1 = rebin(h_pulse_fall_range,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin1",True)
         # h_pulse_fall_range_rebin2 = rebin(h_pulse_fall_range_rebin1,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin2",True)
