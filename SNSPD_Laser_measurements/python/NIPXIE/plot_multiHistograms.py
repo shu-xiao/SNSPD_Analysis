@@ -193,8 +193,8 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
     graphs_sweep_power, graphs_sweep_bv = {}, {}
 
     c1_power = ROOT.TCanvas()
-    leg_power = ROOT.TLegend(0.2,0.8,0.8,0.98)
-    leg_power.SetNColumns(3)
+    leg_power = ROOT.TLegend(0.1,0.8,0.9,0.98)
+    leg_power.SetNColumns(4)
     for ibv, bv in enumerate(bvs):
         graphs_sweep_power[bv] = ROOT.TGraph()
         graphs_sweep_power[bv].GetXaxis().SetTitle("Laser Power (#muW)")
@@ -216,8 +216,8 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
     c1_power.SaveAs(f"{title}_sweep_power.png")
 
     c1_bv = ROOT.TCanvas()
-    leg_bv = ROOT.TLegend(0.2,0.8,0.8,0.98)
-    leg_bv.SetNColumns(3)
+    leg_bv = ROOT.TLegend(0.1,0.8,0.9,0.98)
+    leg_bv.SetNColumns(4)
     for ipow, power in enumerate(powers):
         graphs_sweep_bv[power] = ROOT.TGraph()
         graphs_sweep_bv[power].GetXaxis().SetTitle("Bias Current (#muA)")
