@@ -193,7 +193,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
     graphs_sweep_power, graphs_sweep_bv = {}, {}
 
     c1_power = ROOT.TCanvas()
-    leg_power = ROOT.TLegend(0.15,0.8,0.8,0.98)
+    leg_power = ROOT.TLegend(0.15,0.8,0.9,0.98)
     leg_power.SetNColumns(4)
     for ibv, bv in enumerate(bvs):
         graphs_sweep_power[bv] = ROOT.TGraph()
@@ -203,6 +203,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
             key = str(power) + 'uW_' + str(bv) + 'mV'
             try:
                 value = stat[key]
+                print(key,value)
                 graphs_sweep_power[bv].SetPoint(ipow,float(power/1000),value)
             except KeyError:
                 continue
@@ -216,7 +217,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
     c1_power.SaveAs(f"{title}_sweep_power.png")
 
     c1_bv = ROOT.TCanvas()
-    leg_bv = ROOT.TLegend(0.1,0.8,0.9,0.98)
+    leg_bv = ROOT.TLegend(0.15,0.8,0.9,0.98)
     leg_bv.SetNColumns(4)
     for ipow, power in enumerate(powers):
         graphs_sweep_bv[power] = ROOT.TGraph()
@@ -233,7 +234,7 @@ def Graph_sweep(powers, bvs, bcs, stat, title="graph", ytit="", ymin=0, ymax=1):
             graphs_sweep_bv[power].Draw("ALP PMC PLC")
             graphs_sweep_bv[power].GetYaxis().SetRangeUser(ymin,ymax)
         else: graphs_sweep_bv[power].Draw("LPSame PMC PLC")
-        leg_bv.AddEntry(graphs_sweep_bv[power],f'{float(power/1000):.1f}nW','lp')
+        leg_bv.AddEntry(graphs_sweep_bv[power],f'{float(power/1000):.1f}#muW','lp')
         graphs_sweep_bv[power].SetMarkerStyle(ipow+20)
     leg_bv.Draw()
     c1_bv.SaveAs(f"{title}_sweep_bias_current.png")
