@@ -150,8 +150,9 @@ def plot_DE_polar():
 def rebin(h, title="", xtit="", ytit="", outDir="plots/test/", saveTitle="", save=False):
     h_new = h.Clone()
     for i in range(h.GetNbinsX()):
-        thisbin = h.GetBinContent(i)/2
-        nextbin = h.GetBinContent(i+1)/2
+        previousbin = h.GetBinContent(i)/2
+        thisbin = h.GetBinContent(i+1)/2
+        nextbin = h.GetBinContent(i+2)/2
         newbin = thisbin + nextbin
         h_new.SetBinContent(i,newbin)
     if (save):
@@ -185,20 +186,51 @@ def sort_bias(bias, var):
     sorted_var_array= var_array[bias_array.argsort()]
     return sorted_bias_array, sorted_var_array
 
-def Compare_bias_var(bias, var, title="graph", xtit="Bias Current (#mnA)",ytit=""):
-    c1 = ROOT.TCanvas()
+def Graph_sweep(powers, bvs, stat, title="graph", ytit=""):
     outfile.cd()
-    graph = ROOT.TGraph()
-    st_bias, st_var = sort_bias(bias,var)
-    for i, (b,v) in enumerate(zip(st_bias,st_var)): graph.SetPoint(i,b,v)
-    graph.Draw("AP")
-    graph.SetName(title)
-    graph.SetTitle(title)
-    graph.GetXaxis().SetTitle(xtit)
-    graph.GetYaxis().SetTitle(ytit)
-    graph.Write()
+    graphs_sweep_power, graphs_sweep_bv = {}, {}
 
-def Compare_bias_var_err(bias, var, var_err, title="graph", xtit="Bias Current (#mnA)",ytit=""):
+    c1_power = ROOT.TCanvas()
+    leg_power = ROOT.TLegend(0.2,0.8,0.8,0.9)
+    leg_power.SetNColumns(3)
+    for bv in bvs:
+        graphs_sweep_power[bv] = ROOT.TGraph()
+        graphs_sweep_power[bv].SetName(f'{title}_{bv}mV')
+        graphs_sweep_power[bv].SetTitle(f'{title}_{bv}mV')
+        graphs_sweep_power[bv].GetXaxis().SetTitle("Laser Power (#muW)")
+        graphs_sweep_power[bv].GetYaxis().SetTitle(ytit)
+        for ipow, power in enumerate(powers):
+            key = power + 'uW_' + bv + 'mV'
+            graphs_sweep_power[bv].SetPoint(ipow,power,stat[key])
+        if (ibv==0):
+            graphs_sweep_power[bv].Draw("AP PMC")
+        else: graphs_sweep_power[bv].Draw("PSame PMC")
+        leg_power.AddEntry(graphs_sweep_power[bv],f'{bv}mV','p')
+        graphs_sweep_power[bv].SetMarkerStyle(i+20)
+    leg_power.Draw()
+    c1_power.SaveAs(f"{title}_sweep_power.png")
+
+    c1_bv = ROOT.TCanvas()
+    leg_bv = ROOT.TLegend(0.2,0.8,0.8,0.9)
+    leg_bv.SetNColumns(3)
+    for ipow, power in enumerate(powers):
+        graphs_sweep_bv[power] = ROOT.TGraph()
+        graphs_sweep_bv[power].SetName(f'{title}_{power}uW')
+        graphs_sweep_bv[power].SetTitle(f'{title}_{power}uW')
+        graphs_sweep_bv[power].GetXaxis().SetTitle("Bias Current (#muA)")
+        graphs_sweep_bv[power].GetYaxis().SetTitle(ytit)
+        for ibv, bv in enumerate(bvs):
+            key = power + 'uW_' + bv + 'mV'
+            graphs_sweep_bv[power].SetPoint(ibv,bv,stat[key])
+        if (ipow==0):
+            graphs_sweep_bv[power].Draw("AP PMC")
+        else: graphs_sweep_bv[power].Draw("PSame PMC")
+        leg_bv.AddEntry(graphs_sweep_bv[power],f'{power}#muW','p')
+        graphs_sweep_bv[power].SetMarkerStyle(i+20)
+    leg_bv.Draw()
+    c1_bv.SaveAs(f"{title}_sweep_bias_current.png")
+
+def Graph_sweep_var_err(bias, var, var_err, title="graph", xtit="Bias Current (#mnA)",ytit=""):
     c1 = ROOT.TCanvas()
     outfile.cd()
     graph = ROOT.TGraphErrors()
@@ -243,12 +275,12 @@ def multi_histo_canvas(bias,histos):
 def calculate_tree():
     for in_filename in args.in_filenames:
         laser_power, bias_voltage, bias_current = get_info(in_filename)
+        basename = str(laser_power) + 'uW_' + str(bias_voltage) + 'mV'
         plotDir= in_filename.rsplit("/",1)[0]
-        basename = in_filename.rsplit('/',1)[1].split('.root')[0]
         infile = ROOT.TFile.Open(in_filename)
         intree = infile.Get('Result_tree')
         # initialize histo
-        nbin, range_min, range_max= 80, -0.2, 1.5
+        nbin, range_min, range_max= 1024, -2.5, 2.5
         h_pulse_fall_range = ROOT.TH1F(f"h_pulse_fall_range_{bias_current}",f"h_pulse_fall_range_{bias_current}",nbin,range_min,range_max)
         h_pulse_fall_time = ROOT.TH1F("h_pulse_fall_time","h_pulse_fall_time",20,0,12)
         h_pre_range = ROOT.TH1F("h_pre_range","h_pre_range",100,0.,0.3)
@@ -260,7 +292,7 @@ def calculate_tree():
         project(intree,h_pre_range,"pre_range","",basename,"pre_range (V)","Event",plotDir,"h_pre_range",True)
         project(intree,h_eff,"1","pulse_fall_range>0.1",basename,"Pulse detected","Event",plotDir,"h_eff",True)
         # Rebin
-        # h_pulse_fall_range_rebin1 = rebin(h_pulse_fall_range,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin1",True)
+        h_pulse_fall_range_rebin1 = rebin(h_pulse_fall_range,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin1",True)
         # h_pulse_fall_range_rebin2 = rebin(h_pulse_fall_range_rebin1,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin2",True)
         # h_pulse_fall_range_rebin3 = rebin(h_pulse_fall_range_rebin2,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin3",True)
         # Calculate
@@ -272,34 +304,40 @@ def calculate_tree():
             pulse_range_error = h_pulse_fall_range.GetRMS()/math.sqrt(h_pulse_fall_range.Integral())
         except ZeroDivisionError:
             pulse_range_error = 0
-        # Append
-        biases.append(bias_current)
-        effs.append(eff)
-        pulse_ranges.append(pulse_range)
-        pulse_range_errs.append(pulse_range_error)
-        pre_ranges.append(pre_range)
-        pre_range_errs.append(pre_range_err)
-        h_pulse_fall_ranges[bias_current] = h_pulse_fall_range.Clone()
-        h_pulse_fall_ranges[bias_current].SetDirectory(0)
+        # Append sweep variables
+        Pows.append(laser_power)
+        BVs.append(bias_voltage)
+        BCs.append(bias_current)
+        # Fill stats dict
+        effs[basename] = eff
+        pulse_ranges[basename] = pulse_range
+        pulse_range_errs[basename] = pulse_range_error
+        pre_ranges[basename] = pre_range
+        pre_range_errs[basename] = pre_range_err
+        # Histograms
+        h_pulse_fall_ranges[basename] = h_pulse_fall_range.Clone()
+        h_pulse_fall_ranges[basename].SetDirectory(0)
         print(f"{bias_current}nA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV")
 
-def plots():
+# def plots():
     # Plots
-    Compare_bias_var(biases,effs,title="g_eff",ytit="Pulse Count Efficiency (%)")
-    Compare_bias_var_err(biases,pulse_ranges,pulse_range_errs,title="g_pulse_range",ytit="Pulse range mean (V)")
-    Compare_bias_var(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
-    multi_histo_canvas(biases,h_pulse_fall_ranges)
+    # Graph_sweep_var(biases,effs,title="g_eff",ytit="Pulse Count Efficiency (%)")
+    # Graph_sweep_var_err(biases,pulse_ranges,pulse_range_errs,title="g_pulse_range",ytit="Pulse range mean (V)")
+    # Graph_sweep_var(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
+    # multi_histo_canvas(biases,h_pulse_fall_ranges)
 
 if __name__ == "__main__":
-    laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
-    baseDir = args.in_filenames[0].split('nW/')[0]
-    outDir = baseDir + "nW/"
-    createDir(outDir)
-    outfile = ROOT.TFile(f'{outDir}/plot_{laser_power}nW.root', 'RECREATE', f'plots for laser_power {laser_power}nW' )
-    biases, effs, pulse_ranges, pulse_range_errs, pre_ranges, pre_range_errs=[],[],[],[],[],[] # List for stats
+    # laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
+    # baseDir = args.in_filenames[0].split('nW/')[0]
+    # outDir = baseDir + "nW/"
+    # createDir(outDir)
+    # outfile = ROOT.TFile(f'{outDir}/plot_{laser_power}nW.root', 'RECREATE', f'plots for laser_power {laser_power}nW' )
+    Pows,BVs,BCs = [],[],[] # List for sweep variables
+    effs, pulse_ranges, pulse_range_errs, pre_ranges, pre_range_errs={},{},{},{},{} # List for stats
     h_pulse_fall_ranges={} # List of histos
     calculate_tree() # loop over the input files
-    plots() # Plot them together
+    # plots() # Plot them together
     print(f'Outfile: {outDir}/plot_{laser_power}nW.root')
     outfile.Write()
     outfile.Close()
+
