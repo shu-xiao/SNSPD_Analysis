@@ -206,7 +206,9 @@ def multi_histo_canvas(bias,histos):
     c_multi = ROOT.TCanvas("c_multi","c_multi",1800,900)
     c_multi.SetFixedAspectRatio(True)
     ROOT.gStyle.SetPadBorderMode(0)
-    c_multi.Divide(len(bias)/6+1,6,0,0)
+    cx = 6
+    cy = int(len(bias)/6) if int(len(bias)%6==0) else int(len(bias)/6)+1
+    c_multi.Divide(cx,cy,0,0)
     for i, b in enumerate(bias):
         c_multi.cd(i+1)
         histos[b].GetXaxis().SetTitle("")
