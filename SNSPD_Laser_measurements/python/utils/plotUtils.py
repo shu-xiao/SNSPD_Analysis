@@ -144,3 +144,8 @@ def fit_histo_gaus(hist, rangemin, rangemax, name, xTitle, title, saveTitle):
     std = fit.GetParameter(2)
     std_error = fit.GetParError(2)
     return mean, mean_error, std, std_error
+
+def color(i):
+    colorwheel = [416, 600, 800, 632, 880, 432, 616, 860, 820, 900, 420, 620, 820, 652, 1000, 452, 636, 842, 863, 823]
+    # colorindex = int(i/11) + int(i%11)
+    return colorwheel[i]
