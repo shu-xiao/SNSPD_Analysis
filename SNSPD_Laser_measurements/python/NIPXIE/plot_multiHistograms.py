@@ -41,11 +41,6 @@ def project(tree, hist, var, cut, title="", xtit="", ytit="", outDir="plots/test
         if (xmax!=-1): hist.GetXaxis().SetRangeUser(xmin,xmax)
         c_hist.SaveAs(f"{outDir}/{saveTitle}.png")
 
-def color(i):
-    colorwheel = [416, 600, 800, 632, 880, 432, 616, 860, 820, 900, 420, 620, 820, 652, 1000, 452, 636, 842, 863, 823]
-    # colorindex = int(i/11) + int(i%11)
-    return colorwheel[i]
-
 def plot_multiHistograms():
     c1 = ROOT.TCanvas("c1","c1",900,600)
     leg = ROOT.TLegend(0.6,0.45,0.85,0.85)
@@ -276,7 +271,7 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
                 histos[key].GetXaxis().SetLabelSize(0.1)
                 histos[key].GetYaxis().SetLabelSize(0.1)
                 histos[key].SetTitle("")
-                histos[key].SetName(f"{float(power/1000):.1f}#muW_{bcs[ibv]}#muA")
+                histos[key].SetName(f"{float(power/1000):.1f}uW_{bcs[ibv]}uA")
                 histos[key].Draw()
                 ROOT.gPad.Update()
                 stat = histos[key].FindObject("stats")
@@ -290,7 +285,7 @@ def multi_histo_canvas(powers,bvs,bcs,histos):
             except KeyError:
                 print(key)
                 continue
-        c_multi[bv].SaveAs(f"test{bv}mV.png")
+        c_multi[bv].SaveAs(f"{plotDir}/{bv}mV.png")
 
 def calculate_tree():
     for in_filename in args.in_filenames:
@@ -318,6 +313,8 @@ def calculate_tree():
         # h_pulse_fall_range_rebin1 = rebin(h_pulse_fall_range,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin1",True)
         # h_pulse_fall_range_rebin2 = rebin(h_pulse_fall_range_rebin1,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin2",True)
         # h_pulse_fall_range_rebin3 = rebin(h_pulse_fall_range_rebin2,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin3",True)
+        # Fit
+        fit_histo_gaus(h_pulse_fall_range, -0.1, 0.012, f"fit_pulse_fall_range_{basename}", 'pulse_range (V)', "", f"{plotDir}/fit_pulse_fall_range.png")
         # Calculate
         eff = h_eff.Integral()/intree.GetEntries()
         pre_range = h_pre_range.GetMean()
