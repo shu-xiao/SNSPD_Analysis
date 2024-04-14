@@ -135,6 +135,7 @@ def fit_histo_gaus(hist, rangemin, rangemax, mean_min, mean_max, sigma_min, sigm
     fit.SetParLimits(0,c_min,c_max)
     fit.SetParLimits(1,mean_min,mean_max)
     fit.SetParLimits(2,sigma_min,sigma_max)
+    fit.SetParameter(2,sigma_min);
     hist.Fit("fit",'R')
     # Draw hist
     hist.SetTitle(title)
