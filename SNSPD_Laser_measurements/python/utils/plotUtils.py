@@ -143,12 +143,13 @@ def fit_histo_gaus(hist, rangemin, rangemax, mean_min, mean_max, sigma_min, sigm
     std = fit.GetParameter(2)
     std_error = fit.GetParError(2)
     integral = fit.Integral(rangemin, rangemax)
-    st = hist.GetListOfFunctions().FindObject("stats")
-    st.AddText(f"Integral={integral}")
     # Draw hist
     hist.SetTitle(title)
     hist.GetXaxis().SetTitle(xTitle)
     hist.Draw()
+    ROOT.gPad.Update()
+    st = hist.GetListOfFunctions().FindObject("stats")
+    st.AddText(f"Integral={integral}")
     fit.Draw("same")
     c1.SaveAs(saveTitle)
     return mean, mean_error, std, std_error, integral
