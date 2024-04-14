@@ -138,6 +138,13 @@ def fit_histo_gaus(hist, rangemin, rangemax, mean_min, mean_max, sigma_min, sigm
     fit.SetParameter(2,sigma_min);
     fit.FixParameter(2,sigma_min);
     hist.Fit("fit",'BRQ')
+    mean = fit.GetParameter(1)
+    mean_error = fit.GetParError(1)
+    std = fit.GetParameter(2)
+    std_error = fit.GetParError(2)
+    integral = fit.Integral(rangemin, rangemax)
+    st = hist.GetListOfFunctions().FindObject("stats")
+    st.AddText(f"Integral={integral}")
     # Draw hist
     hist.SetTitle(title)
     hist.GetXaxis().SetTitle(xTitle)
