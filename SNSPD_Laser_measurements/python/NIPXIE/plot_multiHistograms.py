@@ -315,7 +315,6 @@ def calculate_tree():
         # h_pulse_fall_range_rebin3 = rebin(h_pulse_fall_range_rebin2,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin3",True)
         # Fit
         mean, mean_error, std, std_error, integral = fit_histo_gaus(h_pulse_fall_range, -0.5, 2, 0.003855, 0.003855, 0.03125, 0.03125, 0, 10000, f"fit_pulse_fall_range_{basename}", 'pulse_range (V)', "", f"{plotDir}/fit_pulse_fall_range.png")
-        print(f"integral_{basename} = {integral}")
         # Calculate
         eff = h_eff.Integral()/intree.GetEntries()
         pre_range = h_pre_range.GetMean()
@@ -341,8 +340,7 @@ def calculate_tree():
         h_pulse_fall_ranges[basename] = h_pulse_fall_range.Clone()
         h_pulse_fall_range.SetDirectory(0)
         h_pulse_fall_ranges[basename].SetDirectory(0)
-        print(f"{bias_current}nA: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV")
-
+        print(f"{basename}: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV, integral = {integral}")
 def plots():
     Pows.sort()
     BVs.sort()
