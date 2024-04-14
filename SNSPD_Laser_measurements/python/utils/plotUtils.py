@@ -149,6 +149,8 @@ def fit_histo_gaus(hist, rangemin, rangemax, mean_min, mean_max, sigma_min, sigm
     std = fit.GetParameter(2)
     std_error = fit.GetParError(2)
     integral = fit.Integral(rangemin, rangemax)
+    st = hist.GetListOfFunctions().FindObject("stats")
+    st.AddText(f"Integral={integral}")
     return mean, mean_error, std, std_error, integral
 
 def color(i):
