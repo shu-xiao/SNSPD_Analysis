@@ -137,7 +137,7 @@ def fit_histo_gaus(hist, rangemin, rangemax, mean_min, mean_max, sigma_min, sigm
     fit.SetParLimits(2,sigma_min,sigma_max)
     fit.SetParameter(2,sigma_min);
     fit.FixParameter(2,sigma_min);
-    hist.Fit("fit",'R')
+    hist.Fit("fit",'BR')
     # Draw hist
     hist.SetTitle(title)
     hist.GetXaxis().SetTitle(xTitle)
