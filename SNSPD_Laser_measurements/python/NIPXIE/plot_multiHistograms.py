@@ -17,6 +17,7 @@ parser.add_argument('--outputDir','-o',default="./output",type=str,help='output 
 parser.add_argument('--report','-r',default=10000,type=int,help='report every x events')
 parser.add_argument('--debug','-d',action="store_true",help='debug mode')
 parser.add_argument('--saveHist','-s',action="store_true",help='debug mode')
+parser.add_argument('--fit','-f',action="store_true",help='debug mode')
 args = parser.parse_args()
 
 def project(tree, hist, var, cut, title="", xtit="", ytit="", outDir="plots/test/", saveTitle="", xmin=-1, xmax=-1):
@@ -254,18 +255,18 @@ def Graph_sweep_var_err(bias, var, var_err, title="graph", xtit="Bias Current (#
 def multi_histo_canvas(powers,bvs,bcs,histos,plotDir):
     c_multi_bv = {}
     for ibv, bv in enumerate(bvs):
-        c_multi[bv] = ROOT.TCanvas(f"c_multi_{bv}",f"c_multi_{bv}",1800,900)
-        c_multi[bv].SetFixedAspectRatio(True)
+        c_multi_bv[bv] = ROOT.TCanvas(f"c_multi_{bv}",f"c_multi_{bv}",1800,900)
+        c_multi_bv[bv].SetFixedAspectRatio(True)
         ROOT.gStyle.SetPadBorderMode(0)
-        cx = 6
-        cy = int(len(powers)/6) if int(len(powers)%6==0) else int(len(powers)/6)+1
-        c_multi[bv].Divide(cx,cy,0,0)
+        cx = 5
+        cy = int(len(powers)/5) if int(len(powers)%5==0) else int(len(powers)/5)+1
+        c_multi_bv[bv].Divide(cx,cy,0,0)
         index=0
         for ipow, power in enumerate(powers):
             key = str(power) + 'uW_' + str(bv) + 'mV'
             try:
-                pad = c_multi[bv].cd(index+1)
-                # pad.SetLogy()
+                pad = c_multi_bv[bv].cd(index+1)
+                pad.SetLogy()
                 histos[key].GetXaxis().SetTitle("")
                 histos[key].GetYaxis().SetTitle("")
                 histos[key].GetXaxis().SetLabelSize(0.1)
@@ -275,52 +276,219 @@ def multi_histo_canvas(powers,bvs,bcs,histos,plotDir):
                 histos[key].Draw()
                 ROOT.gPad.Update()
                 stat = histos[key].FindObject("stats")
-                stat.SetOptStat(1101)
-                stat.SetY1NDC(0.6)
+                ROOT.gStyle.SetOptStat(1101)
+                stat.SetY1NDC(0.5)
                 stat.SetY2NDC(0.99)
-                stat.SetX1NDC(0.65)
+                stat.SetX1NDC(0.55)
                 stat.SetX2NDC(0.99)
                 stat.SetStatFormat("6.2g")
+                stat.SetFillStyle(0)
+                ROOT.gPad.Modified()
+                ROOT.gPad.Draw()
                 index+=1
             except KeyError:
                 print(key)
                 continue
-        c_multi[bv].SaveAs(f"{plotDir}/histos_sweep_power_{bv}mV.png")
+        c_multi_bv[bv].SetLogy()
+        c_multi_bv[bv].SaveAs(f"{plotDir}/histos_sweep_power_{bv}mV.png")
 
     c_multi_power = {}
     for ipower, power in enumerate(powers):
-        c_multi[power] = ROOT.TCanvas(f"c_multi_{power}",f"c_multi_{power}",1800,900)
-        c_multi[power].SetFixedAspectRatio(True)
+        c_multi_power[power] = ROOT.TCanvas(f"c_multi_{power}",f"c_multi_{power}",1800,900)
+        c_multi_power[power].SetFixedAspectRatio(True)
         ROOT.gStyle.SetPadBorderMode(0)
         cx = 5
         cy = int(len(bvs)/6) if int(len(bvs)%6==0) else int(len(bvs)/6)+1
-        c_multi[power].Divide(cx,cy,0,0)
+        c_multi_power[power].Divide(cx,cy,0,0)
         index=0
         for ibv, bv in enumerate(bvs):
             key = str(power) + 'uW_' + str(bv) + 'mV'
             try:
-                pad = c_multi[power].cd(index+1)
-                # pad.SetLogy()
+                pad = c_multi_power[power].cd(index+1)
+                pad.SetLogy()
                 histos[key].GetXaxis().SetTitle("")
                 histos[key].GetYaxis().SetTitle("")
                 histos[key].GetXaxis().SetLabelSize(0.1)
                 histos[key].GetYaxis().SetLabelSize(0.1)
                 histos[key].SetTitle("")
-                histos[key].SetName(f"{float(power/1000):.1f}uW_{bcs[ipower]}uA")
+                histos[key].SetName(f"{float(power/1000):.1f}uW_{bcs[ibv]}uA")
                 histos[key].Draw()
                 ROOT.gPad.Update()
+                ROOT.gStyle.SetOptStat(1101)
                 stat = histos[key].FindObject("stats")
-                stat.SetOptStat(1101)
-                stat.SetY1NDC(0.6)
+                stat.SetY1NDC(0.55)
                 stat.SetY2NDC(0.99)
-                stat.SetX1NDC(0.65)
+                stat.SetX1NDC(0.55)
                 stat.SetX2NDC(0.99)
                 stat.SetStatFormat("6.2g")
+                stat.SetFillStyle(0)
+                ROOT.gPad.Modified()
+                ROOT.gPad.Draw()
                 index+=1
             except KeyError:
                 print(key)
                 continue
-        c_multi[power].SaveAs(f"{plotDir}/histos_sweep_power_{power}uW.png")
+        c_multi_power[power].SaveAs(f"{plotDir}/histos_sweep_bv_{power}nW.png")
+
+def multi_histo_canvas_fit(powers,bvs,bcs,histos,plotDir):
+    c_multi_bv = {}
+    for ibv, bv in enumerate(bvs):
+        c_multi_bv[bv] = ROOT.TCanvas(f"c_multi_{bv}",f"c_multi_{bv}",1800,900)
+        c_multi_bv[bv].SetFixedAspectRatio(True)
+        ROOT.gStyle.SetPadBorderMode(0)
+        cx = 5
+        cy = int(len(powers)/5) if int(len(powers)%5==0) else int(len(powers)/5)+1
+        c_multi_bv[bv].Divide(cx,cy,0,0)
+        index=0
+        for ipow, power in enumerate(powers):
+            key = str(power) + 'uW_' + str(bv) + 'mV'
+            try:
+                pad = c_multi_bv[bv].cd(index+1)
+                pad.SetLogy()
+                histos[key].GetXaxis().SetTitle("")
+                histos[key].GetYaxis().SetTitle("")
+                histos[key].GetXaxis().SetLabelSize(0.1)
+                histos[key].GetYaxis().SetLabelSize(0.1)
+                histos[key].SetTitle("")
+                histos[key].SetName(f"{float(power/1000):.1f}uW_{bcs[ibv]}uA")
+                histos[key].Draw()
+                ROOT.gPad.Update()
+                stat = histos[key].FindObject("stats")
+                ROOT.gStyle.SetOptStat("n")
+                ROOT.gStyle.SetOptFit(0o0011)
+                stat.SetY1NDC(0.5)
+                stat.SetY2NDC(0.99)
+                stat.SetX1NDC(0.55)
+                stat.SetX2NDC(0.99)
+                stat.SetStatFormat("6.2g")
+                stat.DrawClone()
+                pad.Modified();
+                index+=1
+            except KeyError:
+                print(key)
+                continue
+        c_multi_bv[bv].SetLogy()
+        c_multi_bv[bv].SaveAs(f"{plotDir}/histos_sweep_power_{bv}mV_fit.png")
+
+    c_multi_power = {}
+    for ipower, power in enumerate(powers):
+        c_multi_power[power] = ROOT.TCanvas(f"c_multi_{power}",f"c_multi_{power}",1800,900)
+        c_multi_power[power].SetFixedAspectRatio(True)
+        ROOT.gStyle.SetPadBorderMode(0)
+        cx = 5
+        cy = int(len(bvs)/6) if int(len(bvs)%6==0) else int(len(bvs)/6)+1
+        c_multi_power[power].Divide(cx,cy,0,0)
+        index=0
+        for ibv, bv in enumerate(bvs):
+            key = str(power) + 'uW_' + str(bv) + 'mV'
+            try:
+                pad = c_multi_power[power].cd(index+1)
+                pad.SetLogy()
+                histos[key].GetXaxis().SetTitle("")
+                histos[key].GetYaxis().SetTitle("")
+                histos[key].GetXaxis().SetLabelSize(0.1)
+                histos[key].GetYaxis().SetLabelSize(0.1)
+                histos[key].SetTitle("")
+                histos[key].SetName(f"{float(power/1000):.1f}uW_{bcs[ibv]}uA")
+                histos[key].Draw()
+                ROOT.gPad.Update()
+                ROOT.gStyle.SetOptStat("n")
+                ROOT.gStyle.SetOptFit(0o0011)
+                stat = histos[key].FindObject("stats")
+                stat.SetY1NDC(0.55)
+                stat.SetY2NDC(0.99)
+                stat.SetX1NDC(0.55)
+                stat.SetX2NDC(0.99)
+                stat.SetStatFormat("6.2g")
+                stat.DrawClone()
+                pad.Modified();
+                index+=1
+            except KeyError:
+                print(key)
+                continue
+        c_multi_power[power].SaveAs(f"{plotDir}/histos_sweep_bv_{power}nW_fit.png")
+
+def multi_histo_canvas_fitlimit(powers,bvs,bcs,histos,integrals,plotDir):
+    c_multi_bv = {}
+    for ibv, bv in enumerate(bvs):
+        c_multi_bv[bv] = ROOT.TCanvas(f"c_multi_{bv}",f"c_multi_{bv}",1800,900)
+        c_multi_bv[bv].SetFixedAspectRatio(True)
+        ROOT.gStyle.SetPadBorderMode(0)
+        cx = 5
+        cy = int(len(powers)/5) if int(len(powers)%5==0) else int(len(powers)/5)+1
+        c_multi_bv[bv].Divide(cx,cy,0,0)
+        index=0
+        for ipow, power in enumerate(powers):
+            key = str(power) + 'uW_' + str(bv) + 'mV'
+            try:
+                pad = c_multi_bv[bv].cd(index+1)
+                pad.SetLogy()
+                histos[key].GetXaxis().SetTitle("")
+                histos[key].GetYaxis().SetTitle("")
+                histos[key].GetXaxis().SetLabelSize(0.1)
+                histos[key].GetYaxis().SetLabelSize(0.1)
+                histos[key].SetTitle("")
+                histos[key].SetName(f"{float(power/1000):.1f}uW_{bcs[ibv]}uA")
+                histos[key].Draw()
+                ROOT.gPad.Update()
+                stat = histos[key].FindObject("stats")
+                ROOT.gStyle.SetOptFit(0)
+                ROOT.gStyle.SetOptStat("ne")
+                stat.SetY1NDC(0.5)
+                stat.SetY2NDC(0.99)
+                stat.SetX1NDC(0.55)
+                stat.SetX2NDC(0.99)
+                stat.SetOptFit(0000)
+                stat.AddText(f"NoSig={float(integrals[key]/histos[key].GetEntries())*100:.0f}%")
+                stat.SetStatFormat("6.2g")
+                stat.DrawClone()
+                pad.Modified();
+                index+=1
+            except KeyError:
+                print(key)
+                continue
+        c_multi_bv[bv].SetLogy()
+        c_multi_bv[bv].SaveAs(f"{plotDir}/histos_sweep_power_{bv}mV_fitlimit.png")
+
+    c_multi_power = {}
+    for ipower, power in enumerate(powers):
+        c_multi_power[power] = ROOT.TCanvas(f"c_multi_{power}",f"c_multi_{power}",1800,900)
+        c_multi_power[power].SetFixedAspectRatio(True)
+        ROOT.gStyle.SetPadBorderMode(0)
+        cx = 5
+        cy = int(len(bvs)/6) if int(len(bvs)%6==0) else int(len(bvs)/6)+1
+        c_multi_power[power].Divide(cx,cy,0,0)
+        index=0
+        for ibv, bv in enumerate(bvs):
+            key = str(power) + 'uW_' + str(bv) + 'mV'
+            try:
+                pad = c_multi_power[power].cd(index+1)
+                pad.SetLogy()
+                histos[key].GetXaxis().SetTitle("")
+                histos[key].GetYaxis().SetTitle("")
+                histos[key].GetXaxis().SetLabelSize(0.1)
+                histos[key].GetYaxis().SetLabelSize(0.1)
+                histos[key].SetTitle("")
+                histos[key].SetName(f"{float(power/1000):.1f}uW_{bcs[ibv]}uA")
+                histos[key].Draw()
+                ROOT.gPad.Update()
+                ROOT.gStyle.SetOptFit(0)
+                ROOT.gStyle.SetOptStat("ne")
+                stat = histos[key].FindObject("stats")
+                stat.SetY1NDC(0.55)
+                stat.SetY2NDC(0.99)
+                stat.SetX1NDC(0.55)
+                stat.SetX2NDC(0.99)
+                stat.SetStatFormat("6.2g")
+                stat.SetOptFit(0000)
+                stat.AddText(f"NoSig={float(integrals[key]/histos[key].GetEntries())*100:.0f}%")
+                stat.DrawClone()
+                pad.Modified();
+                index+=1
+            except KeyError:
+                print(key)
+                continue
+        c_multi_power[power].SaveAs(f"{plotDir}/histos_sweep_bv_{power}nW_fitlimit.png")
 
 def calculate_tree():
     for in_filename in args.in_filenames:
@@ -332,6 +500,7 @@ def calculate_tree():
         # initialize histo
         nbin, range_min, range_max= 64, -0.5, 2
         h_pulse_fall_range = ROOT.TH1F(f"h_pulse_fall_range_{bias_current}",f"h_pulse_fall_range_{bias_current}",nbin,range_min,range_max)
+        h_pulse_fall_range_limitfit = ROOT.TH1F(f"h_pulse_fall_range_{bias_current}_limitfit",f"h_pulse_fall_range_{bias_current}_limitfit",nbin,range_min,range_max)
         h_pulse_fall_time = ROOT.TH1F("h_pulse_fall_time","h_pulse_fall_time",20,0,12)
         h_pre_range = ROOT.TH1F("h_pre_range","h_pre_range",100,0.,0.3)
         h_eff = ROOT.TH1F("h_eff","h_eff",2,0,2)
@@ -341,6 +510,7 @@ def calculate_tree():
             project(intree,h_pulse_fall_range,"pulse_fall_range","",basename,"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range")
         except AttributeError:
             continue
+        project(intree,h_pulse_fall_range_limitfit,"pulse_fall_range","",basename,"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range")
         project(intree,h_pulse_fall_time,"pulse_fall_tau","",basename,"pulse fall time constant (0.4ns)",f"Event",plotDir,"h_pulse_fall_time")
         project(intree,h_pre_range,"pre_range","",basename,"pre_range (V)","Event",plotDir,"h_pre_range")
         project(intree,h_eff,"1","pulse_fall_range>0.1",basename,"Pulse detected","Event",plotDir,"h_eff")
@@ -349,7 +519,10 @@ def calculate_tree():
         # h_pulse_fall_range_rebin2 = rebin(h_pulse_fall_range_rebin1,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin2",True)
         # h_pulse_fall_range_rebin3 = rebin(h_pulse_fall_range_rebin2,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin3",True)
         # Fit
-        mean, mean_error, std, std_error, integral = fit_histo_gaus(h_pulse_fall_range, -0.5, 2, 0.003855, 0.003855, 0.03125, 0.03125, 0, 10000, f"fit_pulse_fall_range_{basename}", 'pulse_range (V)', "", f"{plotDir}/fit_pulse_fall_range.png")
+        if (args.fit):
+            mean, mean_error, std, std_error, integral = fit_histo_gaus(h_pulse_fall_range, -0.5, 2, f"fit_pulse_fall_range_{basename}", 'pulse_range (V)', "", f"{plotDir}/fit_pulse_fall_range.png")
+            mean, mean_error, std, std_error, const, const_error, integral = fit_histo_gaus_limit(h_pulse_fall_range_limitfit, -0.5, 2, 0.003854, 0.003854, 0.03126, 0.03126, 0, 10000,  f"fit_pulse_fall_range_{basename}", 'pulse_range (V)', "", f"{plotDir}/fit_pulse_fall_range_limitfit.png")
+            integrals[basename] = integral/0.0390625
         # Calculate
         eff = h_eff.Integral()/intree.GetEntries()
         pre_range = h_pre_range.GetMean()
@@ -373,20 +546,28 @@ def calculate_tree():
         pre_range_errs[basename] = pre_range_err
         # Histograms
         h_pulse_fall_ranges[basename] = h_pulse_fall_range.Clone()
-        h_pulse_fall_range.SetDirectory(0)
+        h_pulse_fall_ranges_limitfit[basename] = h_pulse_fall_range_limitfit.Clone()
         h_pulse_fall_ranges[basename].SetDirectory(0)
-        print(f"{basename}: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV, integral = {integral}")
+        h_pulse_fall_ranges_limitfit[basename].SetDirectory(0)
+        print(f"{basename}: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV")
 
 def plots():
+    # Sort sweep variables
     Pows.sort()
     BVs.sort()
     BCs.sort()
-    plotDir = args.in_filenames[0].split('nW/')[0] + "nW/"
-    print(Pows,BVs,BCs)
+    plotDir = args.in_filenames[0].split('nW/')[0].rsplit('/',1)[0]
+    # Graphs of stats vs sweep. variables
     Graph_sweep(Pows,BVs,BCs,effs,title="g_eff",ytit="Pulse Detection Efficiency (%)",ymin=0,ymax=1.2)
     Graph_sweep(Pows,BVs,BCs,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)",ymin=0,ymax=max(pulse_ranges.values())*1.2)
     Graph_sweep(Pows,BVs,BCs,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)",ymin=min(pre_ranges.values())*0.8,ymax=max(pre_ranges.values())*1.2)
-    multi_histo_canvas(Pows,BVs,BCs,h_pulse_fall_ranges,plotDir)
+    Graph_sweep(Pows,BVs,BCs,integrals,title="g_no_signal",ytit="No signal (%)",ymin=0,ymax=1.2)
+    # Multi histograms
+    if (args.fit):
+        multi_histo_canvas_fit(Pows,BVs,BCs,h_pulse_fall_ranges,plotDir)
+        multi_histo_canvas_fitlimit(Pows,BVs,BCs,h_pulse_fall_ranges_limitfit,integrals,plotDir)
+    else:
+        multi_histo_canvas(Pows,BVs,BCs,h_pulse_fall_ranges,plotDir)
 
 if __name__ == "__main__":
     # laser_power, bias_voltage, bias_current = get_info(args.in_filenames[0])
@@ -396,8 +577,8 @@ if __name__ == "__main__":
     # outfile = ROOT.TFile(f'{outDir}/plot_{laser_power}nW.root', 'RECREATE', f'plots for laser_power {laser_power}nW' )
     ROOT.gStyle.SetPalette(ROOT.kVisibleSpectrum)
     Pows,BVs,BCs = [],[],[] # List for sweep variables
-    effs, pulse_ranges, pulse_range_errs, pre_ranges, pre_range_errs={},{},{},{},{} # List for stats
-    h_pulse_fall_ranges={} # List of histos
+    effs, pulse_ranges, pulse_range_errs, pre_ranges, pre_range_errs, integrals={},{},{},{},{},{} # List for stats
+    h_pulse_fall_ranges,h_pulse_fall_ranges_limitfit={},{} # List of histos
     calculate_tree() # loop over the input files
     plots() # Plot them together
     # print(f'Outfile: {outDir}/plot_{laser_power}nW.root')
