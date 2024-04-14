@@ -128,10 +128,13 @@ def plot_histo_root(np1, nbin, rangemin, rangemax, name, xTitle, title, saveTitl
     c1.SaveAs(saveTitle)
     return hist
 
-def fit_histo_gaus(hist, rangemin, rangemax, name, xTitle, title, saveTitle):
+def fit_histo_gaus(hist, rangemin, rangemax, mean_min, mean_max, sigma_min, sigma_max, c_min, c_max, name, xTitle, title, saveTitle):
     c1 = ROOT.TCanvas()
     fit = ROOT.TF1("fit","gaus",rangemin, rangemax)
     fit.SetLineWidth(3)
+    fit.SetParLimits(0,c_min,c_max)
+    fit.SetParLimits(1,mean_min,mean_max)
+    fit.SetParLimits(2,sigma_min,sigma_max)
     hist.Fit("fit",'R')
     # Draw hist
     hist.SetTitle(title)
@@ -143,7 +146,8 @@ def fit_histo_gaus(hist, rangemin, rangemax, name, xTitle, title, saveTitle):
     mean_error = fit.GetParError(1)
     std = fit.GetParameter(2)
     std_error = fit.GetParError(2)
-    return mean, mean_error, std, std_error
+    integral = fit.Integral(rangemin, rangemax)
+    return mean, mean_error, std, std_error, integral
 
 def color(i):
     colorwheel = [416, 600, 800, 632, 880, 432, 616, 860, 820, 900, 420, 620, 820, 652, 1000, 452, 636, 842, 863, 823]
