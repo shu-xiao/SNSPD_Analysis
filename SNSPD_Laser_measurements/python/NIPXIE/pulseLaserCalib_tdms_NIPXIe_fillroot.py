@@ -151,8 +151,9 @@ def FWHM(data,value):
     data_xIndex = np.arange(len(data))
     # Cubic Spline Fit
     data_spline=CubicSpline(data_xIndex,data)
+    rise_50, fall_50 = Get_Function_FWHM(data_spline,value,cf.Pulse_startT,cf.Pulse_endT))
+    print(rise_50, fall_50, fall_50-rise_50)
     if (cf.DISPLAY): display_spline_fit(data_spline,data_xIndex)
-    print(Get_Function_FWHM(data_spline,value,cf.Pulse_startT,cf.Pulse_endT))
 
 def Fit_pulse_fall(graph,event):
     fitFunc_fall, fitResult_fall = Fit_time_constant_fall(graph,pulse_max_T[0],pulse_max_T[0]+30,"SQR","sames",ROOT.kRed)
