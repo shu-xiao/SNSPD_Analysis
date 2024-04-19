@@ -36,7 +36,7 @@ def Get_Function_FWHM(inputfunc, value, rangeMin, rangeMax):
     time = Get_Xs(inputfunc, value, rangeMin, rangeMax)
     # print(f"Time of Arrival: {time[0]}")
     if (len(time)>1): return time[0],time[1]
-    else: return -999
+    else: return -999,0
 
 
 def Get_df_Arrival(df, chName, value):
