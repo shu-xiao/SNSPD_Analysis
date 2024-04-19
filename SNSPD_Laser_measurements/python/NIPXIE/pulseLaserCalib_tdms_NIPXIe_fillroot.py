@@ -152,7 +152,7 @@ def FWHM(data,value):
     # Cubic Spline Fit
     data_spline=CubicSpline(data_xIndex,data)
     rise_50, fall_50 = Get_Function_FWHM(data_spline,value,0,1000)
-    print(rise_50, fall_50, fall_50-rise_50)
+    print(value,rise_50, fall_50, fall_50-rise_50)
     if (cf.DISPLAY): display_spline_fit(data_spline,data_xIndex)
 
 def Fit_pulse_fall(graph,event):
