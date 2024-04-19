@@ -21,7 +21,7 @@ from ..utils.tdmsUtils import *
 from ..utils.plotUtils import *
 from ..utils.osUtils import *
 from ..utils.fitfunctions import *
-from ..config import SNSPD_ver8_config as cf
+from ..config import config as cf
 
 import argparse
 parser = argparse.ArgumentParser(description='')
