@@ -26,7 +26,7 @@ from ..config import SNSPD_ver8_config as cf
 import argparse
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('in_filenames',nargs="+",help='input filenames')
-parser.add_argument('--outputDir','-d',default="./plots/test",type=str,help='output directory')
+parser.add_argument('--outputDir','-d',default="./plots",type=str,help='output directory')
 parser.add_argument('--report','-r',default=1000,type=int,help='report every x events')
 parser.add_argument('--checkSingleEvent','-c',default=-1,type=int,help='Check Single Event')
 parser.add_argument('--debug_report','-b',action="store_true",help='report every x events')
@@ -146,6 +146,12 @@ def single_pulse_spectrum(chSig,Pulse_spectrums,event):
     if(pulse_max[0] > pre_max[0]):
         graph_clone = graph.Clone()
         Fit_pulse_fall(graph_clone,event)
+
+def FWHM(data,value):
+    data_xIndex = np.arange(len(data))
+    # Cubic Spline Fit
+    data_spline=CubicSpline(data_xIndex,data)
+    print(Get_Function_FWHM(data_spline,value,cf.Pulse_startT,cf.Pulse_endT))
 
 def Fit_pulse_fall(graph,event):
     fitFunc_fall, fitResult_fall = Fit_time_constant_fall(graph,pulse_max_T[0],pulse_max_T[0]+30,"SQR","sames",ROOT.kRed)
@@ -301,6 +307,7 @@ def SingleTDMS_analysis():
                 if Sideband_selection(): # Record extra information if Sideband selection passed
                     debugPrint("pass sideband selection")
                     single_pulse_spectrum(chSig, Pulse_spectrums, event) # Draw pulse spectrum to a graph and Fit falling time constant
+                    FWHM(chSig,(pulse_max[0]-pre_mean[0])/2)
                     if (args.doAdvanced): Advanced_pulse_analysis(chSig, chTrig_arrivalT, event) # Do advanced analysis (Rising time, timing jitter, sophisticated amplitude)
                     if (cf.DISPLAY): event_display_2ch(chSig,chTrig,f'Waveform{event}', 0.02)
                     if (event<cf.avgCount):
@@ -337,7 +344,7 @@ if __name__ == "__main__":
     for in_filename in args.in_filenames:
         print(f"########## input file: {in_filename} ##########")
         basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
-        baseDir = in_filename.split('Laser/')[1].rsplit('/',1)[0]
+        baseDir = in_filename.split('SNSPD_rawdata/')[1].rsplit('/',1)[0]
         outDir = args.outputDir + '/' + baseDir + '/' + basename
         metaFileName = outDir + '/' + in_filename.rsplit('/',1)[1].split('.tdms')[0] + ".json"
         createDir(outDir)

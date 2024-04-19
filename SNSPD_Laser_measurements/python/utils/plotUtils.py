@@ -75,6 +75,17 @@ def event_display_fft(np1, freqs, mags, xmin, xmax):
     plt.show()
     plt.close('all')
 
+# def event_display_TGraph2matpoltlib(graphs,):
+#     graphs
+#     plt.plot(range(len(np)), np)
+#     # Add labels to the plot
+#     plt.title(title,fontsize=15)
+#     plt.xlabel('Index [0.4ns]',fontsize=15)
+#     plt.ylabel('ADC [Volts]',fontsize=15)
+#     plt.tight_layout()
+#     # Display the plot
+#     plt.show()
+
 def display_spline_fit(spline_func, x_index):
     x_spline_range = np.linspace(x_index.min(), x_index.max(), num=10000)
     y_spline = spline_func(x_spline_range)

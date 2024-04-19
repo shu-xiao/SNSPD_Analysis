@@ -32,6 +32,13 @@ def Get_Function_Arrival(inputfunc, value, rangeMin, rangeMax):
     if (len(time)>0): return time[0]
     else: return -999
 
+def Get_Function_FWHM(inputfunc, value, rangeMin, rangeMax):
+    time = Get_Xs(inputfunc, value, rangeMin, rangeMax)
+    # print(f"Time of Arrival: {time[0]}")
+    if (len(time)>1): return time[1]-time[0]
+    else: return -999
+
+
 def Get_df_Arrival(df, chName, value):
     idx = (np.abs(df[chName] - value)).idxmin()
     print(f"Time of Arrival: {idx} {df.loc[idx,'Time']} ")

@@ -3,6 +3,13 @@
 import math
 import ROOT
 
+def alt_expo(x,p):
+    y = math.exp(p[0]+p[1]*x[0])
+    if (y>1):
+        return 1
+    else:
+        return y
+
 def fitFunc_pulse_params(x, p):
     t = x[0]
     A = p[0]
@@ -39,7 +46,6 @@ def fitFunc_rise_params(x,p):
     offset = p[3]
     total = A*(math.exp((t-t0)/tau))+offset
     return total
-
 
 def fitFunc_rise_fall_params(x,p):
     t = x[0]
