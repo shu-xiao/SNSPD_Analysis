@@ -309,7 +309,7 @@ def SingleTDMS_analysis():
                 if Sideband_selection(): # Record extra information if Sideband selection passed
                     debugPrint("pass sideband selection")
                     single_pulse_spectrum(chSig, Pulse_spectrums, event) # Draw pulse spectrum to a graph and Fit falling time constant
-                    FWHM(chSig,(pulse_max[0]+pre_mean[0])/2)
+                    FWHM(chSig,pulse_range[0]/2)
                     if (args.doAdvanced): Advanced_pulse_analysis(chSig, chTrig_arrivalT, event) # Do advanced analysis (Rising time, timing jitter, sophisticated amplitude)
                     if (cf.DISPLAY): event_display_2ch(chSig,chTrig,f'Waveform{event}', 0.02)
                     if (event<cf.avgCount):
