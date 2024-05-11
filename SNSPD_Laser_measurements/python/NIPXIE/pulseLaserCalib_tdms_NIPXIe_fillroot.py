@@ -109,7 +109,7 @@ def Simple_pulse_analysis(data, event, ipulse):
     debugPrint(f'Rise Range = {pulse_rise_range[0]:.5f}, Fall Range = {pulse_fall_range[0]:.5f}, Pre-range = {pre_range[0]:.5f}, (pulse-pre)/pre = {pulse_pre_range:.5f}')
     debugPrint(f'maxT = {pulse_max_T[0]:.0f}, max = {pulse_max[0]:.2f}')
 
-def Common_mode_analysis(chSig_average, data):
+def Common_mode_analysis(chSig_average, data, event):
     chSig_average = np.add(chSig_average,data)
     if (cf.DISPLAY): event_display(chSig_average,f'Waveform{event}')
     return chSig_average
@@ -317,7 +317,7 @@ def SingleTDMS_analysis():
                     if (args.doAdvanced): Advanced_pulse_analysis(chSig, chTrig_arrivalT, event) # Do advanced analysis (Rising time, timing jitter, sophisticated amplitude)
                     # if (cf.DISPLAY): event_display_2ch(chSig,chTrig,f'Waveform{event}', 0.02)
                     if (event<cf.avgCount):
-                        chSig_average = Common_mode_analysis(chSig_average, chSig) # Create average signal spectrum
+                        chSig_average = Common_mode_analysis(chSig_average, chSig, event) # Create average signal spectrum
                         freqs, mags = FFT(chSig,dt)
                         for freq, mag in zip(freqs,np.abs(mags)): h_fft_2d.Fill(freq,mag)
                     outtree.Fill() # Fill tree
