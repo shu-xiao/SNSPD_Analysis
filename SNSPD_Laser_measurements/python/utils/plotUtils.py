@@ -8,6 +8,11 @@ import pandas as pd
 import ROOT
 # import root_numpy
 
+def markers(i):
+    markers = ['o', 's', 'x', '^', 'v', '+', '.', 'd', 'p', 'h',
+               '1', '2', '3', '4', '8', '|', '_', ',', '*', 'H']
+    return markers[i]
+
 def event_display(np,title='Waveform'):
     # Create a line plot of the data
     plt.plot(range(len(np)), np)
@@ -163,13 +168,13 @@ def fit_histo_gaus(hist, rangemin, rangemax, name, xTitle, title, saveTitle):
 def fit_histo_gaus_limit(hist, rangemin, rangemax, mean_min, mean_max, sigma_min, sigma_max, c_min, c_max, name, xTitle, title, saveTitle):
     c1 = ROOT.TCanvas()
     fit = ROOT.TF1("fit","gausn",rangemin, rangemax)
-    fit.SetLineWidth(2)
+    fit.SetLineWidth(1)
     fit.SetParLimits(0,c_min,c_max)
     fit.SetParLimits(1,mean_min,mean_max)
     fit.SetParLimits(2,sigma_min,sigma_max)
-    fit.SetParameter(1,mean_min)
-    fit.SetParameter(2,sigma_min)
-    hist.Fit("fit",'IQBR')
+    fit.SetParameter(0,100)
+    # fit.SetParameter(1,(mean_min+mean_max)/2)
+    fitResults = hist.Fit("fit",'IQBRS')
     mean = fit.GetParameter(1)
     mean_error = fit.GetParError(1)
     std = fit.GetParameter(2)
@@ -177,6 +182,7 @@ def fit_histo_gaus_limit(hist, rangemin, rangemax, mean_min, mean_max, sigma_min
     const = fit.GetParameter(0)
     const_error = fit.GetParError(0)
     integral = fit.Integral(rangemin, rangemax)
+    integral /= hist.GetBinWidth(1)
     # Draw hist
     hist.SetTitle(title)
     hist.GetXaxis().SetTitle(xTitle)
@@ -186,7 +192,7 @@ def fit_histo_gaus_limit(hist, rangemin, rangemax, mean_min, mean_max, sigma_min
     st.AddText(f"Integral={integral}")
     fit.Draw("same")
     c1.SaveAs(saveTitle)
-    return mean, mean_error, std, std_error, const, const_error, integral
+    return mean, mean_error, std, std_error, const, const_error, integral, fitResults
 
 def color(i):
     colorwheel = [416, 600, 800, 632, 880, 432, 616, 860, 820, 900, 420, 620, 820, 652, 1000, 452, 636, 842, 863, 823]

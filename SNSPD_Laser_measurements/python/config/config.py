@@ -8,15 +8,15 @@ DISPLAY = False
 NpulsePerTrigger=1
 # Define signal region
 Pulse_startT     =  308 #312 #67 #200 #215
-Pulse_endT       =  340 #125 #215 #245
+Pulse_endT       =  342 #125 #215 #245
 # Define rising and falling separation
-Pulse_rise_endT     =  311 #75 #200 #215
+Pulse_rise_endT     =  313 #75 #200 #215
 # Define pre-pulse (sideband) region
 prePulse_startT  =  200 #100
 prePulse_endT    =  300 #160
 # Define post-pulse (sideband) region
-postPulse_startT =  180 #230
-postPulse_endT   =  199 #250
+postPulse_startT =  600 #230
+postPulse_endT   =  800 #250
 
 # Sideband pre-selection
 cut_preRange = 0.11

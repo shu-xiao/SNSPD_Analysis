@@ -14,6 +14,7 @@ np.seterr(all='ignore')
 from enum import Enum
 import json
 import math
+import datetime
 
 # User defined functions
 from ..utils.Timing_Analyzer import *
@@ -21,7 +22,7 @@ from ..utils.tdmsUtils import *
 from ..utils.plotUtils import *
 from ..utils.osUtils import *
 from ..utils.fitfunctions import *
-from ..config import config as cf
+from ..config import SNSPD_5_config as cf
 
 import argparse
 parser = argparse.ArgumentParser(description='')
@@ -101,7 +102,8 @@ def Simple_pulse_analysis(data, event, ipulse):
     pulse_max_T[0] = cf.Pulse_startT + np.argmax(data[cf.Pulse_startT:cf.Pulse_endT])
     pulse_min_T[0] = cf.Pulse_rise_endT + np.argmin(data[cf.Pulse_rise_endT:cf.Pulse_endT])
     pulse_rise_range[0] = data[cf.Pulse_rise_endT] - data[cf.Pulse_startT]
-    pulse_fall_range[0] = data[cf.Pulse_rise_endT] - data[cf.Pulse_endT]
+    pulse_fall_range[0] = data[cf.Pulse_rise_endT] - data[cf.Pulse_fall_endT]
+    pulse_rise_range_ptb[0] = pulse_max[0] - pre_mean[0]
     pulse_fall_range_ptp[0] = np.ptp(data[cf.Pulse_rise_endT:cf.Pulse_endT])
     pulse_pre_range = (pulse_fall_range[0]-pre_range[0])/pre_range[0]
     debugPrint(f'Rise Range = {pulse_rise_range[0]:.5f}, Fall Range = {pulse_fall_range[0]:.5f}, Pre-range = {pre_range[0]:.5f}, (pulse-pre)/pre = {pulse_pre_range:.5f}')
@@ -152,6 +154,7 @@ def FWHM(data,value):
     # Cubic Spline Fit
     data_spline=CubicSpline(data_xIndex,data)
     rise_50, fall_50 = Get_Function_FWHM(data_spline,value,cf.Pulse_startT,cf.Pulse_endT)
+    pulse_FWHM[0] = fall_50 - rise_50
     debugPrint(f"{value},{rise_50}, {fall_50}, {fall_50-rise_50}")
     if (cf.DISPLAY): display_spline_fit(data_spline,data_xIndex)
 
@@ -279,7 +282,7 @@ def SingleTDMS_analysis():
         # Read Groups and Channels
         Read_Groups_and_Channels(tdms_file)
         chSig_total = tdms_file['ADC Readout Channels']['chSig']
-        chTrig_total = tdms_file['ADC Readout Channels']['chTrig']
+        # chTrig_total = tdms_file['ADC Readout Channels']['chTrig']
         # Initialize histos
         h_fft_2d = ROOT.TH2D("h_fft_2d","h_fft_2d",int(cf.freq_steps/2),0,SampleRate/2,1000,0,0.01)
 
@@ -288,7 +291,7 @@ def SingleTDMS_analysis():
         pulseCount = 0
         Pulse_spectrums = []
         # Start Loop
-        print (f"==========Start Looping==========")
+        print (f"==========Start Looping at {datetime.datetime.now()}==========")
         for event in range(totalEvents):
             # if (args.dryRun): break
             if (event == args.subset): break # Choose a subset of the whole data to do the analysis. -1 = run All
@@ -296,7 +299,7 @@ def SingleTDMS_analysis():
             if (args.checkSingleEvent!=-1 and event!=args.checkSingleEvent): continue
             if ((event)%args.report==0): print (f"==========Processing {event}/{totalEvents} event==========") # Loop progress
             chSig = chSig_total[event * recordlength:(event+1) * recordlength]  # Read chSig into np array
-            chTrig = chTrig_total[event * recordlength:(event+1) * recordlength] # Read chTrig into np array
+            # chTrig = chTrig_total[event * recordlength:(event+1) * recordlength] # Read chTrig into np array
             # event_display_2ch(chSig,chTrig,f'Waveform', 0.02)
             # chSig_diff = np.diff(chSig)
             # event_display_2ch(chSig,chSig_diff,f'Waveform', 0.04)
@@ -319,7 +322,7 @@ def SingleTDMS_analysis():
                     outtree.Fill() # Fill tree
                 else:
                     debugPrint(f"fail sideband selection: {pre_std[0]}, {pos_std[0]}, {pre_range[0]}, {pos_range[0]}")
-        print (f"==========End Looping==========")
+        print (f"==========End Looping at {datetime.datetime.now()}==========")
     # Output some numbers
     print(f"TotalEvents:{totalEvents}, TriggerPulse_Count:{pulseCount}, PassSideband_Count: {outtree.GetEntries()}")
     # Plots
@@ -336,7 +339,6 @@ def SingleTDMS_analysis():
     Stack_spectrums(Pulse_spectrums)
     h_fft_2d.Write()
 
-
 if __name__ == "__main__":
 
     if (args.debug_report==True): cf.DEBUG = True
@@ -345,7 +347,8 @@ if __name__ == "__main__":
 
     ########## Init ##########
     for in_filename in args.in_filenames:
-        print(f"########## input file: {in_filename} ##########")
+        print("\n##############################")
+        print(f"input file: {in_filename}")
         basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
         baseDir = in_filename.split('SNSPD_rawdata/')[1].rsplit('/',1)[0]
         outDir = args.outputDir + '/' + baseDir + '/' + basename
@@ -358,8 +361,9 @@ if __name__ == "__main__":
         out_metaname = ROOT.TNamed("metaDataName",metaFileName)
         # Define variables for branch
         pre_std, pos_std, pre_mean, pos_mean, pre_range, pos_range, pre_max, pos_max = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
-        pulse_rise_range, pulse_fall_range, pulse_fall_range_ptp = array('f',[0]),array('f',[0]),array('f',[0])
+        pulse_rise_range, pulse_fall_range, pulse_rise_range_ptb, pulse_fall_range_ptp = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
         pulse_amplitude, pulse_arrivalT, pulse_riseT, pulse_pre_range = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
+        pulse_FWHM = array('f',[0])
         pulse_fall_tau, pulse_fall_A, pulse_fall_t0, pulse_fall_C, pulse_fall_status = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
         pulse_rise_tau = array('f',[0])
         pulse_max, pulse_min, pulse_max_T, pulse_min_T = array('f',[0]),array('f',[0]),array('f',[0]),array('f',[0])
@@ -373,6 +377,7 @@ if __name__ == "__main__":
         outtree.Branch('pos_range', pos_range, 'pos_range/F')
         outtree.Branch('pos_max', pos_max, 'pos_max/F')
         outtree.Branch('pulse_rise_range', pulse_rise_range, 'pulse_rise_range/F')
+        outtree.Branch('pulse_rise_range_ptb', pulse_rise_range_ptb, 'pulse_rise_range_ptb/F')
         outtree.Branch('pulse_fall_range', pulse_fall_range, 'pulse_fall_range/F')
         outtree.Branch('pulse_fall_range_ptp', pulse_fall_range_ptp, 'pulse_fall_range_ptp/F')
         outtree.Branch('pulse_max', pulse_max, 'pulse_max/F')
@@ -385,6 +390,7 @@ if __name__ == "__main__":
         outtree.Branch('pulse_fall_t0', pulse_fall_t0, 'pulse_fall_t0/F')
         outtree.Branch('pulse_fall_C', pulse_fall_C, 'pulse_fall_C/F')
         outtree.Branch('pulse_fall_status', pulse_fall_status, 'pulse_fall_status/F')
+        outtree.Branch('pulse_FWHM', pulse_FWHM, 'pulse_FWHM/F')
         # outtree.Branch('pulse_pre_range', pulse_pre_range, 'pulse_pre_range/F')
         if (args.doAdvanced):
             outtree.Branch('pulse_amplitude', pulse_amplitude, 'pulse_amplitude/F')

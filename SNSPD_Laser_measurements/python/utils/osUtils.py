@@ -18,6 +18,7 @@ def createDir(Dir):
         os.makedirs(Dir)
     except OSError as e:
         if e.errno == errno.EEXIST:
-            print(f'{Dir} exists.')
+            pass
+            # print(f'{Dir} exists.')
         else:
             raise
