@@ -283,7 +283,7 @@ def SingleTDMS_analysis():
         # Read Groups and Channels
         Read_Groups_and_Channels(tdms_file)
         chSig_total = tdms_file['ADC Readout Channels']['chSig']
-        # chTrig_total = tdms_file['ADC Readout Channels']['chTrig']
+        chTrig_total = tdms_file['ADC Readout Channels']['chTrig']
         # Initialize histos
         h_fft_2d = ROOT.TH2D("h_fft_2d","h_fft_2d",int(cf.freq_steps/2),0,SampleRate/2,1000,0,0.01)
 
