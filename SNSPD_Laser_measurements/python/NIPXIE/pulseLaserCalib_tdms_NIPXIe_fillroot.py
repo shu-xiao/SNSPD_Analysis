@@ -145,7 +145,7 @@ def single_pulse_spectrum(chSig,Pulse_spectrums,event):
     graph.SetMarkerStyle(4)
     graph.SetMarkerSize(0.5)
     for i in range(len(chSig)): graph.SetPoint(i,i,chSig[i])
-    if(event<cf.avgCount): Pulse_spectrums.append(graph)
+    if(event<cf.avgMaxCount): Pulse_spectrums.append(graph)
     if(pulse_max[0] > pre_max[0]):
         graph_clone = graph.Clone()
         Fit_pulse_fall(graph_clone,event)
@@ -248,7 +248,7 @@ def average_plots(chSig_average,title):
     Pulse_avg_display.SetMarkerSize(0.5)
     Pulse_avg_display.Draw("ALP")
     leg = ROOT.TLegend(0.6,0.6,0.8,0.8)
-    leg.AddEntry(Pulse_avg_display,f"{cf.avgCount}-event-average signal spectrum","lp")
+    leg.AddEntry(Pulse_avg_display,f"{cf.avgMaxCount}-event-average signal spectrum","lp")
     # c1.SaveAs(f"{outDir}/{Pulse_avg_display.GetName()}.png")
     Pulse_avg_display.Write()
 
@@ -289,7 +289,7 @@ def SingleTDMS_analysis():
 
         # Initialize variables
         chSig_average = np.zeros(recordlength)
-        pulseCount = 0
+        pulseCount, avgCount = 0,0
         Pulse_spectrums = []
         # Start Loop
         print (f"==========Start Looping at {datetime.datetime.now()}==========")
@@ -316,7 +316,8 @@ def SingleTDMS_analysis():
                     FWHM(chSig,pulse_rise_range[0]/2)
                     if (args.doAdvanced): Advanced_pulse_analysis(chSig, chTrig_arrivalT, event) # Do advanced analysis (Rising time, timing jitter, sophisticated amplitude)
                     # if (cf.DISPLAY): event_display_2ch(chSig,chTrig,f'Waveform{event}', 0.02)
-                    if (event<cf.avgCount):
+                    if (event<cf.avgMaxCount):
+                        avgCount+=1
                         chSig_average = Common_mode_analysis(chSig_average, chSig, event) # Create average signal spectrum
                         freqs, mags = FFT(chSig,dt)
                         for freq, mag in zip(freqs,np.abs(mags)): h_fft_2d.Fill(freq,mag)
@@ -327,7 +328,7 @@ def SingleTDMS_analysis():
     # Output some numbers
     print(f"TotalEvents:{totalEvents}, TriggerPulse_Count:{pulseCount}, PassSideband_Count: {outtree.GetEntries()}")
     # Plots
-    chSig_average = chSig_average/cf.avgCount
+    chSig_average = chSig_average/avgCount
     freqs, mags = FFT(chSig_average,dt)
     FFT_plot(freqs,mags,"fft_average")
     freqs, mags = FFT(chSig_average[cf.Pulse_startT:cf.Pulse_endT],dt)
