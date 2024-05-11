@@ -111,6 +111,7 @@ def Simple_pulse_analysis(data, event, ipulse):
 
 def Common_mode_analysis(chSig_average, data):
     chSig_average = np.add(chSig_average,data)
+    if (cf.DISPLAY): event_display(chSig_average,f'Waveform{event}')
     return chSig_average
 
 def Find_Trigger_time_predefined():
