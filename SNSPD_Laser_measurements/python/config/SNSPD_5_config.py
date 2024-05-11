@@ -31,5 +31,5 @@ cut_pulseRange = 0.05
 freq_steps = 10000
 
 totalTreeEvents = 10000
-avgCount = 3000
+avgMaxCount = 3000
 threshold = 0.1
