@@ -283,7 +283,7 @@ def SingleTDMS_analysis():
         # Read Groups and Channels
         Read_Groups_and_Channels(tdms_file)
         chSig_total = tdms_file['ADC Readout Channels']['chSig']
-        chTrig_total = tdms_file['ADC Readout Channels']['chTrig']
+        # chTrig_total = tdms_file['ADC Readout Channels']['chTrig']
         # Initialize histos
         h_fft_2d = ROOT.TH2D("h_fft_2d","h_fft_2d",int(cf.freq_steps/2),0,SampleRate/2,1000,0,0.01)
 
@@ -315,7 +315,7 @@ def SingleTDMS_analysis():
                     single_pulse_spectrum(chSig, Pulse_spectrums, event) # Draw pulse spectrum to a graph and Fit falling time constant
                     FWHM(chSig,pulse_rise_range[0]/2)
                     if (args.doAdvanced): Advanced_pulse_analysis(chSig, chTrig_arrivalT, event) # Do advanced analysis (Rising time, timing jitter, sophisticated amplitude)
-                    if (cf.DISPLAY): event_display_2ch(chSig,chTrig,f'Waveform{event}', 0.02)
+                    # if (cf.DISPLAY): event_display_2ch(chSig,chTrig,f'Waveform{event}', 0.02)
                     if (event<cf.avgCount):
                         chSig_average = Common_mode_analysis(chSig_average, chSig) # Create average signal spectrum
                         freqs, mags = FFT(chSig,dt)
