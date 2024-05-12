@@ -93,7 +93,7 @@ def SingleTDMS_CW_analysis(in_filename):
             peaks, _ = find_peaks(chSig, height=threshold, distance=100)
             # Count peaks
             pulseCount[0] = len(peaks)
-            debugPrint(f"Event {event} Number of peaks above threshold:", num_peaks)
+            debugPrint(f"Event {event} Number of peaks above threshold:", pulseCount[0])
             counts = np.append(counts, pulseCount[0])
             # peak ranges
             for peak in peaks:
