@@ -71,7 +71,7 @@ def SingleTDMS_CW_analysis(in_filename):
         # Initialize arrays
         counts, pulseRanges = np.array([]), np.array([])
         # Set threshold
-        threshold = 0.3
+        threshold = 0.35
         # Start Looping through events
         print("========== Start Loop ==========")
         for event, chunk in enumerate(tdms_file.data_chunks()):
