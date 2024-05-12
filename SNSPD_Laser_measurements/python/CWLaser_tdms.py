@@ -21,7 +21,7 @@ from .config import CW_config as config
 import argparse
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('in_filenames',nargs="+",help='input filenames')
-parser.add_argument('--outputDir','-d',default="./plots/test/",type=str,help='output directory')
+parser.add_argument('--outputDir','-d',default="./plots",type=str,help='output directory')
 parser.add_argument('--report','-r',default=100,type=int,help='report every x events')
 parser.add_argument('--debug_report','-b',action="store_true",help='report every x events')
 parser.add_argument('--display_report','-p',action="store_true",help='report every x events')
@@ -36,8 +36,9 @@ def SingleTDMS_CW_analysis(in_filename):
         print(f"\n########## Processing {in_filename} ##########")
         # Directories
         basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
-        baseDir= in_filename.split('Laser/')[1].rsplit('/',1)[0]
+        baseDir = in_filename.split('SNSPD_rawdata/')[1].rsplit('/',1)[0]
         plotDir = args.outputDir + '/' + baseDir + '/' + basename
+        metaFileName = plotDir + '/' + in_filename.rsplit('/',1)[1].split('.tdms')[0] + ".json"
         print(f"output plot Directory: {plotDir}")
         # make outputDir
         try:
@@ -64,12 +65,13 @@ def SingleTDMS_CW_analysis(in_filename):
         recordlength = float(metadata_df.loc[metadata_df['metaKey'] == 'record length', 'metaValue'].iloc[0])
         sampleRate = float(metadata_df.loc[metadata_df['metaKey'] == 'actual sample rate', 'metaValue'].iloc[0])
         timeWindow = recordlength / sampleRate
+        metadata_df.to_json(metaFileName,orient="records",lines=True) # Write metadata to json file
         # Read Groups and Channels
         Read_Groups_and_Channels(tdms_file)
         # Initialize arrays
         counts, pulseRanges = np.array([]), np.array([])
         # Set threshold
-        threshold = 0.5
+        threshold = 0.15
         # Start Looping through events
         print("========== Start Loop ==========")
         for event, chunk in enumerate(tdms_file.data_chunks()):

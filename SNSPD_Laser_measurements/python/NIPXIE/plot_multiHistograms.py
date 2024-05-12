@@ -21,7 +21,7 @@ parser.add_argument('in_filenames',nargs="+",help='input filenames')
 parser.add_argument('--outputDir','-o',default="./output",type=str,help='output directory')
 parser.add_argument('--report','-r',default=10000,type=int,help='report every x events')
 parser.add_argument('--debug','-d',action="store_true",help='debug mode')
-parser.add_argument('--initPlot','-s',action="store_true",help='save histograms')
+parser.add_argument('--initPlot','-i',action="store_true",help='save histograms')
 parser.add_argument('--sweepBias',action="store_true",help='sweep bias mode')
 parser.add_argument('--sweepAll',action="store_true",help='Run all plots for each sweep variable')
 parser.add_argument('--sweepPolarization',action="store_true",help='Run plots for polarization')
@@ -195,15 +195,16 @@ def get_info(in_filename):
     sample_temperature = df[df['metaKey'] == 'Sample Temperature (K)']['metaValue'].iloc[0]
     attenuation = 0.03
     photon_number = calculate_pulse_photon(laser_power*1e-6,repetition_rate,attenuation,wavelength)
-    # infile = ROOT.TFile.Open(in_filename)
-    # inputDataName = infile.Get('inputDataName').GetTitle()
-    # with TdmsFile.open(inputDataName) as tdms_file:
-    #     # Read Meta Data (Basic information)
-    #     metadata = tdms_file.properties
-    #     metadata_df = pd.DataFrame(metadata.items(), columns=['metaKey', 'metaValue'])
-    #     laser_power = float(metadata_df.loc[metadata_df['metaKey'] == 'Laser Power (uW)', 'metaValue'].iloc[0])
-    #     bias_voltage = float(metadata_df.loc[metadata_df['metaKey'] == 'Bias Voltage (mV)', 'metaValue'].iloc[0])
-    #     bias_current = float(metadata_df.loc[metadata_df['metaKey'] == 'Bias Current (nA)', 'metaValue'].iloc[0])
+   # Append sweep variables
+    if photon_number not in Photons:
+        Photons.append(photon_number)
+    if bias_voltage not in BVs:
+        BVs.append(bias_voltage)
+        BCs.append(bias_current)
+    if polarization not in Polars:
+        Polars.append(polarization)
+    # if sample_temperature not in Temps:
+    Temps.append(sample_temperature)
     return laser_power, bias_voltage, bias_current, photon_number, polarization, sample_temperature, vertical_range, vertical_offset
 
 def getkey(photon_number,bias_voltage,polarization,sample_temperature):
@@ -319,10 +320,13 @@ def Graph_sweep(polar, temp, photons, bvs, bcs, stat, title="graph", ytit="", pl
     ax.set_ylabel(ytit,fontsize=15)
     ax.set_title(f'{title}_sweep_photon',fontsize=15)
     ax.legend(title='Bias Voltage')
-    ax.set_yscale('log')
     plt.tight_layout()
     plt.savefig(f"{plotDir}/{title}_sweep_photon.png", format='png')
     print(f"{plotDir}/{title}_sweep_photon.png")
+    ax.set_yscale('log')
+    ax.set_title(f'{title}_sweep_photon_log',fontsize=15)
+    plt.savefig(f"{plotDir}/{title}_sweep_photon_log.png", format='png')
+    print(f"{plotDir}/{title}_sweep_photon_log.png")
     plt.close()
 
     fig1, ax1 = plt.subplots()
@@ -342,11 +346,14 @@ def Graph_sweep(polar, temp, photons, bvs, bcs, stat, title="graph", ytit="", pl
     ax1.set_xlabel(r'Bias Current ($\mu$A)',fontsize=15)
     ax1.set_ylabel(ytit,fontsize=15)
     ax1.set_title(f'{title}_sweep_bias',fontsize=15)
-    ax1.set_yscale('log')
     ax1.legend(title='Photon number')
     plt.tight_layout()
     plt.savefig(f"{plotDir}/{title}_sweep_bias.png", format='png')
     print(f"{plotDir}/{title}_sweep_bias.png")
+    ax1.set_yscale('log')
+    ax1.set_title(f'{title}_sweep_bias_log',fontsize=15)
+    plt.savefig(f"{plotDir}/{title}_sweep_bias_log.png", format='png')
+    print(f"{plotDir}/{title}_sweep_bias_log.png")
     plt.close()
 
 def Graph_sweep_var_err(bias, var, var_err, title="graph", xtit="Bias Current (#mnA)",ytit=""):
@@ -392,8 +399,8 @@ def fit_histo(hist, rangemin, rangemax, name, xTitle, title, saveTitle):
         fit.SetParameter(1,0.1)
         fit.SetParameter(2,0.02)
     else:
-        fit.SetParameter(0,100)
-        fit.SetParameter(1,0.2)
+        fit.SetParameter(0,10)
+        fit.SetParameter(1,0.25)
         fit.SetParameter(2,0.01)
     # fit.SetParameter(1,(mean_min+mean_max)/2)
     fitResults = hist.Fit("fit",'IQRS')
@@ -759,7 +766,7 @@ def gettree():
         # Initialize variables
         if (vertical_range==0.05): nbin=pow(2,6)
         elif (vertical_range==0.1): nbin=pow(2,6.6)
-        elif (vertical_range>0.2 and vertical_range<5): nbin=pow(2,7)
+        elif (vertical_range>0.1 and vertical_range<=5): nbin=pow(2,7)
         else:
             print("Invalid vertical range!!!")
             break
@@ -769,11 +776,11 @@ def gettree():
             fit_range_min = range_min
             fit_range_max = range_max
         else:
-            fit_range_min = 0.1
+            fit_range_min = 0.13
             fit_range_max = range_max
         # initialize histo
+        h_pulse_fall_range_ptp = ROOT.TH1F(f"h_pulse_fall_range_ptp_{bias_current}",f"h_pulse_fall_range_ptp_{bias_current}",nbin,range_min,range_max)
         h_pulse_fall_range = ROOT.TH1F(f"h_pulse_fall_range_{bias_current}",f"h_pulse_fall_range_{bias_current}",nbin,range_min,range_max)
-        h_pulse_fall_range_limitfit = ROOT.TH1F(f"h_pulse_fall_range_{bias_current}_limitfit",f"h_pulse_fall_range_{bias_current}_limitfit",nbin,range_min,range_max)
         h_pulse_fall_tau = ROOT.TH1F("h_pulse_fall_tau","h_pulse_fall_tau",20,0,5)
         h_pulse_FWHM = ROOT.TH1F("h_pulse_FWHM","h_pulse_FWHM",20,0,5)
         h_pre_range = ROOT.TH1F("h_pre_range","h_pre_range",15,0.02,0.17)
@@ -783,10 +790,10 @@ def gettree():
         g_pulse_fall_range = ROOT.TGraph()
         # Project variables to histos
         try:
-            project(intree,h_pulse_fall_range,"pulse_fall_range_ptp","",basename,"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range")
+            project(intree,h_pulse_fall_range_ptp,"pulse_fall_range_ptp","",basename,"pulse_range_ptp (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_ptp")
         except AttributeError:
             continue
-        project(intree,h_pulse_fall_range_limitfit,"pulse_fall_range","",basename,"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range")
+        project(intree,h_pulse_fall_range,"pulse_fall_range","",basename,"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range")
         project(intree,h_pulse_fall_tau,"pulse_fall_tau","pulse_fall_tau>0",basename,"pulse fall time constant (0.4ns)",f"Event",plotDir,"h_pulse_fall_tau")
         project(intree,h_pulse_FWHM,"pulse_FWHM","pulse_FWHM>0 && pulse_FWHM<100",basename,"pulse fall time constant (0.4ns)",f"Event",plotDir,"h_pulse_FWHM")
         project(intree,h_pre_range,"pre_range","",basename,"pre_range (V)","Event",plotDir,"h_pre_range")
@@ -796,7 +803,7 @@ def gettree():
         # h_pulse_fall_range_rebin2 = rebin(h_pulse_fall_range_rebin1,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin2",True)
         # h_pulse_fall_range_rebin3 = rebin(h_pulse_fall_range_rebin2,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin3",True)
         # Fit
-        mean, mean_error, std, std_error, const, const_error, integral, fitResults = fit_histo(h_pulse_fall_range, fit_range_min, fit_range_max, f"fit_pulse_fall_range_{basename}", 'pulse_range (V)', "", f"{plotDir}/fit_pulse_fall_range.png")
+        mean, mean_error, std, std_error, const, const_error, integral, fitResults = fit_histo(h_pulse_fall_range_ptp, fit_range_min, fit_range_max, f"fit_pulse_fall_range_ptp_{basename}", 'pulse_range_ptp (V)', "", f"{plotDir}/fit_pulse_fall_range_ptp.png")
         # Graph
         if (args.initPlot):
             for i,entry in enumerate(intree):
@@ -809,37 +816,31 @@ def gettree():
         # Calculate
         if (const_error>10):
             eff = h_eff.Integral()/intree.GetEntries()
-            pulse_range = h_pulse_fall_range.GetMean()
-            pulse_range_error = h_pulse_fall_range.GetRMS()
+            pulse_range_ptp = h_pulse_fall_range_ptp.GetMean()
+            pulse_range_ptp_error = h_pulse_fall_range_ptp.GetRMS()
             pulse_integrals[basename] = 0
         else:
             eff = h_eff.Integral()/intree.GetEntries()
             # eff = integral/intree.GetEntries()
-            pulse_range = mean
-            pulse_range_error = std
+            pulse_range_ptp = mean
+            pulse_range_ptp_error = std
             pulse_integrals[basename] = integral
         pre_range = h_pre_range.GetMean()
         pulse_fall_tau = h_pulse_fall_tau.GetMean()
         pulse_FWHM = h_pulse_FWHM.GetMean()
         pre_range_err = h_pre_range.GetRMS()
+        pulse_range = h_pulse_fall_range.GetMean()
+        pulse_range_error = h_pulse_fall_range.GetRMS()
         try:
             pulse_range_stderror = h_pulse_fall_range.GetRMS()/math.sqrt(h_pulse_fall_range.Integral())
         except ZeroDivisionError:
             pulse_range_stderror = 0
-        # Append sweep variables
-        if photon_number not in Photons:
-            Photons.append(photon_number)
-        if bias_voltage not in BVs:
-            BVs.append(bias_voltage)
-            BCs.append(bias_current)
-        if polarization not in Polars:
-            Polars.append(polarization)
-        # if sample_temperature not in Temps:
-        Temps.append(sample_temperature)
-        # Fill stats dict
+         # Fill stats dict
         effs[basename] = eff
         pulse_ranges[basename] = pulse_range
         pulse_range_errs[basename] = pulse_range_error
+        pulse_range_ptps[basename] = pulse_range_ptp
+        pulse_range_ptp_errs[basename] = pulse_range_ptp_error
         pre_ranges[basename] = pre_range
         pre_range_errs[basename] = pre_range_err
         pulse_fall_taus[basename] = pulse_fall_tau
@@ -853,13 +854,11 @@ def gettree():
         h_pulse_fall_taus[basename] = h_pulse_fall_tau.Clone()
         h_pulse_FWHMs[basename] = h_pulse_FWHM.Clone()
         h_pre_ranges[basename] = h_pre_range.Clone()
-        h_pulse_fall_ranges[basename] = h_pulse_fall_range.Clone()
-        h_pulse_fall_ranges_limitfit[basename] = h_pulse_fall_range_limitfit.Clone()
+        h_pulse_fall_ranges[basename] = h_pulse_fall_range_ptp.Clone()
         h_pulse_fall_taus[basename].SetDirectory(0)
         h_pulse_FWHMs[basename].SetDirectory(0)
         h_pulse_fall_ranges[basename].SetDirectory(0)
         h_pre_ranges[basename].SetDirectory(0)
-        h_pulse_fall_ranges_limitfit[basename].SetDirectory(0)
         print(f"{basename}: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV, status:{fitResults.Status()}")
 
 def plots():
@@ -890,6 +889,7 @@ def plots():
         sweepAll_plotDir = args.in_filenames[0].rsplit('/',5)[0]
         Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,effs,title="g_eff",ytit="Pulse Detection Efficiency",plotDir=sweepAll_plotDir)
         Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)",plotDir=sweepAll_plotDir)
+        Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,pulse_range_ptps,title="g_pulse_range_ptp",ytit="Pulse range ptp mean (V)",plotDir=sweepAll_plotDir)
         Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)",plotDir=sweepAll_plotDir)
         Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,avgs,title="g_avg",ytit="Average Pulse Range (V)",plotDir=sweepAll_plotDir)
         Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,avgMaxs,title="g_avg_Max",ytit="Average Pulse Max (V)",plotDir=sweepAll_plotDir)
@@ -908,9 +908,9 @@ if __name__ == "__main__":
     ROOT.gStyle.SetPalette(ROOT.kVisibleSpectrum)
     # ROOT.TH1.SetDefaultSumw2(ROOT.kTRUE)
     Photons,BVs,BCs,Polars,Temps = [],[],[],[],[] # List for sweep variables
-    effs, pulse_ranges, pulse_range_errs, pulse_fall_taus, pulse_FWHMs, pulse_integrals, pre_ranges, pre_range_errs, noSignals, noSignals={},{},{},{},{},{},{},{},{},{} # List for stats
+    effs, pulse_ranges, pulse_range_errs, pulse_fall_taus, pulse_FWHMs, pulse_integrals, pre_ranges, pre_range_errs, pulse_range_ptps, pulse_range_ptp_errs, noSignals, noSignals={},{},{},{},{},{},{},{},{},{},{},{} # List for stats
     avgMaxs,avgMins,avgs,range_avgs={},{},{},{}
-    h_pre_ranges,h_pulse_fall_ranges,h_pulse_fall_ranges_limitfit,h_pulse_fall_taus,h_pulse_FWHMs={},{},{},{},{} # List of histos
+    h_pre_ranges,h_pulse_fall_ranges,h_pulse_fall_taus,h_pulse_FWHMs={},{},{},{} # List of histos
     spectrums={} #List of graphs
     gettree() # loop over the input files
     plots() # Plot them together
