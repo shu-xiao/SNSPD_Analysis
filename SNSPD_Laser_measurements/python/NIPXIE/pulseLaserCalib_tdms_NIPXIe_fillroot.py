@@ -148,7 +148,7 @@ def single_pulse_spectrum(chSig,Pulse_spectrums,event):
     if(event<cf.avgMaxCount): Pulse_spectrums.append(graph)
     if(pulse_max[0] > pre_max[0]):
         graph_clone = graph.Clone()
-        Fit_pulse_fall(graph_clone,event)
+        Fit_pulse_fall(graph_clone)
 
 def FWHM(data,value):
     data_xIndex = np.arange(len(data))
@@ -159,7 +159,7 @@ def FWHM(data,value):
     debugPrint(f"{value},{rise_50}, {fall_50}, {fall_50-rise_50}")
     if (cf.DISPLAY): display_spline_fit(data_spline,data_xIndex)
 
-def Fit_pulse_fall(graph,event):
+def Fit_pulse_fall(graph):
     fitFunc_fall, fitResult_fall = Fit_time_constant_fall(graph,pulse_max_T[0],pulse_max_T[0]+30,"SQR","sames",ROOT.kRed)
     pulse_fall_tau[0] = fitFunc_fall.GetParameter(1) if fitResult_fall.Status()<2 else -1
     pulse_fall_A[0] = fitFunc_fall.GetParameter(0) if fitResult_fall.Status()<2 else -1

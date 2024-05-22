@@ -5,6 +5,7 @@ import ROOT
 from array import array
 import argparse
 import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
 import numpy as np
 import math
 import pandas as pd
@@ -195,17 +196,8 @@ def get_info(in_filename):
     sample_temperature = df[df['metaKey'] == 'Sample Temperature (K)']['metaValue'].iloc[0]
     attenuation = 0.03
     photon_number = calculate_pulse_photon(laser_power*1e-6,repetition_rate,attenuation,wavelength)
-   # Append sweep variables
-    if photon_number not in Photons:
-        Photons.append(photon_number)
-    if bias_voltage not in BVs:
-        BVs.append(bias_voltage)
-        BCs.append(bias_current)
-    if polarization not in Polars:
-        Polars.append(polarization)
-    # if sample_temperature not in Temps:
-    Temps.append(sample_temperature)
-    return laser_power, bias_voltage, bias_current, photon_number, polarization, sample_temperature, vertical_range, vertical_offset
+    exp_range = 200*50*bias_current*1e-6
+    return laser_power, bias_voltage, bias_current, photon_number, polarization, sample_temperature, vertical_range, vertical_offset, exp_range
 
 def getkey(photon_number,bias_voltage,polarization,sample_temperature):
     key = str(photon_number) + '_' + str(bias_voltage) + 'mV_' + str(polarization) + 'degrees_' + str(sample_temperature) + 'K'
@@ -218,6 +210,18 @@ def sort_bias(bias, var):
     sorted_var_array= var_array[bias_array.argsort()]
     return sorted_bias_array, sorted_var_array
 
+def range2resist(pulse_range,bias):
+    gain=31.62*31.62
+    load=50
+    Lk=233e-9
+    load_current = pulse_range/(load*gain)
+    load_voltage = pulse_range/gain
+    SNSPD_current = bias-load_current
+    SNSPD_inductance_voltage = -Lk*(load_current/5e-10)
+    resist = (load_voltage-SNSPD_inductance_voltage)/SNSPD_current
+    print(load_voltage,SNSPD_inductance_voltage,bias,load_current,SNSPD_current,resist)
+    return resist
+
 def graph2list(graph):
     list=[]
     for i in range(graph.GetN()):
@@ -226,8 +230,8 @@ def graph2list(graph):
 
 def Graph_sweep_polarization(photon, temp, bvs, bcs, Polars, stat, title="graph", ytit="", ymin=0, ymax=1, plotDir="./"):
     # outfile.cd()
-    # fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    # fig, ax = plt.subplots()
     vals,pols=[],[]
     for ibv, bv in enumerate(bvs):
         for ipolar, polar in enumerate(Polars):
@@ -240,14 +244,15 @@ def Graph_sweep_polarization(photon, temp, bvs, bcs, Polars, stat, title="graph"
                 pass
         print(pols,vals)
         if (len(pols)>2):
-            # pols_rad = np.deg2rad(pols)  # Convert degrees to radians
+            pols_rad = np.deg2rad(pols)  # Convert degrees to radians
             ax.plot(pols, vals, marker='o', markersize=6, fillstyle='none', alpha=0.75, label=f'{bv}mV')
         vals.clear()
         pols.clear()
     ax.grid(True)
     ax.set_title("Detection efficiency (%)", va='bottom')
+    ax.set_
     ax.legend()
-    # ax.set_thetagrids(np.arange(0, 360, 30)) # Set theta gridlines with 30 degree separation
+    ax.set_thetagrids(np.arange(0, 360, 30)) # Set theta gridlines with 30 degree separation
     plt.savefig('Polar.png', format='png')
     plt.close()
 
@@ -356,6 +361,74 @@ def Graph_sweep(polar, temp, photons, bvs, bcs, stat, title="graph", ytit="", pl
     print(f"{plotDir}/{title}_sweep_bias_log.png")
     plt.close()
 
+def normalize_to_smallest(numbers):
+    if not numbers:
+        return []  # Return an empty list if the input list is empty
+    smallest = min(numbers)
+    # Prevent division by zero
+    if smallest == 0:
+        raise ValueError("The list contains zero, which would result in division by zero.")
+    normalized_numbers = [x / smallest for x in numbers]
+    return normalized_numbers
+
+def Normalized_Graph_sweep(polar, temp, photons, bvs, bcs, stat, title="graph", ytit="", plotDir="./"):
+    createDir(f"{plotDir}/Norm")
+    fig, ax = plt.subplots()
+    yvals,xvals=[],[]
+    norms = normalize_to_smallest(photons)
+    for i, bv in enumerate(bvs):
+        for (photon,norm) in zip(photons,norms):
+            key = getkey(photon,bv,polar,temp)
+            try:
+                value = stat[key]
+                yvals.append(value)
+                xvals.append(norm)
+            except KeyError:
+                continue
+        ax.plot(xvals, yvals, marker=markers(i), markersize=6, fillstyle='none', alpha=0.75, label=f'{bv}mV')
+        xvals.clear()
+        yvals.clear()
+    ax.grid(True)
+    ax.set_xlabel('Normalized Laser Intensity',fontsize=15)
+    ax.set_ylabel(ytit,fontsize=15)
+    ax.set_title(f'{title}_sweep_intensity',fontsize=15)
+    ax.legend(title='Bias Voltage')
+    plt.tight_layout()
+    plt.savefig(f"{plotDir}/Norm/{title}_sweep_intensity.png", format='png')
+    print(f"{plotDir}/Norm/{title}_sweep_intensity.png")
+    ax.set_yscale('log')
+    ax.set_title(f'{title}_sweep_intensity_log',fontsize=15)
+    plt.savefig(f"{plotDir}/Norm/{title}_sweep_intensity_log.png", format='png')
+    print(f"{plotDir}/Norm/{title}_sweep_intensity_log.png")
+    plt.close()
+
+    fig1, ax1 = plt.subplots()
+    for i, (photon,norm) in enumerate(zip(photons,norms)):
+        for ibv, bv in enumerate(bvs):
+            key = getkey(photon,bv,polar,temp)
+            try:
+                value = stat[key]
+                yvals.append(value)
+                xvals.append(bv)
+            except KeyError:
+                continue
+        ax1.plot(xvals, yvals, marker=markers(i), markersize=6, fillstyle='none', alpha=0.75, label=f'{norm}')
+        xvals.clear()
+        yvals.clear()
+    ax1.grid(True)
+    ax1.set_xlabel(r'Bias Current ($\mu$A)',fontsize=15)
+    ax1.set_ylabel(ytit,fontsize=15)
+    ax1.set_title(f'{title}_sweep_bias',fontsize=15)
+    ax1.legend(title='Normalized Laser Intensity')
+    plt.tight_layout()
+    plt.savefig(f"{plotDir}/Norm/{title}_sweep_bias.png", format='png')
+    print(f"{plotDir}/Norm/{title}_sweep_bias.png")
+    ax1.set_yscale('log')
+    ax1.set_title(f'{title}_sweep_bias_log',fontsize=15)
+    plt.savefig(f"{plotDir}/Norm/{title}_sweep_bias_log.png", format='png')
+    print(f"{plotDir}/Norm/{title}_sweep_bias_log.png")
+    plt.close()
+
 def Graph_sweep_var_err(bias, var, var_err, title="graph", xtit="Bias Current (#mnA)",ytit=""):
     c1 = ROOT.TCanvas()
     outfile.cd()
@@ -369,6 +442,62 @@ def Graph_sweep_var_err(bias, var, var_err, title="graph", xtit="Bias Current (#
     graph.GetXaxis().SetTitle(xtit)
     graph.GetYaxis().SetTitle(ytit)
     graph.Write()
+
+def fit_pulse_fall(y,plotDir):
+    t=[]
+    for i in range(len(y)):
+        t.append(i)
+    # Convert lists to numpy arrays
+    t = np.array(t)
+    y = np.array(y)
+    # Find the index corresponding to the maximum value of y
+    max_index = np.argmax(y)
+    t_max = t[max_index]
+    # Determine the range for plotting
+    plot_range_min = t_max - 10
+    plot_range_max = t_max + 30
+    # Filter the data for plotting
+    plot_mask = (t >= plot_range_min) & (t <= plot_range_max)
+    t_plot = t[plot_mask]
+    y_plot = y[plot_mask]
+    # Define the exponential decay function with t0
+    def exponential_decay(t, A, tau, C):
+        return A * np.exp(-(t - t_max) / tau) + C
+    # Determine the range for fitting
+    fit_range_min = t_max
+    fit_range_max = t_max + 30
+    # Filter the data for fitting
+    fit_mask = (t >= fit_range_min) & (t <= fit_range_max)
+    t_fit = t[fit_mask]
+    y_fit = y[fit_mask]
+    # Estimate initial guess from data
+    A_initial = max(y_fit) - min(y_fit)  # Amplitude
+    tau_initial = 10  # Just a rough guess based on the time scale of your data
+    C_initial = min(y_fit)  # Offset
+    # Initial guess for the parameters
+    initial_guess = [A_initial, tau_initial, C_initial]
+    # Perform the curve fitting
+    popt, pcov = curve_fit(exponential_decay, t_fit, y_fit, p0=initial_guess)
+    # Extract the fitted parameters
+    A_fitted, tau_fitted, C_fitted = popt
+    # Plot the data and fit
+    plt.figure(figsize=(10, 6))
+    plt.scatter(t_plot, y_plot, label='Data within plot range', color='blue')
+    plt.plot(t_fit, exponential_decay(t_fit, *popt), label='Fitted curve', color='red')
+    plt.xlabel('Time')
+    plt.ylabel('Value')
+    plt.legend()
+    plt.title('Exponential Decay Fit (Fit from t_max to t_max+30)')
+    # Annotate the fitted parameters
+    textstr = '\n'.join((
+        r'$A=%.2f$' % (A_fitted,),
+        r'$\tau=%.2f$' % (tau_fitted,),
+        r'$C=%.2f$' % (C_fitted,)))
+    plt.text(0.05, 0.95, textstr, transform=plt.gca().transAxes, fontsize=14,
+            verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.5))
+    plt.savefig(f"{plotDir}/spectrums_fit_fall.png", format='png')
+    print(f"{plotDir}/spectrums_fit_fall.png")
+    return tau_fitted
 
 def fit_graph_efficiency(graph,rangemin,rangemax,title,xTitle,saveTitle):
     fit = ROOT.TF1("fit","expo",rangemin, rangemax)
@@ -390,7 +519,7 @@ def fit_graph_efficiency(graph,rangemin,rangemax,title,xTitle,saveTitle):
     alt_fit.Draw("same")
     c1.SaveAs(saveTitle)
 
-def fit_histo(hist, rangemin, rangemax, name, xTitle, title, saveTitle):
+def fit_histo(hist, rangemin, rangemax, mean, name, xTitle, title, saveTitle):
     c1 = ROOT.TCanvas()
     fit = ROOT.TF1("fit","gausn",rangemin, rangemax)
     fit.SetLineWidth(1)
@@ -400,9 +529,11 @@ def fit_histo(hist, rangemin, rangemax, name, xTitle, title, saveTitle):
         fit.SetParameter(2,0.02)
     else:
         fit.SetParameter(0,10)
-        fit.SetParameter(1,0.25)
-        fit.SetParameter(2,0.01)
-    # fit.SetParameter(1,(mean_min+mean_max)/2)
+        fit.SetParameter(1,mean)
+        fit.SetParameter(2,0.05)
+        fit.SetParLimits(0,0,10000)
+        fit.SetParLimits(1,0.15,5)
+        fit.SetParLimits(2,0.01,0.08)
     fitResults = hist.Fit("fit",'IQRS')
     mean = fit.GetParameter(1)
     mean_error = fit.GetParError(1)
@@ -423,12 +554,80 @@ def fit_histo(hist, rangemin, rangemax, name, xTitle, title, saveTitle):
     if (args.initPlot): c1.SaveAs(saveTitle)
     return mean, mean_error, std, std_error, const, const_error, integral, fitResults
 
+def multi_histo(polar, temp, photons,bvs,bcs,histos,xtit,plotDir):
+    norms = normalize_to_smallest(photons)
+    c_multi_bv,leg_bv = {},{}
+    ROOT.gStyle.SetOptStat(0)
+    ROOT.gStyle.SetOptFit(0)
+    for ibv, bv in enumerate(bvs):
+        c_multi_bv[bv] = ROOT.TCanvas(f"c_multi_{bv}",f"c_multi_{bv}",600,600)
+        leg_bv[bv] = ROOT.TLegend(0.6,0.6,0.88,0.88)
+        c_multi_bv[bv].SetLogy()
+        index=0
+        for (photon,norm) in zip(photons,norms):
+            key = getkey(photon,bv,polar,temp)
+            try:
+                if (index==0): histos[key].Draw("HIST PLC")
+                else: histos[key].Draw("HISTSame PLC")
+                histos[key].GetXaxis().SetTitle(xtit)
+                histos[key].GetYaxis().SetTitle("")
+                histos[key].GetXaxis().SetRangeUser(-0.5,2)
+                # histos[key].GetYaxis().SetLabelSize(0.1)
+                histos[key].SetTitle("")
+                leg_bv[bv].AddEntry(histos[key],f"{norm:.1f}x","l")
+                index+=1
+            except KeyError:
+                print(key)
+                continue
+        leg_bv[bv].SetHeader("Normalized intensity","C")
+        leg_bv[bv].Draw()
+        c_multi_bv[bv].SaveAs(f"{plotDir}/multi/histos_sweep_photon_{bv}mV.png")
+
+    # c_multi_photon = {}
+    # for iphoton, photon in enumerate(photons):
+    #     c_multi_photon[photon] = ROOT.TCanvas(f"c_multi_{photon}",f"c_multi_{photon}",1800,900)
+    #     c_multi_photon[photon].SetFixedAspectRatio(True)
+    #     ROOT.gStyle.SetPadBorderMode(0)
+    #     cx = 5
+    #     cy = int(len(bvs)/6) if int(len(bvs)%6==0) else int(len(bvs)/6)+1
+    #     c_multi_photon[photon].Divide(cx,cy,0,0)
+    #     index=0
+    #     for ibv, bv in enumerate(bvs):
+    #         key = getkey(photon,bv,polar,temp)
+    #         try:
+    #             pad = c_multi_photon[photon].cd(index+1)
+    #             pad.SetLogy()
+    #             histos[key].GetXaxis().SetTitle(xtit)
+    #             histos[key].GetYaxis().SetTitle("")
+    #             histos[key].GetXaxis().SetLabelSize(0.1)
+    #             histos[key].GetYaxis().SetLabelSize(0.1)
+    #             histos[key].SetTitle("")
+    #             histos[key].SetName(f"{int(photon)}photons_{bcs[ibv]}uA")
+    #             histos[key].Draw()
+    #             ROOT.gPad.Update()
+    #             ROOT.gStyle.SetOptStat(1101)
+    #             stat = histos[key].FindObject("stats")
+    #             stat.SetY1NDC(0.55)
+    #             stat.SetY2NDC(0.99)
+    #             stat.SetX1NDC(0.55)
+    #             stat.SetX2NDC(0.99)
+    #             stat.SetStatFormat("6.2g")
+    #             stat.SetFillStyle(0)
+    #             ROOT.gPad.Modified()
+    #             ROOT.gPad.Draw()
+    #             index+=1
+    #         except KeyError:
+    #             print(key)
+    #             continue
+    #     c_multi_photon[photon].SaveAs(f"{plotDir}/histos_sweep_bv_{photon}.png")
+
+
 def multi_histo_canvas(polar, temp, photons,bvs,bcs,histos,xtit,plotDir):
     c_multi_bv = {}
     for ibv, bv in enumerate(bvs):
         c_multi_bv[bv] = ROOT.TCanvas(f"c_multi_{bv}",f"c_multi_{bv}",1800,900)
         c_multi_bv[bv].SetFixedAspectRatio(True)
-        ROOT.gStyle.SetPadBorderMode(0)
+        # ROOT.gStyle.SetPadBorderMode(0)
         cx = 5
         cy = int(len(photons)/5) if int(len(photons)%5==0) else int(len(photons)/5)+1
         c_multi_bv[bv].Divide(cx,cy,0,0)
@@ -437,7 +636,7 @@ def multi_histo_canvas(polar, temp, photons,bvs,bcs,histos,xtit,plotDir):
             key = getkey(photon,bv,polar,temp)
             try:
                 pad = c_multi_bv[bv].cd(index+1)
-                # pad.SetLogy()
+                pad.SetLogy()
                 histos[key].GetXaxis().SetTitle(xtit)
                 histos[key].GetYaxis().SetTitle("")
                 histos[key].GetXaxis().SetLabelSize(0.1)
@@ -475,7 +674,7 @@ def multi_histo_canvas(polar, temp, photons,bvs,bcs,histos,xtit,plotDir):
             key = getkey(photon,bv,polar,temp)
             try:
                 pad = c_multi_photon[photon].cd(index+1)
-                # pad.SetLogy()
+                pad.SetLogy()
                 histos[key].GetXaxis().SetTitle(xtit)
                 histos[key].GetYaxis().SetTitle("")
                 histos[key].GetXaxis().SetLabelSize(0.1)
@@ -754,8 +953,19 @@ def spectrum_sweep_bias(photon, polar, temp, bvs, bcs, graphs, plotDir="./"):
 def gettree():
     for i, in_filename in enumerate(args.in_filenames):
         print (f"{i}/{len(args.in_filenames)}: {in_filename}")
-        laser_power, bias_voltage, bias_current, photon_number, polarization, sample_temperature, vertical_range, vertical_offset = get_info(in_filename)
-        # if (bias_voltage > 530): continue
+        laser_power, bias_voltage, bias_current, photon_number, polarization, sample_temperature, vertical_range, vertical_offset, exp_range = get_info(in_filename)
+        subset = [777,1088,1399,2333]
+        if (photon_number not in subset): continue
+        # Append sweep variables
+        if photon_number not in Photons:
+            Photons.append(photon_number)
+        if bias_voltage not in BVs:
+            BVs.append(bias_voltage)
+            BCs.append(bias_current)
+        if polarization not in Polars:
+            Polars.append(polarization)
+        # if sample_temperature not in Temps:
+        Temps.append(sample_temperature)
         basename = getkey(photon_number,bias_voltage,polarization,sample_temperature)
         plotDir= in_filename.rsplit("/",1)[0]
         infile = ROOT.TFile.Open(in_filename)
@@ -772,16 +982,17 @@ def gettree():
             break
         range_min, range_max= 0, vertical_range
         binsize = float((range_max-range_min)/nbin)
+        maxTau = int(intree.GetMaximum("pulse_fall_tau"))
         if (args.res):
             fit_range_min = range_min
             fit_range_max = range_max
         else:
-            fit_range_min = 0.13
+            fit_range_min = 0.25
             fit_range_max = range_max
         # initialize histo
-        h_pulse_fall_range_ptp = ROOT.TH1F(f"h_pulse_fall_range_ptp_{bias_current}",f"h_pulse_fall_range_ptp_{bias_current}",nbin,range_min,range_max)
+        h_pulse_fall_range_ptp = ROOT.TH1F(f"h_pulse_fall_range_ptp_{bias_current}",f"h_pulse_fall_range_ptp_{bias_current}",nbin+10,range_min-binsize*10,range_max)
         h_pulse_fall_range = ROOT.TH1F(f"h_pulse_fall_range_{bias_current}",f"h_pulse_fall_range_{bias_current}",nbin,range_min,range_max)
-        h_pulse_fall_tau = ROOT.TH1F("h_pulse_fall_tau","h_pulse_fall_tau",20,0,5)
+        h_pulse_fall_tau = ROOT.TH1F("h_pulse_fall_tau","h_pulse_fall_tau",100,0,maxTau)
         h_pulse_FWHM = ROOT.TH1F("h_pulse_FWHM","h_pulse_FWHM",20,0,5)
         h_pre_range = ROOT.TH1F("h_pre_range","h_pre_range",15,0.02,0.17)
         h_eff = ROOT.TH1F("h_eff","h_eff",2,0,2)
@@ -803,7 +1014,7 @@ def gettree():
         # h_pulse_fall_range_rebin2 = rebin(h_pulse_fall_range_rebin1,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin2",True)
         # h_pulse_fall_range_rebin3 = rebin(h_pulse_fall_range_rebin2,f'{basename}_rebin',"pulse_range (V)",f"Event/{(range_max-range_min)/nbin:.4f}V",plotDir,"h_pulse_fall_range_rebin3",True)
         # Fit
-        mean, mean_error, std, std_error, const, const_error, integral, fitResults = fit_histo(h_pulse_fall_range_ptp, fit_range_min, fit_range_max, f"fit_pulse_fall_range_ptp_{basename}", 'pulse_range_ptp (V)', "", f"{plotDir}/fit_pulse_fall_range_ptp.png")
+        mean, mean_error, std, std_error, const, const_error, integral, fitResults = fit_histo(h_pulse_fall_range_ptp, fit_range_min, fit_range_max, exp_range, f"fit_pulse_fall_range_ptp_{basename}", 'pulse_range_ptp (V)', "", f"{plotDir}/fit_pulse_fall_range_ptp.png")
         # Graph
         if (args.initPlot):
             for i,entry in enumerate(intree):
@@ -814,14 +1025,13 @@ def gettree():
             g_pulse_fall_range.Draw("AP")
             c_graph.SaveAs(f"{plotDir}/fall_range_event.png")
         # Calculate
-        if (const_error>10):
+        if (const_error>10 and mean>fit_range_max and mean<fit_range_min):
             eff = h_eff.Integral()/intree.GetEntries()
             pulse_range_ptp = h_pulse_fall_range_ptp.GetMean()
             pulse_range_ptp_error = h_pulse_fall_range_ptp.GetRMS()
             pulse_integrals[basename] = 0
         else:
             eff = h_eff.Integral()/intree.GetEntries()
-            # eff = integral/intree.GetEntries()
             pulse_range_ptp = mean
             pulse_range_ptp_error = std
             pulse_integrals[basename] = integral
@@ -835,7 +1045,7 @@ def gettree():
             pulse_range_stderror = h_pulse_fall_range.GetRMS()/math.sqrt(h_pulse_fall_range.Integral())
         except ZeroDivisionError:
             pulse_range_stderror = 0
-         # Fill stats dict
+        # Fill stats dict
         effs[basename] = eff
         pulse_ranges[basename] = pulse_range
         pulse_range_errs[basename] = pulse_range_error
@@ -843,32 +1053,36 @@ def gettree():
         pulse_range_ptp_errs[basename] = pulse_range_ptp_error
         pre_ranges[basename] = pre_range
         pre_range_errs[basename] = pre_range_err
-        pulse_fall_taus[basename] = pulse_fall_tau
+        # pulse_fall_taus[basename] = pulse_fall_tau
         pulse_FWHMs[basename] = pulse_FWHM
         spectrums[basename]=graph2list(Pulse_avg_display)
+        # pulse_fall_taus[basename] = fit_pulse_fall(spectrums[basename],plotDir)
         avgMaxs[basename]=max(spectrums[basename])
         avgMins[basename]=min(spectrums[basename])
         avgs[basename]=max(spectrums[basename])-min(spectrums[basename])
         range_avgs[basename]=pulse_ranges[basename]-avgs[basename]
+        resists[basename] = range2resist(avgs[basename],bias_current*1e-6)
         # Histograms
         h_pulse_fall_taus[basename] = h_pulse_fall_tau.Clone()
         h_pulse_FWHMs[basename] = h_pulse_FWHM.Clone()
         h_pre_ranges[basename] = h_pre_range.Clone()
-        h_pulse_fall_ranges[basename] = h_pulse_fall_range_ptp.Clone()
+        h_pulse_fall_ranges[basename] = h_pulse_fall_range.Clone()
+        h_pulse_range_ptps[basename] = h_pulse_fall_range_ptp.Clone()
         h_pulse_fall_taus[basename].SetDirectory(0)
         h_pulse_FWHMs[basename].SetDirectory(0)
         h_pulse_fall_ranges[basename].SetDirectory(0)
         h_pre_ranges[basename].SetDirectory(0)
-        print(f"{basename}: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV, status:{fitResults.Status()}")
+        h_pulse_range_ptps[basename].SetDirectory(0)
+        print(f"{basename}: {eff*100:.1f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV")
 
 def plots():
     print("\n==================== Start plotting ====================")
     # Sort sweep variables
     Photons.sort()
-    print(Photons)
     BVs.sort()
     BCs.sort()
     Polars.sort()
+    print(Photons,BVs)
     # Graphs of stats vs sweep. variables
     if (args.sweepBias):
         sweepBias_plotDir = args.in_filenames[0].rsplit('/',2)[0]
@@ -887,14 +1101,22 @@ def plots():
         multi_histo_canvas_sweep_bias(Photons[0],Polars[0],Temps[0],BVs,BCs,h_pulse_FWHMs,"FWHM",sweepBias_plotDir)
     if (args.sweepAll):
         sweepAll_plotDir = args.in_filenames[0].rsplit('/',5)[0]
-        Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,effs,title="g_eff",ytit="Pulse Detection Efficiency",plotDir=sweepAll_plotDir)
-        Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)",plotDir=sweepAll_plotDir)
-        Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,pulse_range_ptps,title="g_pulse_range_ptp",ytit="Pulse range ptp mean (V)",plotDir=sweepAll_plotDir)
-        Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)",plotDir=sweepAll_plotDir)
-        Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,avgs,title="g_avg",ytit="Average Pulse Range (V)",plotDir=sweepAll_plotDir)
-        Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,avgMaxs,title="g_avg_Max",ytit="Average Pulse Max (V)",plotDir=sweepAll_plotDir)
-        Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,range_avgs,title="g_Range_Avg",ytit="Pulse Range Mean - Average (V)",plotDir=sweepAll_plotDir)
-        multi_histo_canvas(Polars[0],Temps[0],Photons,BVs,BCs,h_pulse_fall_ranges,"Pulse range (V)",sweepAll_plotDir)
+        createDir(sweepAll_plotDir)
+        createDir(f"{sweepAll_plotDir}/multi")
+        # Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,effs,title="g_eff",ytit="Pulse Detection Efficiency",plotDir=sweepAll_plotDir)
+        # Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)",plotDir=sweepAll_plotDir)
+        # Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,pulse_range_ptps,title="g_pulse_range_ptp",ytit="Pulse range ptp mean (V)",plotDir=sweepAll_plotDir)
+        # Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,pulse_fall_taus,title="g_fall_tau",ytit="Fall time constant (0.4ns)",plotDir=sweepAll_plotDir)
+        # Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)",plotDir=sweepAll_plotDir)
+        # Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,avgs,title="g_avg",ytit="Average Pulse Range (V)",plotDir=sweepAll_plotDir)
+        # Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,avgMaxs,title="g_avg_Max",ytit="Average Pulse Max (V)",plotDir=sweepAll_plotDir)
+        # Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,range_avgs,title="g_Range_Avg",ytit="Pulse Range Mean - Average (V)",plotDir=sweepAll_plotDir)
+        # Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,resists,title="g_resist",ytit="Resistance (Ohm)",plotDir=sweepAll_plotDir)
+        # Normalized_Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,pulse_range_ptps,title="g_pulse_range_ptp",ytit="Pulse range ptp mean (V)",plotDir=sweepAll_plotDir)
+        # Normalized_Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,avgs,title="g_avg",ytit="Average Pulse Range (V)",plotDir=sweepAll_plotDir)
+        # Normalized_Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,resists,title="g_resist",ytit="Resistance (Ohm)",plotDir=sweepAll_plotDir)
+        # multi_histo_canvas(Polars[0],Temps[0],Photons,BVs,BCs,h_pulse_fall_ranges,"Pulse range (V)",sweepAll_plotDir)
+        multi_histo(Polars[0],Temps[0],Photons,BVs,BCs,h_pulse_range_ptps,"Pulse range (V)",sweepAll_plotDir)
     if (args.sweepPolarization):
         sweepPolar_plotDir = args.in_filenames[0].split('degrees/')[0].split('/')[0]
         Graph_sweep_polarization(Photons[0],Temps[0],BVs,BCs,Polars,effs,title="g_eff",ytit="Pulse Detection Efficiency",ymin=0,ymax=1.2,plotDir=sweepPolar_plotDir)
@@ -909,8 +1131,8 @@ if __name__ == "__main__":
     # ROOT.TH1.SetDefaultSumw2(ROOT.kTRUE)
     Photons,BVs,BCs,Polars,Temps = [],[],[],[],[] # List for sweep variables
     effs, pulse_ranges, pulse_range_errs, pulse_fall_taus, pulse_FWHMs, pulse_integrals, pre_ranges, pre_range_errs, pulse_range_ptps, pulse_range_ptp_errs, noSignals, noSignals={},{},{},{},{},{},{},{},{},{},{},{} # List for stats
-    avgMaxs,avgMins,avgs,range_avgs={},{},{},{}
-    h_pre_ranges,h_pulse_fall_ranges,h_pulse_fall_taus,h_pulse_FWHMs={},{},{},{} # List of histos
+    avgMaxs,avgMins,avgs,range_avgs,resists={},{},{},{},{}
+    h_pre_ranges,h_pulse_fall_ranges,h_pulse_fall_taus,h_pulse_FWHMs,h_pulse_range_ptps={},{},{},{},{} # List of histos
     spectrums={} #List of graphs
     gettree() # loop over the input files
     plots() # Plot them together

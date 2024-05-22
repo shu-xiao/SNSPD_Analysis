@@ -48,6 +48,7 @@ def calculate_CW_photon(laser_power,recordlength,sampleRate,attenuation,waveleng
     frequency = c / wavelength
     single_photon_energy = h*frequency
     gate=recordlength/sampleRate
+    print(gate)
     photon_number = (SNSPD_power*gate)/single_photon_energy
     return int(photon_number)
 
@@ -89,18 +90,61 @@ def sort_bias(bias, var):
     sorted_var_array= var_array[bias_array.argsort()]
     return sorted_bias_array, sorted_var_array
 
-def Compare_bias_var(bias, var, title="graph", xtit="Bias Current (#muA)",ytit=""):
-    c1 = ROOT.TCanvas()
-    outfile.cd()
-    graph = ROOT.TGraph()
-    st_bias, st_var = sort_bias(bias,var)
-    for i, (b,v) in enumerate(zip(st_bias,st_var)): graph.SetPoint(i,b,v)
-    graph.Draw("AP")
-    graph.SetName(title)
-    graph.SetTitle(title)
-    graph.GetXaxis().SetTitle(xtit)
-    graph.GetYaxis().SetTitle(ytit)
-    graph.Write()
+def Graph_sweep(polar, temp, photons, bvs, bcs, stat, title="graph", ytit="", plotDir="./"):
+    fig, ax = plt.subplots()
+    yvals,xvals=[],[]
+    for i, bv in enumerate(bvs):
+        for photon in photons:
+            key = getkey(photon,bv,polar,temp)
+            try:
+                value = stat[key]
+                yvals.append(value)
+                xvals.append(photon)
+            except KeyError:
+                continue
+        ax.plot(xvals, yvals, marker=markers(i), markersize=6, fillstyle='none', alpha=0.75, label=f'{bv}mV')
+        xvals.clear()
+        yvals.clear()
+    ax.grid(True)
+    ax.set_xlabel('Photon number',fontsize=15)
+    ax.set_ylabel(ytit,fontsize=15)
+    ax.set_title(f'{title}_sweep_photon',fontsize=15)
+    ax.legend(title='Bias Voltage')
+    plt.tight_layout()
+    plt.savefig(f"{plotDir}/{title}_sweep_photon.png", format='png')
+    print(f"{plotDir}/{title}_sweep_photon.png")
+    ax.set_yscale('log')
+    ax.set_title(f'{title}_sweep_photon_log',fontsize=15)
+    plt.savefig(f"{plotDir}/{title}_sweep_photon_log.png", format='png')
+    print(f"{plotDir}/{title}_sweep_photon_log.png")
+    plt.close()
+
+    fig1, ax1 = plt.subplots()
+    for i, photon in enumerate(photons):
+        for ibv, bv in enumerate(bvs):
+            key = getkey(photon,bv,polar,temp)
+            try:
+                value = stat[key]
+                yvals.append(value)
+                xvals.append(bv)
+            except KeyError:
+                continue
+        ax1.plot(xvals, yvals, marker=markers(i), markersize=6, fillstyle='none', alpha=0.75, label=f'{photon}')
+        xvals.clear()
+        yvals.clear()
+    ax1.grid(True)
+    ax1.set_xlabel(r'Bias Current ($\mu$A)',fontsize=15)
+    ax1.set_ylabel(ytit,fontsize=15)
+    ax1.set_title(f'{title}_sweep_bias',fontsize=15)
+    ax1.legend(title='Photon number')
+    plt.tight_layout()
+    plt.savefig(f"{plotDir}/{title}_sweep_bias.png", format='png')
+    print(f"{plotDir}/{title}_sweep_bias.png")
+    ax1.set_yscale('log')
+    ax1.set_title(f'{title}_sweep_bias_log',fontsize=15)
+    plt.savefig(f"{plotDir}/{title}_sweep_bias_log.png", format='png')
+    print(f"{plotDir}/{title}_sweep_bias_log.png")
+    plt.close()
 
 def gettree():
     for i, in_filename in enumerate(args.in_filenames):
@@ -121,38 +165,40 @@ def gettree():
             break
         range_min, range_max= 0, vertical_range
         binsize = float((range_max-range_min)/nbin)
+        maxCount = int(intree.GetMaximum("pulseCount"))
         # initialize histo
-        h_count = ROOT.TH1F("h_count","h_count",30,0,30)
+        h_count = ROOT.TH1F("h_count","h_count",maxCount,0,maxCount)
         h_pulseRange = ROOT.TH1F("h_pulseRange","h_pulseRange",nbin,range_min,range_max)
-
         # Project variables to histos
         project(intree,h_count,"pulseCount","",f"{laser_power}uW_{bias_voltage}mV_{bias_current}uA","Pulse Counts","Event",plotDir,"h_count")
         project(intree,h_pulseRange,"pulseRange","",f"{laser_power}uW_{bias_voltage}mV_{bias_current}uA","Pulse Range (V)","Event",plotDir,"h_range")
-
         # Calculate
         count = h_count.GetMean()
+        count_err = h_count.GetRMS() / math.sqrt(h_count.Integral())
         pulse_range = h_pulseRange.GetMean()
         pulse_range_error = h_pulseRange.GetRMS()
         eff = count/photon_number
+        # Fill stats dict
+        effs[basename] = eff
+        counts[basename] = count
+        count_errs[basename] = count_err
+        pulse_ranges[basename] = pulse_range
         print(f"{basename}: count:{count}, {eff*100:.6f}%, {pulse_range*1000:.1f}mV+-{pulse_range_error*1000:.2f}mV")
 
 def plots():
-    biases, counts, pulse_ranges=[],[],[]
-    for in_filename in args.in_filenames:
-        # bias = float(in_filename.split("mV_")[1].split("nA")[0])/1000
-        laser_power, bias_voltage, bias_current = get_info(in_filename)
-        count, pulse_range = calculate_tree(in_filename,laser_power, bias_voltage, bias_current)
-        biases.append(bias_current)
-        counts.append(count)
-        pulse_ranges.append(pulse_range)
-        print(f"{bias_current}uA: Counts: {count}, {pulse_range*1000:.1f}mV")
-
+    print("\n==================== Start plotting ====================")
+    # Sort sweep variables
+    Photons.sort()
+    print(Photons)
+    BVs.sort()
+    BCs.sort()
+    Polars.sort()
     # Plots
-    Compare_bias_var(biases,counts,title="g_count",ytit="Pulse Counts per time window(%)")
-    Compare_bias_var(biases,pulse_ranges,title="g_pulse_range",ytit="Pulse range mean (V)")
-    # Compare_bias_var(biases,pre_ranges,title="g_pre_range",ytit="Pre range mean (V)")
+    sweepAll_plotDir = args.in_filenames[0].rsplit('/',5)[0]
+    Graph_sweep(Polars[0],Temps[0],Photons,BVs,BCs,counts,title="g_count",ytit="Pulse Counts",plotDir=sweepAll_plotDir)
 
 if __name__ == "__main__":
     Photons,BVs,BCs,Polars,Temps = [],[],[],[],[] # List for sweep variables
+    effs,counts,count_errs,pulse_ranges = {},{},{},{}
     gettree() # loop over the input files
-    # plots() # Plot them together
+    plots() # Plot them together
