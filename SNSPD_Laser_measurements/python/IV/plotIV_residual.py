@@ -28,7 +28,7 @@ def read_file(in_filename,subset=10000000):
     with open(in_filename, 'r') as f:
         hysteresis = int(f.readline().split('=')[1].strip())
         df = pd.read_csv(f, delim_whitespace=True, names=['Volts', 'Currents', 'Resists'])
-    split_index = len(df) // (int(hysteresis/2))
+    split_index = len(df) // hysteresis
     df_1 = df.iloc[:split_index].copy()
     df_1["Currents"] *= 1e6
     df_1['Volts'] *= 1e3
@@ -77,11 +77,11 @@ def plot(temps,graphs,xtitle,ytitle,plotDir,savetitle,xmin=-1,xmax=-1,ymin=-1,ym
 if __name__ == '__main__':
     SampleTc = 12.5
     resists, temps={}, []
-    # bare_spline = bare()
+    bare_spline = bare()
     for i, in_filename in enumerate(args.in_filenames):
         df, Vars = read_file(in_filename)
-        # resists[Vars["temp"]] = (residual(df,bare_spline))
-        resists[Vars["temp"]] = ([df['Currents'],df['Resists']])
+        resists[Vars["temp"]] = (residual(df,bare_spline))
+        # resists[Vars["temp"]] = ([df['Currents'],df['Resists']])
         temps.append(Vars["temp"])
 
     temps.sort()
