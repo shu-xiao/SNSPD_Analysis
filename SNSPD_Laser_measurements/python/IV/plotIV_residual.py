@@ -43,7 +43,7 @@ def read_file(in_filename,subset):
 
 def bare():
     # Bare_file="/wk_cms3/wuhsinyeh/SNSPD/SNSPD_rawdata/Bare/IV_Current_Source/Ch0/Bare_Ch0_300K_20240524_1310.txt"
-    Bare_file="/Volumes/HV620S/SNSPD/SNSPD_rawdata/Bare/IV_Current_Source/Ch0"
+    Bare_file="/Volumes/HV620S/SNSPD/SNSPD_rawdata/Bare/IV_Current_Source/Ch0/Bare_Ch0_300K_20240524_1310.txt"
     df_bare, Vars_bare = read_file(Bare_file, 1000)
     cubic_spline = CubicSpline(df_bare['Currents'], df_bare['Resists'])
     return cubic_spline
