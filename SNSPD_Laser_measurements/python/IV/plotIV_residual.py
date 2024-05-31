@@ -28,7 +28,7 @@ def read_file(in_filename,subset=10000000):
     with open(in_filename, 'r') as f:
         hysteresis = int(f.readline().split('=')[1].strip())
         df = pd.read_csv(f, delim_whitespace=True, names=['Volts', 'Currents', 'Resists'])
-    split_index = len(df) // hysteresis
+    split_index = len(df) // (hysteresis/2)
     df_1 = df.iloc[:split_index].copy()
     df_1["Currents"] *= 1e6
     df_1['Volts'] *= 1e3
