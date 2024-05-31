@@ -77,7 +77,7 @@ def plot(temps,graphs,xtitle,ytitle,plotDir,savetitle,xmin=-1,xmax=-1,ymin=-1,ym
 if __name__ == '__main__':
     SampleTc = 12.5
     resists, temps={}, []
-    bare_spline = bare()
+    # bare_spline = bare()
     for i, in_filename in enumerate(args.in_filenames):
         df, Vars = read_file(in_filename)
         # resists[Vars["temp"]] = (residual(df,bare_spline))
