@@ -3,6 +3,7 @@
 import matplotlib as mpl
 # mpl.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import numpy as np
 import pandas as pd
 import ROOT
@@ -195,6 +196,20 @@ def fit_histo_gaus_limit(hist, rangemin, rangemax, mean_min, mean_max, sigma_min
     return mean, mean_error, std, std_error, const, const_error, integral, fitResults
 
 def color(i):
-    colorwheel = [416, 600, 800, 632, 880, 432, 616, 860, 820, 900, 420, 620, 820, 652, 1000, 452, 636, 842, 863, 823]
+    # tab10, Dark2
+    # Get the Tab10 color palette from Matplotlib
+    palette = plt.get_cmap('tab20').colors
+    # Convert the colors to hex
+    colorhex = [mcolors.to_hex(color) for color in palette]
+    if (i<10): i=i*2
+    else: i=i%10+1
+    ci = ROOT.TColor.GetColor(colorhex[i])
+    # colorwheel = [416, 600, 800, 632, 880, 432, 616, 860, 820, 900, 420, 620, 820, 652, 1000, 452, 636, 842, 863, 823]
     # colorindex = int(i/11) + int(i%11)
-    return colorwheel[i]
+    return ci
+
+def savefig(fig,name):
+    fig.savefig(f'{name}.png')
+    fig.savefig(f'{name}.pdf')
+    print(f'{name}.png')
+    print(f'{name}.pdf')

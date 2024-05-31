@@ -104,7 +104,7 @@ def Simple_pulse_analysis(data, event, ipulse):
     pulse_rise_range[0] = data[cf.Pulse_rise_endT] - data[cf.Pulse_startT]
     pulse_fall_range[0] = data[cf.Pulse_rise_endT] - data[cf.Pulse_fall_endT]
     pulse_rise_range_ptb[0] = pulse_max[0] - pre_mean[0]
-    pulse_fall_range_ptp[0] = np.ptp(data[cf.Pulse_rise_endT:cf.Pulse_endT])
+    pulse_fall_range_ptp[0] = np.ptp(data[cf.Pulse_startT:cf.Pulse_endT])
     pulse_pre_range = (pulse_fall_range[0]-pre_range[0])/pre_range[0]
     debugPrint(f'Rise Range = {pulse_rise_range[0]:.5f}, Fall Range = {pulse_fall_range[0]:.5f}, Pre-range = {pre_range[0]:.5f}, (pulse-pre)/pre = {pulse_pre_range:.5f}')
     debugPrint(f'maxT = {pulse_max_T[0]:.0f}, max = {pulse_max[0]:.2f}')
