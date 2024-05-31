@@ -14,14 +14,7 @@ parser = argparse.ArgumentParser(description='')
 parser.add_argument('in_filenames',nargs="+",help='input filenames')
 args = parser.parse_args()
 
-def sort_temp(temp,var):
-    temp_array = np.array(temp)
-    var_array = np.array(var)
-    sorted_temp_array = np.sort(temp_array)
-    sorted_var_array= var_array[temp_array.argsort()]
-    return sorted_temp_array, sorted_var_array
-
-def read_file(in_filename,subset):
+def read_file(in_filename,subset=10000000):
     print(f"Processing {in_filename}")
     Vars={}
     # Info
@@ -32,8 +25,10 @@ def read_file(in_filename,subset):
     Vars["Source"] = in_filename.split('IV_')[1].split('_Source/')[0]
     Vars["basename"] = in_filename.rsplit('/')[-1].split('.txt')[0]
     # Read the data from the file
-    df = pd.read_csv(in_filename, header=None, delim_whitespace=True, names=['Volts', 'Currents', 'Resists'])
-    split_index = len(df) // 4
+    with open(in_filename, 'r') as f:
+        hysteresis = int(f.readline().split('=')[1].strip())
+        df = pd.read_csv(f, delim_whitespace=True, names=['Volts', 'Currents', 'Resists'])
+    split_index = len(df) // hysteresis
     df_1 = df.iloc[:split_index].copy()
     df_1["Currents"] *= 1e6
     df_1['Volts'] *= 1e3
@@ -44,7 +39,7 @@ def read_file(in_filename,subset):
 def bare():
     Bare_file="/wk_cms3/wuhsinyeh/SNSPD/SNSPD_rawdata/Bare/IV_Current_Source/Ch0/Bare_Ch0_300K_20240524_1310.txt"
     # Bare_file="/Volumes/HV620S/SNSPD/SNSPD_rawdata/Bare/IV_Current_Source/Ch0/Bare_Ch0_300K_20240524_1310.txt"
-    df_bare, Vars_bare = read_file(Bare_file, 1000)
+    df_bare, Vars_bare = read_file(Bare_file)
     cubic_spline = CubicSpline(df_bare['Currents'], df_bare['Resists'])
     return cubic_spline
 
@@ -63,16 +58,16 @@ def find_ic(bc,resist):
 
 def plot(temps,graphs,xtitle,ytitle,plotDir,savetitle,xmin=-1,xmax=-1,ymin=-1,ymax=-1):
     fig,ax = plt.subplots()
-    for i,(graph,temp) in enumerate(zip(graphs,temps)):
-        print(temp)
-        ax.plot(graph[0], graph[1], marker=markers(i), fillstyle='none', linestyle='none', label=f'{temp/SampleTc:.2f}')
-        find_ic(graph[0], graph[1])
+    for i,temp in enumerate(temps):
+        ax.plot(graphs[temp][0], graphs[temp][1], marker=markers(i), fillstyle='none', linestyle='none', label=f'{temp/SampleTc:.2f}')
+        find_ic(graphs[temp][0], graphs[temp][1])
     ax.set_ylabel(ytitle,fontsize=15)
     ax.set_xlabel(xtitle,fontsize=15)
     ax.tick_params(axis='both', which='major', labelsize=12)
     ax.tick_params(axis='both', which='major', labelsize=12)
     ax.legend(title=r'$T$ / $T_{C}$')
     fig.tight_layout()
+    ax.set_xlim(left=2)
     savefig(fig,f"{plotDir}/{savetitle}")
     plt.show()
     ax.set_xlim(13,14.5)
@@ -81,16 +76,16 @@ def plot(temps,graphs,xtitle,ytitle,plotDir,savetitle,xmin=-1,xmax=-1,ymin=-1,ym
 
 if __name__ == '__main__':
     SampleTc = 12.5
-    resists, temps=[], []
+    resists, temps={}, []
     bare_spline = bare()
     for i, in_filename in enumerate(args.in_filenames):
-        df, Vars = read_file(in_filename, 2000)
-        resists.append(residual(df,bare_spline))
+        df, Vars = read_file(in_filename)
+        resists[Vars["temp"]] = (residual(df,bare_spline))
         temps.append(Vars["temp"])
 
+    temps.sort()
     plotDir = 'plots/' + Vars["Sample"] + '/IV/' + Vars["Ch"]
     createDir(plotDir)
-    # sort_temp(temps,resists)
     plot(temps, resists, r"Bias Current ($\mu$A)", r"Resistance (k$\Omega$)", plotDir, "IR_residual")
 
 
