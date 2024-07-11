@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-# python3 python/NIPXIE/plot_examples.py paperStats/4p68K/*_1000mV_240degrees_4p68K_stats.json
-# python3 python/NIPXIE/plot_examples.py paperStats/11p47K/*_104mV_240degrees_11p47KK_stats.json
+# python3 python/NIPXIE/plot_examples.py Stats/4p68K/*_1000mV_240degrees_4p68K_stats.json
+# python3 python/NIPXIE/plot_examples.py Stats/11p47K/*_104mV_240degrees_11p47KK_stats.json
 
 import numpy as np
 import argparse

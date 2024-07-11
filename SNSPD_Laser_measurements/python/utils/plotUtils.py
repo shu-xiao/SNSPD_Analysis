@@ -9,10 +9,19 @@ import pandas as pd
 import ROOT
 # import root_numpy
 
+def colors(i):
+    # Colors for different data sets using tab10 palette
+    colors = plt.cm.tab10.colors[:10]
+    return colors[i]
+
 def markers(i):
     markers = ['o', 's', 'x', '^', 'v', '+', '.', 'd', 'p', 'h',
                '1', '2', '3', '4', '8', '|', '_', ',', '*', 'H']
-    return markers[i]
+    return markers[int(i%20)]
+
+def lines(i):
+    lines = ['-', '--', '-.', ':', (0, (3, 1, 1, 1)), (0, (5, 1)), (0, ()), (0, (3, 5, 1, 5)), (0, (3, 1, 1, 1, 1, 1)), (0, (1, 1))]
+    return lines[i]
 
 def event_display(np,title='Waveform'):
     # Create a line plot of the data
@@ -194,19 +203,6 @@ def fit_histo_gaus_limit(hist, rangemin, rangemax, mean_min, mean_max, sigma_min
     fit.Draw("same")
     c1.SaveAs(saveTitle)
     return mean, mean_error, std, std_error, const, const_error, integral, fitResults
-
-def color(i):
-    # tab10, Dark2
-    # Get the Tab10 color palette from Matplotlib
-    palette = plt.get_cmap('tab20').colors
-    # Convert the colors to hex
-    colorhex = [mcolors.to_hex(color) for color in palette]
-    if (i<10): i=i*2
-    else: i=i%10+1
-    ci = ROOT.TColor.GetColor(colorhex[i])
-    # colorwheel = [416, 600, 800, 632, 880, 432, 616, 860, 820, 900, 420, 620, 820, 652, 1000, 452, 636, 842, 863, 823]
-    # colorindex = int(i/11) + int(i%11)
-    return ci
 
 def savefig(fig,name):
     fig.savefig(f'{name}.png')
