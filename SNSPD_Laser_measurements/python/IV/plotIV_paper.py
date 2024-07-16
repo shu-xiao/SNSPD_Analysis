@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# python3 -m python.IV.plotIV_paper ~/SNSPD_rawdata/SNSPD_5/IV_Current_Source/Ch3/SNSPD_5_Ch3_4p69K_20240502_1212.txt ~/SNSPD_rawdata/SNSPD_5/IV_Current_Source/Ch3/SNSPD_5_Ch3_11p48K_20240504_1937.txt
+
 import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline
 import pandas as pd
@@ -39,8 +41,8 @@ def read_file(in_filename,subset=10000000):
     return subset_df, Vars
 
 def bare():
-    Bare_file="/wk_cms3/wuhsinyeh/SNSPD/SNSPD_rawdata/Bare/IV_Current_Source/Ch0/Bare_Ch0_300K_20240524_1310.txt"
-    # Bare_file="/Volumes/HV620S/SNSPD/SNSPD_rawdata/Bare/IV_Current_Source/Ch0/Bare_Ch0_300K_20240524_1310.txt"
+    # Bare_file="/wk_cms3/wuhsinyeh/SNSPD/SNSPD_rawdata/Bare/IV_Current_Source/Ch0/Bare_Ch0_300K_20240524_1310.txt"
+    Bare_file="/Volumes/HV620S/SNSPD/SNSPD_rawdata/Bare/IV_Current_Source/Ch0/Bare_Ch0_300K_20240524_1310.txt"
     df_bare, Vars_bare = read_file(Bare_file,100000)
     cubic_spline = CubicSpline(df_bare['Currents'], df_bare['Resists'])
     return cubic_spline
@@ -60,47 +62,34 @@ def find_ic(df):
 def plot(temps,graphs,xtitle,ytitle,plotDir,savetitle,xmin=-1,xmax=-1,ymin=-1,ymax=-1):
     fig,ax = plt.subplots()
     for i,temp in enumerate(temps):
-        # label=f'{temp/SampleTc:.2f}'
-        lab=f'{temp}'
+        if (temp==4.69): lab=f'{int((temp/SampleTc)*100)}% (Geiger mode)'
+        elif (temp==11.48): lab=f'{int((temp/SampleTc)*100)}% (Calorimetric mode)'
         ax.plot(graphs[temp][0], graphs[temp][1], marker=markers(i), fillstyle='none', linestyle='none', label=lab)
     ax.set_ylabel(ytitle,fontsize=15)
     ax.set_xlabel(xtitle,fontsize=15)
     ax.tick_params(axis='both', which='major', labelsize=12)
     ax.tick_params(axis='both', which='major', labelsize=12)
     ax.minorticks_on()
-    ax.grid(which='both', linestyle='--', linewidth=0.5)
-    # ax.legend(title=r'$T$ / $T_{C}$')
-    ax.legend(title=r'$T$(K)')
+    # ax.grid(which='both', linestyle='--', linewidth=0.5)
+    ax.legend(title=r'$T$ / $T_{C}$')
     fig.tight_layout()
-    # ax.set_xlim(left=10)
+    ax.set_xlim(left=10)
     # ax.set_yscale('log')
     savefig(fig,f"{plotDir}/{savetitle}")
-    ax.set_xlim(-10,40)
-    ax.set_ylim(9,60)
+    ax.set_xlim(10,20)
+    ax.set_ylim(-1,2)
     savefig(fig,f"{plotDir}/{savetitle}_zoomin")
 
 if __name__ == '__main__':
     SampleTc = 12
     resists, temps, times={}, [], []
-    # bare_spline = bare()
+    bare_spline = bare()
     for i, in_filename in enumerate(args.in_filenames):
         df, Vars = read_file(in_filename)
-        # resists[Vars["temp"]] = (residual(df,bare_spline))
-        resists[Vars["temp"]] = ([df['Currents'],df['Resists']])
-        resists[Vars["time"]] = ([df['Currents'],df['Resists']])
+        resists[Vars["temp"]] = (residual(df,bare_spline))
         temps.append(Vars["temp"])
-        times.append(Vars["time"])
-        # find_ic(df)
 
     temps.sort()
     plotDir = 'plots/' + Vars["Sample"] + '/IV/' + Vars["Ch"]
     createDir(plotDir)
     plot(temps, resists, r"Bias Current ($\mu$A)", r"Resistance (k$\Omega$)", plotDir, "IR_residual")
-    # plot(times, resists, r"Bias Current ($\mu$A)", r"Resistance (k$\Omega$)", plotDir, "IR_residual")
-
-
-# 0.38    127     127.28   0.3
-# 0.83:   32.1    37.5    5.4
-# 0.85:   29.2    34    4.8
-# 0.92:   13.6    21.33    7.73
-# 0.96:   6.6     17.36    10.76
