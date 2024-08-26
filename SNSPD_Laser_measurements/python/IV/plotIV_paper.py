@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 
 from ..utils.osUtils import createDir
-from ..utils.plotUtils import savefig,markers
+from ..utils.plotUtils import savefig,markers,colors
 
 import argparse
 
@@ -41,8 +41,8 @@ def read_file(in_filename,subset=10000000):
     return subset_df, Vars
 
 def bare():
-    # Bare_file="/wk_cms3/wuhsinyeh/SNSPD/SNSPD_rawdata/Bare/IV_Current_Source/Ch0/Bare_Ch0_300K_20240524_1310.txt"
-    Bare_file="/Volumes/HV620S/SNSPD/SNSPD_rawdata/Bare/IV_Current_Source/Ch0/Bare_Ch0_300K_20240524_1310.txt"
+    Bare_file="/wk_cms3/wuhsinyeh/SNSPD/SNSPD_rawdata/Bare/IV_Current_Source/Ch0/Bare_Ch0_300K_20240524_1310.txt"
+    # Bare_file="/Volumes/HV620S/SNSPD/SNSPD_rawdata/Bare/IV_Current_Source/Ch0/Bare_Ch0_300K_20240524_1310.txt"
     df_bare, Vars_bare = read_file(Bare_file,100000)
     cubic_spline = CubicSpline(df_bare['Currents'], df_bare['Resists'])
     return cubic_spline
@@ -64,7 +64,7 @@ def plot(temps,graphs,xtitle,ytitle,plotDir,savetitle,xmin=-1,xmax=-1,ymin=-1,ym
     for i,temp in enumerate(temps):
         if (temp==4.69): lab=f'{int((temp/SampleTc)*100)}% (Geiger mode)'
         elif (temp==11.48): lab=f'{int((temp/SampleTc)*100)}% (Calorimetric mode)'
-        ax.plot(graphs[temp][0], graphs[temp][1], marker=markers(i), fillstyle='none', linestyle='none', label=lab)
+        ax.plot(graphs[temp][0], graphs[temp][1], marker=markers(i), color=colors(1), fillstyle='none', linestyle='none', label=lab)
     ax.set_ylabel(ytitle,fontsize=15)
     ax.set_xlabel(xtitle,fontsize=15)
     ax.tick_params(axis='both', which='major', labelsize=12)
@@ -76,8 +76,8 @@ def plot(temps,graphs,xtitle,ytitle,plotDir,savetitle,xmin=-1,xmax=-1,ymin=-1,ym
     ax.set_xlim(left=10)
     # ax.set_yscale('log')
     savefig(fig,f"{plotDir}/{savetitle}")
-    ax.set_xlim(10,20)
-    ax.set_ylim(-1,2)
+    ax.set_xlim(15,25)
+    # ax.set_ylim(-1,2)
     savefig(fig,f"{plotDir}/{savetitle}_zoomin")
 
 if __name__ == '__main__':

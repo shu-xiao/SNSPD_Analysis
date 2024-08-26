@@ -60,8 +60,8 @@ def event_display_2ch(np1, np2, title='Waveform', offset=0.15):
     # Add labels to the plot
     ax.legend(fontsize='large')
     ax.set_title(title, fontsize=15)
-    ax.set_xlabel('Index [0.4ns]',fontsize=15)
-    ax.set_ylabel('ADC [Volts]',fontsize=15)
+    ax.set_xlabel('Time sample (0.4 ns per sample)',fontsize=15)
+    ax.set_ylabel('ADC (Volts)',fontsize=15)
     plt.tight_layout()
     # ax.set_ylim(-0.25,0.15)
     # ax.set_xlim(760,780)
