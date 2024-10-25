@@ -3,6 +3,7 @@
 # python3 python/NIPXIE/plot_examples.py Stats/4p68K/*_1000mV_240degrees_4p68K_stats.json
 # python3 python/NIPXIE/plot_examples.py Stats/11p47K/*_104mV_240degrees_11p47KK_stats.json
 
+
 import numpy as np
 import argparse
 import json
@@ -44,7 +45,25 @@ def graphs(statname, ytit=""):
     ax.legend()
     ax.tick_params(axis='both', which='major', labelsize=10)
     plt.tight_layout()
-    savefig(fig,f'{plotDir}/Graph_{statname}')
+    savefig(fig,f'{plotDir}/Graph_{statname}_sweepPhoton')
+    plt.close(fig)
+
+def graphs_sweepbias(statname, ytit=""):
+    fig, ax = plt.subplots()
+    yvals,xvals=[],[]
+    for key, stat in Stats.items():
+        photon_number = float(key.split('_')[0])
+        bias = float(key.split('_')[1].split('mV')[0])
+        value = stat[statname]
+        xvals.append(bias/10)
+        yvals.append(value)
+    ax.plot(xvals, yvals, marker='o', markersize=8, fillstyle='full', linestyle='none')
+    ax.set_xlabel(r'Bias Current ($\mu$A)',fontsize=15)
+    ax.set_ylabel(ytit,fontsize=15)
+    ax.legend()
+    ax.tick_params(axis='both', which='major', labelsize=10)
+    plt.tight_layout()
+    savefig(fig,f'{plotDir}/Graph_{statname}_sweepBias')
     plt.close(fig)
 
 def histos(histname,xtit):
@@ -87,6 +106,8 @@ def plots():
     print("\n==================== Start plotting ====================")
     histos("h_pulse_fall_range_ptp","Signal Amplitude (V)")
     graphs("pulse_range_ptp","Signal Amplitude (V)")
+    graphs_sweepbias("pulse_range_ptp","Signal Amplitude (V)")
+    graphs("eff","Efficiency")
     spectrums()
 
 ##### Read the input json files #####
