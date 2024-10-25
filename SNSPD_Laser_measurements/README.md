@@ -26,3 +26,6 @@ python3 python/NIPXIE/plot_examples.py Stats/4p68K/1011_*mV_240degrees_4p68K_sta
 ```
 
 
+# Figures
+
+They are stored in the plots folder
