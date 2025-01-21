@@ -1,4 +1,10 @@
-# Example usage
+# Install Required Packages
+Install Python3 and ROOT first.
+``` sh
+python -m pip install -U matplotlib pandas numpy scipy nptdms
+```
+
+# Example Usage
 The json files are in Stats folder. The code below demonstrate how to draw plots with the json files.
 ``` sh
 git clone git@github.com:Hsin-Yeh/SNSPD_Analysis.git

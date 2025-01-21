@@ -352,7 +352,7 @@ if __name__ == "__main__":
         print("\n##############################")
         print(f"input file: {in_filename}")
         basename = in_filename.rsplit('/',1)[1].split('.tdms')[0]
-        baseDir = in_filename.split('SNSPD_rawdata/')[1].rsplit('/',1)[0]
+        baseDir = in_filename.split('SMSPD_NbTiN_1_1-1_')[1].rsplit('/',1)[0]
         outDir = args.outputDir + '/' + baseDir + '/' + basename
         metaFileName = outDir + '/' + in_filename.rsplit('/',1)[1].split('.tdms')[0] + ".json"
         createDir(outDir)
